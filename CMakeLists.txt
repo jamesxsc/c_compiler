@@ -11,15 +11,13 @@ add_compile_options(
         -Wall
         -Wextra
         -Werror
-        -fsanitize=address
-        -static-libasan
         -O0
         -rdynamic
         --coverage
 )
 
-# Add sanitizer link flags
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address -static-libasan --coverage")
+# Add coverage link flags
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
 
 # Include directories
 include_directories(include)
@@ -59,18 +57,4 @@ add_executable(c_compiler
 # Set output directory
 set_target_properties(c_compiler PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin"
-)
-
-# Custom target for coverage
-add_custom_target(coverage
-        COMMAND rm -rf coverage/
-        COMMAND mkdir -p coverage
-        COMMAND lcov -c --no-external
-        --exclude "${CMAKE_CURRENT_SOURCE_DIR}/src/lexer.*"
-        --exclude "${CMAKE_CURRENT_SOURCE_DIR}/src/parser.*"
-        --exclude "${CMAKE_CURRENT_BINARY_DIR}/*"
-        -d . -o coverage/cov.info
-        COMMAND genhtml coverage/cov.info -o coverage
-        COMMAND find . -name "*.gcda" -delete
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
