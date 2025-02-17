@@ -14,6 +14,8 @@ RUN apt-get update && apt-get install -y --fix-missing \
     gcc \
     lcov \
     make \
+    # JC: CMake for CLion Docker debugging toolchain
+    cmake \
     flex \
     build-essential \
     ca-certificates \
