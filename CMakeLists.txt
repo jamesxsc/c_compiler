@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(c_compiler)
 
-# Compiler settings matching the Makefile
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -22,26 +21,20 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
 # Include directories
 include_directories(include)
 
-# Find Flex and Bison
+# Flex and Bison
 find_package(BISON REQUIRED)
 find_package(FLEX REQUIRED)
-
-# Generate parser with Bison
 BISON_TARGET(Parser
         src/parser.y
         ${CMAKE_CURRENT_BINARY_DIR}/parser.tab.cpp
         DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/parser.tab.hpp
         VERBOSE
 )
-
-# Generate lexer with Flex
 FLEX_TARGET(Scanner
         src/lexer.flex
         ${CMAKE_CURRENT_BINARY_DIR}/lexer.yy.cpp
         DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/lexer.yy.hpp
 )
-
-# Add dependency between Flex and Bison
 ADD_FLEX_BISON_DEPENDENCY(Scanner Parser)
 
 # Get all source files
