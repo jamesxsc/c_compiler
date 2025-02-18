@@ -1,10 +1,11 @@
 #pragma once
 
 #include "ast_node.hpp"
+#include "ast_primary_expression.hpp"
 
 namespace ast {
-
-class IntConstant : public Node
+// TODO decide if this stays in here/ what gets shifted into PrimaryExpression
+class IntConstant : public PrimaryExpression
 {
 private:
     int value_;

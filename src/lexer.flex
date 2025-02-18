@@ -1,4 +1,5 @@
 %option noyywrap
+%option debug
 
 %{
   // A lot of this lexer is based off the ANSI C grammar:
