@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ast_node.hpp"
+#include "ast_parameter_list.hpp"
 
 namespace ast {
 
@@ -8,11 +9,11 @@ class FunctionDeclarator : public Node
 {
 private:
     NodePtr identifier_;
-    NodeListPtr parameters_;
+    ParameterListPtr parameters_;
 
 public:
     FunctionDeclarator(NodePtr identifier) : identifier_(std::move(identifier)){};
-    FunctionDeclarator(NodePtr identifier, NodeListPtr parameters) : identifier_(std::move(identifier)), parameters_(std::move(parameters)){
+    FunctionDeclarator(NodePtr identifier, ParameterListPtr parameters) : identifier_(std::move(identifier)), parameters_(std::move(parameters)){
         std::cout << "FunctionDeclarator constructor called" << std::endl;
     };
 

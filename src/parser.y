@@ -21,6 +21,7 @@
   UnaryExpression* unary_expression;
   MultiplicativeExpression* multiplicative_expression;
   ParameterDeclaration*     parameter_declaration;
+  ParameterList* parameter_list;
   int          	number_int;
   double       	number_float;
   std::string* 	string;
@@ -49,7 +50,8 @@
 %type <node> identifier_list type_name abstract_declarator direct_abstract_declarator initializer initializer_list statement labeled_statement
 %type <node> compound_statement declaration_list expression_statement selection_statement iteration_statement jump_statement
 
-%nterm <node_list> statement_list parameter_list
+%nterm <node_list> statement_list
+%nterm <parameter_list> parameter_list
 
 %nterm <parameter_declaration> parameter_declaration
 
@@ -351,7 +353,7 @@ direct_declarator
 	| direct_declarator '[' constant_expression ']'
 	| direct_declarator '[' ']'
 	| direct_declarator '(' parameter_list ')' {
-        $$ = new FunctionDeclarator(NodePtr($1), NodeListPtr($3));
+        $$ = new FunctionDeclarator(NodePtr($1), ParameterListPtr($3));
 	}
 	| direct_declarator '(' identifier_list ')' {
 	    std::cerr << "Need to support identifier_list in direct_declarator" << std::endl;
@@ -368,8 +370,10 @@ pointer
 
 parameter_list
 // TODO NodeList generic or alternative soln. then can propogate
-	: parameter_declaration { $$ = new NodeList(NodePtr($1)); }
-	| parameter_list ',' parameter_declaration { $1->PushBack(NodePtr($3)); $$=$1; }
+// hmmmmm is the emitrisc/print behaviour what we want?
+// is it so bad to create a parameter list type?
+	: parameter_declaration { $$ = new ParameterList(ParameterDeclarationPtr($1)); }
+	| parameter_list ',' parameter_declaration { $1->PushBack(ParameterDeclarationPtr($3)); $$=$1; }
 	;
 
 parameter_declaration

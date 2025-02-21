@@ -6,6 +6,7 @@ namespace ast {
 
     void FunctionDeclarator::EmitRISC(std::ostream &stream, Context &context, int destReg) const {
         // TODO a better way to distinguish identifier risc for fn label and lw for variable (cx parser)
+        // Yes, split into direct_declarator and primary_expression both take string as constructor
         auto identifier = dynamic_cast<const Identifier *>(identifier_.get());
         stream << identifier->GetIdentifier() << ":" << std::endl;
         // TODO ^^^^ assembly parameter list?
@@ -24,11 +25,10 @@ namespace ast {
         // Store args
         if (parameters_) {
             int idx = 0;
-            for (const auto &it: *parameters_) {
+            for (const auto& param: *parameters_) {
                 // TODO types sizes etc 
-                auto param = dynamic_cast<const ParameterDeclaration *>(it.get());
                 // TODO URGENT force types earlier eg in the parser and members/constructors to avoid these disgraceful casts
-                auto paramIdentifier = dynamic_cast<const Identifier *>(param->GetIdentifier().get());
+                auto* paramIdentifier = dynamic_cast<const Identifier *>(param->GetIdentifier().get());
                 int offset = -frameSize + 4 * (static_cast<int>(parameters_->Size()) - idx);
                 context.CurrentFrame().bindings.insert({paramIdentifier->GetIdentifier(), Variable{
                         .offset = offset,
