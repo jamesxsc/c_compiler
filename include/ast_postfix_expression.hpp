@@ -19,4 +19,6 @@ namespace ast {
         ExpressionPtr child_;
     };
 
+    using PostfixExpressionPtr = std::unique_ptr<const PostfixExpression>;
+
 } // namespace ast

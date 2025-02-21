@@ -1,13 +1,14 @@
 #pragma once
 
 #include "ast_expression.hpp"
+#include "ast_postfix_expression.hpp"
 
 namespace ast {
 
     class UnaryExpression : public Expression
     {
     public:
-        UnaryExpression(ExpressionPtr child) : child_(std::move(child)) {
+        UnaryExpression(PostfixExpressionPtr child) : child_(std::move(child)) {
 
         };
         // TODO support other constructors
@@ -15,7 +16,9 @@ namespace ast {
         void Print(std::ostream &stream) const override;
 
     private:
-        ExpressionPtr child_;
+        PostfixExpressionPtr child_;
     };
+
+    using UnaryExpressionPtr = std::unique_ptr<const UnaryExpression>;
 
 } // namespace ast

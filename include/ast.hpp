@@ -7,7 +7,7 @@
 #include "ast_constant.hpp"
 #include "ast_context.hpp"
 #include "ast_function_declarator.hpp"
-#include "ast_declaration.hpp"
+#include "ast_parameter_declaration.hpp"
 #include "ast_expression.hpp"
 #include "ast_function_definition.hpp"
 #include "ast_identifier.hpp"

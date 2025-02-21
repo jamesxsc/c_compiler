@@ -4,8 +4,7 @@ namespace ast {
 
     void FunctionDefinition::EmitRISC(std::ostream &stream, Context &context, int destReg) const {
         // Emit assembler directives.
-        // TODO: these are just examples ones, make sure you understand
-        // the concept of directives and correct them.
+        // TODO investigate directives and what is actually required for the scope of this project
         stream << ".text" << std::endl;
         stream << ".align 2" << std::endl;
         stream << ".globl f" << std::endl;

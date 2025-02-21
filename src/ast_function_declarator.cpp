@@ -1,13 +1,14 @@
 #include "ast_function_declarator.hpp"
 #include "ast_identifier.hpp"
-#include "ast_declaration.hpp"
+#include "ast_parameter_declaration.hpp"
 
 namespace ast {
 
     void FunctionDeclarator::EmitRISC(std::ostream &stream, Context &context, int destReg) const {
-        // TODO a better way to distinguish identifier risc for fn label and lw for variable
+        // TODO a better way to distinguish identifier risc for fn label and lw for variable (cx parser)
         auto identifier = dynamic_cast<const Identifier *>(identifier_.get());
         stream << identifier->GetIdentifier() << ":" << std::endl;
+        // TODO ^^^^ assembly parameter list?
         int frameSize = 32; // bytes // TODO dynamic size
         context.PushFrame({
                                   .size = frameSize,
@@ -25,8 +26,8 @@ namespace ast {
             int idx = 0;
             for (const auto &it: *parameters_) {
                 // TODO types sizes etc 
-                auto param = dynamic_cast<const Declaration *>(it.get());
-                // Consider forcing types earlier eg in the parser to avoid these disgraceful casts
+                auto param = dynamic_cast<const ParameterDeclaration *>(it.get());
+                // TODO URGENT force types earlier eg in the parser and members/constructors to avoid these disgraceful casts
                 auto paramIdentifier = dynamic_cast<const Identifier *>(param->GetIdentifier().get());
                 int offset = -frameSize + 4 * (static_cast<int>(parameters_->Size()) - idx);
                 context.CurrentFrame().bindings.insert({paramIdentifier->GetIdentifier(), Variable{

@@ -16,10 +16,10 @@ namespace ast {
                 break;
             }
             case MultiplicativeOperator::UnaryPromote: {
-                left_->EmitRISC(stream, context, destReg);
+                right_->EmitRISC(stream, context, destReg);
                 break;
             }
-            // TODO remaining operators
+                // TODO remaining operators
             case MultiplicativeOperator::Divide: {
                 std::cerr << "Divide not implemented" << std::endl;
                 break;
@@ -33,7 +33,8 @@ namespace ast {
     }
 
     void MultiplicativeExpression::Print(std::ostream &stream) const {
-        left_->Print(stream);
+        if (left_ != nullptr)
+            left_->Print(stream);
         switch (op_) {
             case MultiplicativeOperator::Multiply:
                 stream << " * ";
@@ -47,8 +48,7 @@ namespace ast {
             case MultiplicativeOperator::UnaryPromote:
                 break;
         }
-        if (right_ != nullptr)
-            right_->Print(stream);
+        right_->Print(stream);
     }
 
 } // namespace ast

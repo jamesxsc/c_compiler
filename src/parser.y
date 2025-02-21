@@ -1,7 +1,5 @@
 // Adapted from: https://www.lysator.liu.se/c/ANSI-C-grammar-y.html
 
-// TODO Valgrind this
-
 %code requires{
     #include "ast.hpp"
 
@@ -17,8 +15,12 @@
 // Represents the value associated with any kind of AST node.
 %union{
   Node*        	node;
-  Expression*  	expression;
   NodeList*    	node_list;
+  Expression*  	expression; // Will be removed in fullness of time
+  PostfixExpression* postfix_expression;
+  UnaryExpression* unary_expression;
+  MultiplicativeExpression* multiplicative_expression;
+  ParameterDeclaration*     parameter_declaration;
   int          	number_int;
   double       	number_float;
   std::string* 	string;
@@ -34,18 +36,27 @@
 %token STRUCT UNION ENUM ELLIPSIS
 %token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
+// Note: Prefer %nterm over %type
+
 %type <node> translation_unit external_declaration function_definition
-%type <expression> primary_expression postfix_expression argument_expression_list
-%type <expression> unary_expression multiplicative_expression additive_expression shift_expression relational_expression
+%type <expression> primary_expression argument_expression_list
+%type <expression> additive_expression shift_expression relational_expression
 %type <expression> equality_expression and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression
 %type <expression> conditional_expression assignment_expression expression constant_expression
 %type <node> declaration init_declarator_list
 %type <node> init_declarator struct_specifier struct_declaration_list struct_declaration specifier_qualifier_list struct_declarator_list
-%type <node> struct_declarator enum_specifier enumerator_list enumerator declarator direct_declarator pointer parameter_declaration
+%type <node> struct_declarator enum_specifier enumerator_list enumerator declarator direct_declarator pointer
 %type <node> identifier_list type_name abstract_declarator direct_abstract_declarator initializer initializer_list statement labeled_statement
 %type <node> compound_statement declaration_list expression_statement selection_statement iteration_statement jump_statement
 
-%type <node_list> statement_list parameter_list
+%nterm <node_list> statement_list parameter_list
+
+%nterm <parameter_declaration> parameter_declaration
+
+// Expression hierachy
+%nterm <postfix_expression> postfix_expression
+%nterm <unary_expression> unary_expression
+%nterm <multiplicative_expression> multiplicative_expression
 
 %type <string> unary_operator assignment_operator storage_class_specifier
 
@@ -115,7 +126,7 @@ argument_expression_list
 	;
 
 unary_expression
-	: postfix_expression { $$ = new UnaryExpression(ExpressionPtr($1)); }
+	: postfix_expression { $$ = new UnaryExpression(PostfixExpressionPtr($1)); }
 	| INC_OP unary_expression
 	| DEC_OP unary_expression
 //	| unary_operator cast_expression // Casts are not required to be implemented
@@ -145,10 +156,10 @@ unary_operator
 //	;
 // Casts are not required to be implemented
 multiplicative_expression
-    : unary_expression { $$ = new MultiplicativeExpression(ExpressionPtr($1)); }
-    | multiplicative_expression '*' unary_expression { $$ = new MultiplicativeExpression(ExpressionPtr($1), ExpressionPtr($3), MultiplicativeOperator::Multiply); }
-    | multiplicative_expression '/' unary_expression { $$ = new MultiplicativeExpression(ExpressionPtr($1), ExpressionPtr($3), MultiplicativeOperator::Divide); }
-    | multiplicative_expression '%' unary_expression { $$ = new MultiplicativeExpression(ExpressionPtr($1), ExpressionPtr($3), MultiplicativeOperator::Modulo); }
+    : unary_expression { $$ = new MultiplicativeExpression(UnaryExpressionPtr($1)); }
+    | multiplicative_expression '*' unary_expression { $$ = new MultiplicativeExpression(MultiplicativeExpressionPtr($1), UnaryExpressionPtr($3), MultiplicativeOperator::Multiply); }
+    | multiplicative_expression '/' unary_expression { $$ = new MultiplicativeExpression(MultiplicativeExpressionPtr($1), UnaryExpressionPtr($3), MultiplicativeOperator::Divide); }
+    | multiplicative_expression '%' unary_expression { $$ = new MultiplicativeExpression(MultiplicativeExpressionPtr($1), UnaryExpressionPtr($3), MultiplicativeOperator::Modulo); }
     ;
 
 additive_expression
@@ -356,13 +367,14 @@ pointer
 	;
 
 parameter_list
+// TODO NodeList generic or alternative soln. then can propogate
 	: parameter_declaration { $$ = new NodeList(NodePtr($1)); }
 	| parameter_list ',' parameter_declaration { $1->PushBack(NodePtr($3)); $$=$1; }
 	;
 
 parameter_declaration
-	: declaration_specifiers declarator { $$ = new Declaration($1, NodePtr($2)); }
-	| declaration_specifiers abstract_declarator { $$ = new Declaration($1, NodePtr($2)); }
+	: declaration_specifiers declarator { $$ = new ParameterDeclaration($1, NodePtr($2)); }
+	| declaration_specifiers abstract_declarator { $$ = new ParameterDeclaration($1, NodePtr($2)); }
 	| declaration_specifiers
 	;
 

@@ -5,11 +5,11 @@
 
 namespace ast {
 
-    class Declaration : public Node
+    class ParameterDeclaration : public Node
     {
     public:
         // TODO identifier type and possibilities
-        Declaration(TypeSpecifier type, NodePtr identifier) : type_(type), identifier_(std::move(identifier)) {
+        ParameterDeclaration(TypeSpecifier type, NodePtr identifier) : type_(type), identifier_(std::move(identifier)) {
             std::cout << "Declaration constructor called" << std::endl;
         }
         void EmitRISC(std::ostream &stream, Context &context, int destReg) const override;
@@ -19,5 +19,7 @@ namespace ast {
         TypeSpecifier type_;
         NodePtr identifier_;
     };
+
+    using ParameterDeclarationPtr = std::unique_ptr<const ParameterDeclaration>;
 
 } // namespace ast

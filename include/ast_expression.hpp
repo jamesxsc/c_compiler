@@ -5,7 +5,7 @@
 // TODO is there actually any common behaviour between expression types
 namespace ast {
 
-    class Expression : public Node
+     class Expression : public Node
     {
     public:
         virtual ~Expression() = default;
