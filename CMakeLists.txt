@@ -10,6 +10,7 @@ add_compile_options(
         -Wall
         -Wextra
         -Werror
+        -Wno-unused-parameter
         -O0
         -rdynamic
         --coverage

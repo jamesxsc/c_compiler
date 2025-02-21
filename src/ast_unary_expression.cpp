@@ -2,8 +2,8 @@
 
 namespace ast {
 
-    void UnaryExpression::EmitRISC(std::ostream &stream, Context &context) const {
-        child_->EmitRISC(stream, context);
+    void UnaryExpression::EmitRISC(std::ostream &stream, Context &context, int destReg) const {
+        child_->EmitRISC(stream, context, destReg);
     }
 
     void UnaryExpression::Print(std::ostream &stream) const {

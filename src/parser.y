@@ -39,11 +39,11 @@
 %type <expression> conditional_expression assignment_expression expression constant_expression
 %type <node> declaration init_declarator_list
 %type <node> init_declarator struct_specifier struct_declaration_list struct_declaration specifier_qualifier_list struct_declarator_list
-%type <node> struct_declarator enum_specifier enumerator_list enumerator declarator direct_declarator pointer parameter_list parameter_declaration
+%type <node> struct_declarator enum_specifier enumerator_list enumerator declarator direct_declarator pointer parameter_declaration
 %type <node> identifier_list type_name abstract_declarator direct_abstract_declarator initializer initializer_list statement labeled_statement
 %type <node> compound_statement declaration_list expression_statement selection_statement iteration_statement jump_statement
 
-%type <node_list> statement_list
+%type <node_list> statement_list parameter_list
 
 %type <string> unary_operator assignment_operator storage_class_specifier
 
@@ -85,7 +85,9 @@ function_definition
 
 
 primary_expression
-	: IDENTIFIER
+	: IDENTIFIER {
+	    $$ = new Identifier(*$1);
+	}
 	| INT_CONSTANT {
 		$$ = new IntConstant($1);
 	}
@@ -141,10 +143,10 @@ unary_operator
 //	;
 // Casts are not required to be implemented
 multiplicative_expression
-    : unary_expression
-    | multiplicative_expression '*' unary_expression { $$ = new MultiplicativeExpression(ExpressionPtr($1), ExpressionPtr($3)); }
-    | multiplicative_expression '/' unary_expression
-    | multiplicative_expression '%' unary_expression
+    : unary_expression { $$ = new MultiplicativeExpression(ExpressionPtr($1)); }
+    | multiplicative_expression '*' unary_expression { $$ = new MultiplicativeExpression(ExpressionPtr($1), ExpressionPtr($3), MultiplicativeOperator::Multiply); }
+    | multiplicative_expression '/' unary_expression { $$ = new MultiplicativeExpression(ExpressionPtr($1), ExpressionPtr($3), MultiplicativeOperator::Divide); }
+    | multiplicative_expression '%' unary_expression { $$ = new MultiplicativeExpression(ExpressionPtr($1), ExpressionPtr($3), MultiplicativeOperator::Modulo); }
     ;
 
 additive_expression
@@ -330,16 +332,19 @@ declarator
 
 direct_declarator
 	: IDENTIFIER {
-		$$ = new Identifier(std::move(*$1));
-		delete $1;
+		$$ = new Identifier(*$1);
 	}
 	| '(' declarator ')'
 	| direct_declarator '[' constant_expression ']'
 	| direct_declarator '[' ']'
-	| direct_declarator '(' parameter_list ')'
-	| direct_declarator '(' identifier_list ')'
+	| direct_declarator '(' parameter_list ')' {
+        $$ = new FunctionDeclarator(NodePtr($1), NodeListPtr($3));
+	}
+	| direct_declarator '(' identifier_list ')' {
+	    std::cerr << "Need to support identifier_list in direct_declarator" << std::endl;
+	}
 	| direct_declarator '(' ')' {
-		$$ = new DirectDeclarator(NodePtr($1));
+		$$ = new FunctionDeclarator(NodePtr($1));
 	}
 	;
 
@@ -349,16 +354,17 @@ pointer
 	;
 
 parameter_list
-	: parameter_declaration
-	| parameter_list ',' parameter_declaration
+	: parameter_declaration { $$ = new NodeList(NodePtr($1)); }
+	| parameter_list ',' parameter_declaration { $1->PushBack(NodePtr($3)); $$=$1; }
 	;
 
 parameter_declaration
-	: declaration_specifiers declarator
-	| declaration_specifiers abstract_declarator
+	: declaration_specifiers declarator { $$ = new Declaration($1, NodePtr($2)); }
+	| declaration_specifiers abstract_declarator { $$ = new Declaration($1, NodePtr($2)); }
 	| declaration_specifiers
 	;
 
+// TODO is this strictly required given K&R style declarations are not required
 identifier_list
 	: IDENTIFIER
 	| identifier_list ',' IDENTIFIER
@@ -416,18 +422,22 @@ labeled_statement
 compound_statement
 	: '{' '}' {
 		// TODO: correct this
+		std::cerr << "Need to fix issues in compound_statement" << std::endl;
 		$$ = nullptr;
 	}
 	| '{' statement_list '}' {
 		$$ = $2;
+		std::cerr << "Need to fix issues in compound_statement" << std::endl;
 	}
 	| '{' declaration_list '}' {
 		// TODO: correct this
 		$$ = nullptr;
+		std::cerr << "Need to fix issues in compound_statement" << std::endl;
 	}
 	| '{' declaration_list statement_list '}'  {
 		// TODO: correct this
 		$$ = nullptr;
+		std::cerr << "Need to fix issues in compound_statement" << std::endl;
 	}
 	;
 

@@ -12,7 +12,7 @@ class Node
 {
 public:
     virtual ~Node() {}
-    virtual void EmitRISC(std::ostream& stream, Context& context) const = 0;
+    virtual void EmitRISC(std::ostream& stream, Context& context, int destReg) const = 0;
     virtual void Print(std::ostream& stream) const = 0;
 };
 
@@ -31,8 +31,12 @@ public:
     NodeList(NodePtr first_node) { nodes_.push_back(std::move(first_node)); }
 
     void PushBack(NodePtr item);
-    virtual void EmitRISC(std::ostream& stream, Context& context) const override;
+    [[nodiscard]] std::vector<NodePtr>::const_iterator begin() const;
+    [[nodiscard]] std::vector<NodePtr>::const_iterator end() const;
+    virtual void EmitRISC(std::ostream& stream, Context& context, int destReg) const override;
     virtual void Print(std::ostream& stream) const override;
 };
+
+using NodeListPtr = std::unique_ptr<const NodeList>;
 
 } // namespace ast

@@ -1,12 +1,41 @@
 #pragma once
 
+#include <bitset>
+#include <vector>
+#include <string>
+#include <unordered_map>
+
 namespace ast {
+    struct Variable {
+        int offset;
+        int size;
+        int reg;
+    };
+
+    struct StackFrame {
+        int size;
+        std::unordered_map<std::string, Variable> bindings;
+    };
+
 // An object of class Context is passed between ast nodes during compilation.
 // This can be used to pass around information about what's currently being
 // compiled (e.g. function scope and variable names).
-class Context
-{
-    /* TODO decide what goes inside here */
-};
+    class Context {
+    public:
+        Context() : temporaries_(0) {}
+
+        int AllocateTemporary();
+
+        void FreeTemporary(int index);
+
+        StackFrame &CurrentFrame();
+
+        void PushFrame(const StackFrame &frame);
+
+    private:
+        std::bitset<7> temporaries_; // using t0... notation for contiguous numbering
+        std::vector<StackFrame> stack_;
+
+    };
 
 } // namespace ast

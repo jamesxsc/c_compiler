@@ -7,7 +7,7 @@ void NodeList::PushBack(NodePtr item)
     nodes_.push_back(std::move(item));
 }
 
-void NodeList::EmitRISC(std::ostream& stream, Context& context) const
+void NodeList::EmitRISC(std::ostream& stream, Context& context, int destReg) const
 {
     for (const auto& node : nodes_)
     {
@@ -15,7 +15,7 @@ void NodeList::EmitRISC(std::ostream& stream, Context& context) const
         {
             continue;
         }
-        node->EmitRISC(stream, context);
+        node->EmitRISC(stream, context, destReg);
     }
 }
 
@@ -30,5 +30,13 @@ void NodeList::Print(std::ostream& stream) const
         node->Print(stream);
     }
 }
+
+    std::vector<NodePtr>::const_iterator NodeList::begin() const {
+        return nodes_.begin();
+    }
+
+    std::vector<NodePtr>::const_iterator NodeList::end() const {
+        return nodes_.end();
+    }
 
 }
