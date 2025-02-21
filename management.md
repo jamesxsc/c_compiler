@@ -17,5 +17,20 @@
   - E.g. the challenges of types and how the structure of the AST types/inheritance affects writing code.
   - What information is required in the Context object.
 - Naming consistency - quickly became confusing without adopting a consistent style/approach.
+- There may be things that get untidy - but prioritise making them neat as it makes future problems/features easier to solve/develop.
+
+# Milestones (Draft)
+
+* Full expression hierarchy
+* Prepare code for other types/ variable sizes
+* Local variables (scoping?)
+* Structs
+* Control blocks - if-else/while etc.
+* Arrays local or global
+* Enum
+* Ternary operator
+* Sizeof
+* Pointers
+
 
 Needs more who did what and collaboration stuff
