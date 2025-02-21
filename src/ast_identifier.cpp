@@ -11,7 +11,7 @@ namespace ast {
         int offset = it->second.offset;
 
         // Assuming temporary numbering here
-        stream << "lw t" << destReg << ", " << offset << "(sp)" << std::endl;
+        stream << "lw t" << destReg << ", " << offset << "(s0)" << std::endl;
     }
 
     void Identifier::Print(std::ostream &stream) const {

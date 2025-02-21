@@ -10,7 +10,7 @@ namespace ast {
                 left_->EmitRISC(stream, context, leftReg);
                 int rightReg = context.AllocateTemporary();
                 right_->EmitRISC(stream, context, rightReg);
-                stream << "mul x" << destReg << " t" << leftReg << " t" << rightReg << std::endl;
+                stream << "mul x" << destReg << ",t" << leftReg << ",t" << rightReg << std::endl;
                 context.FreeTemporary(leftReg);
                 context.FreeTemporary(rightReg);
                 break;

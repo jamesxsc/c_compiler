@@ -33,6 +33,7 @@ public:
     void PushBack(NodePtr item);
     [[nodiscard]] std::vector<NodePtr>::const_iterator begin() const;
     [[nodiscard]] std::vector<NodePtr>::const_iterator end() const;
+    [[nodiscard]] size_t Size() const;
     virtual void EmitRISC(std::ostream& stream, Context& context, int destReg) const override;
     virtual void Print(std::ostream& stream) const override;
 };
