@@ -24,6 +24,7 @@
 # Milestones (Draft)
 
 * Cerr outputs for all unsupported features
+* Other multiplication operations
 * Full expression hierarchy
 * Prepare code for other types/ variable sizes
 * Local variables (scoping?)

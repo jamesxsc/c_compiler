@@ -1,0 +1,45 @@
+#include "ast_additive_expression.hpp"
+
+namespace ast {
+
+    void AdditiveExpression::EmitRISC(std::ostream &stream, Context &context, int destReg) const {
+        switch (op_) {
+            // Blocks to allow reuse of variable names
+            case AdditiveOperator::Add: {
+                int leftReg = context.AllocateTemporary();
+                left_->EmitRISC(stream, context, leftReg);
+                int rightReg = context.AllocateTemporary();
+                right_->EmitRISC(stream, context, rightReg);
+                stream << "add x" << destReg << ",t" << leftReg << ",t" << rightReg << std::endl;
+                context.FreeTemporary(leftReg);
+                context.FreeTemporary(rightReg);
+                break;
+            }
+            case AdditiveOperator::Subtract: {
+                // TODO implement subtraction
+                break;
+            }
+            case AdditiveOperator::MultiplicativePromote: {
+                right_->EmitRISC(stream, context, destReg);
+                break;
+            }
+        }
+    }
+
+    void AdditiveExpression::Print(std::ostream &stream) const {
+        if (left_ != nullptr)
+            left_->Print(stream);
+        switch (op_) {
+            case AdditiveOperator::Add:
+                stream << " + ";
+                break;
+            case AdditiveOperator::Subtract:
+                stream << " - ";
+                break;
+            case AdditiveOperator::MultiplicativePromote:
+                break;
+        }
+        right_->Print(stream);
+    }
+
+}

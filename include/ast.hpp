@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "ast_additive_expression.hpp"
 #include "ast_constant.hpp"
 #include "ast_context.hpp"
 #include "ast_direct_declarator.hpp"
