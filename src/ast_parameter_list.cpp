@@ -14,9 +14,8 @@ namespace ast {
             for (const auto& param: parameters_) {
                 // TODO types sizes etc
                 // TODO correct frame size and stack structure logic
-                auto* paramIdentifier = dynamic_cast<const Identifier *>(param->GetIdentifier().get());
                 int offset = -32 + 4 * (static_cast<int>(Size()) - idx);
-                context.CurrentFrame().bindings.insert({paramIdentifier->GetIdentifier(), Variable{
+                context.CurrentFrame().bindings.insert({param->GetIdentifier(), Variable{
                         .offset = offset,
                         .size = 4,
                         .reg = -1

@@ -17,10 +17,13 @@
   - E.g. the challenges of types and how the structure of the AST types/inheritance affects writing code.
   - What information is required in the Context object.
 - Naming consistency - quickly became confusing without adopting a consistent style/approach.
+  - With exceptions like function declarator - but these are clear if you read the parser
+    - Good example to discuss as declarator handles just variable declarations and function declarations
 - There may be things that get untidy - but prioritise making them neat as it makes future problems/features easier to solve/develop.
 
 # Milestones (Draft)
 
+* Cerr outputs for all unsupported features
 * Full expression hierarchy
 * Prepare code for other types/ variable sizes
 * Local variables (scoping?)

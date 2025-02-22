@@ -7,12 +7,11 @@ namespace ast {
     }
 
     void ParameterDeclaration::Print(std::ostream &stream) const {
-        stream << type_ << " ";
-        identifier_->Print(stream);
+        stream << type_ << " " << identifier_->GetIdentifier();
     }
 
-    const NodePtr &ParameterDeclaration::GetIdentifier() const {
-        return identifier_;
+    const std::string &ParameterDeclaration::GetIdentifier() const {
+        return identifier_->GetIdentifier();
     }
 
 } // namespace ast

@@ -2,6 +2,7 @@
 
 %code requires{
     #include "ast.hpp"
+    #include <cassert>
 
 	using namespace ast;
 
@@ -21,6 +22,7 @@
   UnaryExpression* unary_expression;
   MultiplicativeExpression* multiplicative_expression;
   ParameterDeclaration*     parameter_declaration;
+  DirectDeclarator*         direct_declarator;
   ParameterList* parameter_list;
   int          	number_int;
   double       	number_float;
@@ -46,13 +48,15 @@
 %type <expression> conditional_expression assignment_expression expression constant_expression
 %type <node> declaration init_declarator_list
 %type <node> init_declarator struct_specifier struct_declaration_list struct_declaration specifier_qualifier_list struct_declarator_list
-%type <node> struct_declarator enum_specifier enumerator_list enumerator declarator direct_declarator pointer
+%type <node> struct_declarator enum_specifier enumerator_list enumerator pointer
 %type <node> identifier_list type_name abstract_declarator direct_abstract_declarator initializer initializer_list statement labeled_statement
 %type <node> compound_statement declaration_list expression_statement selection_statement iteration_statement jump_statement
 
 %nterm <node_list> statement_list
 %nterm <parameter_list> parameter_list
 
+// TODO separate declarator and direct_declarator layers
+%nterm <direct_declarator> direct_declarator declarator
 %nterm <parameter_declaration> parameter_declaration
 
 // Expression hierachy
@@ -89,10 +93,16 @@ external_declaration
 
 function_definition
 	: declaration_specifiers declarator declaration_list compound_statement {
-	    $$ = new FunctionDefinition($1, NodePtr($2), NodePtr($3), NodePtr($4));
+	    // Check we didn't somehow get a non-function declarator
+	    auto * decl = dynamic_cast<FunctionDeclarator*>($2);
+	    assert(decl != nullptr && "Expected a function declarator in function_definition");
+	    $$ = new FunctionDefinition($1, FunctionDeclaratorPtr(decl), NodePtr($3), NodePtr($4));
 	}
 	| declaration_specifiers declarator compound_statement {
-		$$ = new FunctionDefinition($1, NodePtr($2), NodePtr($3));
+	    // Check we didn't somehow get a non-function declarator
+	    auto * decl = dynamic_cast<FunctionDeclarator*>($2);
+	    assert(decl != nullptr && "Expected a function declarator in function_definition");
+		$$ = new FunctionDefinition($1, FunctionDeclaratorPtr(decl), NodePtr($3));
 	}
 	| declarator declaration_list compound_statement
 	| declarator compound_statement
@@ -345,21 +355,22 @@ declarator
 	| direct_declarator { $$ = $1; }
 	;
 
+// TODO this is complicated and may need more work
 direct_declarator
 	: IDENTIFIER {
-		$$ = new Identifier(*$1);
+		$$ = new DirectDeclarator(*$1);
 	}
 	| '(' declarator ')'
 	| direct_declarator '[' constant_expression ']'
 	| direct_declarator '[' ']'
 	| direct_declarator '(' parameter_list ')' {
-        $$ = new FunctionDeclarator(NodePtr($1), ParameterListPtr($3));
+        $$ = new FunctionDeclarator(DirectDeclaratorPtr($1), ParameterListPtr($3));
 	}
 	| direct_declarator '(' identifier_list ')' {
 	    std::cerr << "Need to support identifier_list in direct_declarator" << std::endl;
 	}
 	| direct_declarator '(' ')' {
-		$$ = new FunctionDeclarator(NodePtr($1));
+		$$ = new FunctionDeclarator(DirectDeclaratorPtr($1));
 	}
 	;
 
@@ -369,16 +380,13 @@ pointer
 	;
 
 parameter_list
-// TODO NodeList generic or alternative soln. then can propogate
-// hmmmmm is the emitrisc/print behaviour what we want?
-// is it so bad to create a parameter list type?
 	: parameter_declaration { $$ = new ParameterList(ParameterDeclarationPtr($1)); }
 	| parameter_list ',' parameter_declaration { $1->PushBack(ParameterDeclarationPtr($3)); $$=$1; }
 	;
 
 parameter_declaration
-	: declaration_specifiers declarator { $$ = new ParameterDeclaration($1, NodePtr($2)); }
-	| declaration_specifiers abstract_declarator { $$ = new ParameterDeclaration($1, NodePtr($2)); }
+	: declaration_specifiers declarator { $$ = new ParameterDeclaration($1, DirectDeclaratorPtr($2)); }
+	| declaration_specifiers abstract_declarator
 	| declaration_specifiers
 	;
 

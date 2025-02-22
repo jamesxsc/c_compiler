@@ -2,23 +2,27 @@
 
 #include "ast_node.hpp"
 #include "ast_parameter_list.hpp"
+#include "ast_direct_declarator.hpp"
 
 namespace ast {
 
-class FunctionDeclarator : public Node
-{
-private:
-    NodePtr identifier_;
-    ParameterListPtr parameters_;
+    class FunctionDeclarator : public DirectDeclarator {
+    private:
+        // Identifier is stored in DirectDeclarator base class
+        ParameterListPtr parameterList_;
 
-public:
-    FunctionDeclarator(NodePtr identifier) : identifier_(std::move(identifier)){};
-    FunctionDeclarator(NodePtr identifier, ParameterListPtr parameters) : identifier_(std::move(identifier)), parameters_(std::move(parameters)){
-        std::cout << "FunctionDeclarator constructor called" << std::endl;
+    public:
+        explicit FunctionDeclarator(DirectDeclaratorPtr identifier) : DirectDeclarator(
+                identifier->GetIdentifier()) {};
+
+        FunctionDeclarator(DirectDeclaratorPtr identifier, ParameterListPtr parameters)
+                : DirectDeclarator(identifier->GetIdentifier()), parameterList_(std::move(parameters)) {};
+
+        void EmitRISC(std::ostream &stream, Context &context, int destReg) const override;
+
+        void Print(std::ostream &stream) const override;
     };
 
-    void EmitRISC(std::ostream& stream, Context& context, int destReg) const override;
-    void Print(std::ostream& stream) const override;
-};
+    using FunctionDeclaratorPtr = std::unique_ptr<const FunctionDeclarator>;
 
 } // namespace ast
