@@ -24,6 +24,7 @@
 # Milestones (Draft)
 
 * Cerr outputs for all unsupported features
+* Register system/type for passing dest reg - at the moment we don't distinguish x and t type which is big bad (why ADD1 fails)
 * Other multiplication operations
 * Full expression hierarchy
 * Prepare code for other types/ variable sizes

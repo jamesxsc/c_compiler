@@ -21,7 +21,8 @@ FS  (f|F|l|L)
 IS  (u|U|l|L)*
 
 %%
-"/*"			{}
+"/*"([^*]|\*+[^*/])*\*+"/"     { }
+"//".*                         { }
 
 "auto"			{return(AUTO);}
 "break"			{return(BREAK);}

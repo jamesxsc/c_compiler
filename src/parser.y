@@ -22,6 +22,7 @@
   UnaryExpression* unary_expression;
   MultiplicativeExpression* multiplicative_expression;
   AdditiveExpression* additive_expression;
+  ShiftExpression* shift_expression;
   ParameterDeclaration*     parameter_declaration;
   DirectDeclarator*         direct_declarator;
   ParameterList* parameter_list;
@@ -44,7 +45,7 @@
 
 %type <node> translation_unit external_declaration function_definition
 %type <expression> primary_expression argument_expression_list
-%type <expression> shift_expression relational_expression
+%type <expression> relational_expression
 %type <expression> equality_expression and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression
 %type <expression> conditional_expression assignment_expression expression constant_expression
 %type <node> declaration init_declarator_list
@@ -65,6 +66,7 @@
 %nterm <unary_expression> unary_expression
 %nterm <multiplicative_expression> multiplicative_expression
 %nterm <additive_expression> additive_expression
+%nterm <shift_expression> shift_expression
 
 %type <string> unary_operator assignment_operator storage_class_specifier
 
@@ -183,9 +185,9 @@ additive_expression
 	;
 
 shift_expression
-	: additive_expression
-	| shift_expression LEFT_OP additive_expression
-	| shift_expression RIGHT_OP additive_expression
+	: additive_expression { $$ = new ShiftExpression(AdditiveExpressionPtr($1)); }
+	| shift_expression LEFT_OP additive_expression { $$ = new ShiftExpression(ShiftExpressionPtr($1), AdditiveExpressionPtr($3), ShiftOperator::Left); }
+	| shift_expression RIGHT_OP additive_expression { $$ = new ShiftExpression(ShiftExpressionPtr($1), AdditiveExpressionPtr($3), ShiftOperator::Right); }
 	;
 
 relational_expression

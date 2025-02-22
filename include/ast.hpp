@@ -20,6 +20,7 @@
 #include "ast_postfix_expression.hpp"
 #include "ast_primary_expression.hpp"
 #include "ast_type_specifier.hpp"
+#include "ast_shift_expression.hpp"
 #include "ast_unary_expression.hpp"
 
 ast::NodePtr ParseAST(std::string file_name);
