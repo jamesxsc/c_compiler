@@ -7,6 +7,7 @@ namespace ast {
     void FunctionDeclarator::EmitRISC(std::ostream &stream, Context &context, int destReg) const {
         // TODO a better way to distinguish identifier risc for fn label and lw for variable (cx parser)
         // Yes, split into direct_declarator and primary_expression both take string as constructor
+        stream << ".globl " << GetIdentifier() << std::endl;
         stream << GetIdentifier() << ":" << std::endl;
         // TODO ^^^^ assembly parameter list?
         int frameSize = 32; // bytes // TODO dynamic size

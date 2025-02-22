@@ -20,6 +20,7 @@ namespace ast {
                         .size = 4,
                         .reg = -1
                 }});
+                // TODO this overlaps the stack with the return address - fix indexing logic
                 stream << "sw a" << idx << ", " << offset << "(s0)" << std::endl;
                 ++idx;
             }

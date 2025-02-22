@@ -7,7 +7,7 @@ namespace ast {
         // TODO investigate directives and what is actually required for the scope of this project
         stream << ".text" << std::endl;
         stream << ".align 2" << std::endl;
-        stream << ".globl f" << std::endl;
+        // .globl directive is handled by declarator
 
         declarator_->EmitRISC(stream, context, destReg);
 

@@ -1,6 +1,4 @@
-//
-// Created by James Conway on 22/02/2025.
-//
+/* Created by James Conway on 22/02/2025. */
 
 int left_shift(int x, int n) {
     return x << n;

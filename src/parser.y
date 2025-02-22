@@ -85,6 +85,7 @@
 ROOT
   : translation_unit { g_root = $1; }
 
+// TODO support multiple functions in a file
 translation_unit
 	: external_declaration { $$ = $1; }
 	| translation_unit external_declaration
