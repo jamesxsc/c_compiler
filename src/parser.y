@@ -23,6 +23,7 @@
   MultiplicativeExpression* multiplicative_expression;
   AdditiveExpression* additive_expression;
   ShiftExpression* shift_expression;
+  RelationalExpression* relational_expression;
   ParameterDeclaration*     parameter_declaration;
   DirectDeclarator*         direct_declarator;
   ParameterList* parameter_list;
@@ -45,7 +46,6 @@
 
 %type <node> translation_unit external_declaration function_definition
 %type <expression> primary_expression argument_expression_list
-%type <expression> relational_expression
 %type <expression> equality_expression and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression
 %type <expression> conditional_expression assignment_expression expression constant_expression
 %type <node> declaration init_declarator_list
@@ -67,6 +67,7 @@
 %nterm <multiplicative_expression> multiplicative_expression
 %nterm <additive_expression> additive_expression
 %nterm <shift_expression> shift_expression
+%nterm <relational_expression> relational_expression
 
 %type <string> unary_operator assignment_operator storage_class_specifier
 
@@ -192,11 +193,11 @@ shift_expression
 	;
 
 relational_expression
-	: shift_expression
-	| relational_expression '<' shift_expression
-	| relational_expression '>' shift_expression
-	| relational_expression LE_OP shift_expression
-	| relational_expression GE_OP shift_expression
+	: shift_expression { $$ = new RelationalExpression(ShiftExpressionPtr($1)); }
+	| relational_expression '<' shift_expression { $$ = new RelationalExpression(RelationalExpressionPtr($1), ShiftExpressionPtr($3), RelationalOperator::LessThan); }
+	| relational_expression '>' shift_expression { $$ = new RelationalExpression(RelationalExpressionPtr($1), ShiftExpressionPtr($3), RelationalOperator::GreaterThan); }
+	| relational_expression LE_OP shift_expression { $$ = new RelationalExpression(RelationalExpressionPtr($1), ShiftExpressionPtr($3), RelationalOperator::LessThanOrEqual); }
+	| relational_expression GE_OP shift_expression { $$ = new RelationalExpression(RelationalExpressionPtr($1), ShiftExpressionPtr($3), RelationalOperator::GreaterThanOrEqual); }
 	;
 
 equality_expression
@@ -240,6 +241,7 @@ assignment_expression
 	| unary_expression assignment_operator assignment_expression
 	;
 
+// TODO enum mapping for this simple
 assignment_operator
 	: '='
 	| MUL_ASSIGN
