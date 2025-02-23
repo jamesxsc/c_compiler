@@ -1,10 +1,10 @@
 #pragma once
 
-#include "ast_expression.hpp"
+#include "ast_expression_base.hpp"
 
 namespace ast {
 
-    class PrimaryExpression : public Expression
+    class PrimaryExpression : public ExpressionBase
     {
     // Abstract for now
     public:

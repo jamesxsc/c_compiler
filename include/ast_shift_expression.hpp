@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ast_expression.hpp"
+#include "ast_expression_base.hpp"
 #include "ast_additive_expression.hpp"
 
 namespace ast {
@@ -13,7 +13,7 @@ namespace ast {
 
     class ShiftExpression; // Forward declaration for recursive using declaration
     using ShiftExpressionPtr = std::unique_ptr<const ShiftExpression>;
-    class ShiftExpression : public Expression {
+    class ShiftExpression : public ExpressionBase {
     public:
         ShiftExpression(ShiftExpressionPtr left, AdditiveExpressionPtr right, ShiftOperator op) : left_(std::move(left)), right_(std::move(right)), op_(op) {}
         // Overload for additive promotion

@@ -26,14 +26,16 @@
 * Cerr outputs for all unsupported features
 * Register system/type for passing dest reg - at the moment we don't distinguish x and t type which is big bad (why ADD1 fails)
 * Other multiplication operations
-* Full expression hierarchy
+* Full expression hierarchy - James
+* Stack frame structure - how is size determined exactly
 * Prepare code for other types/ variable sizes
 * Local variables (scoping?)
 * Structs
 * Control blocks - if-else/while etc.
 * Arrays local or global
 * Enum
-* Ternary operator
+* Ternary operator - James
+* Short circuiting logic
 * Sizeof
 * Pointers
 

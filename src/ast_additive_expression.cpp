@@ -17,6 +17,7 @@ namespace ast {
             }
             case AdditiveOperator::Subtract: {
                 // TODO implement subtraction
+                // TODO test associativity of subtraction wrt addition
                 break;
             }
             case AdditiveOperator::MultiplicativePromote: {

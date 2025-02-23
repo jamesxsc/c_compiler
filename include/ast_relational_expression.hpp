@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ast_expression.hpp"
+#include "ast_expression_base.hpp"
 #include "ast_shift_expression.hpp"
 
 namespace ast {
@@ -15,9 +15,9 @@ namespace ast {
 
     class RelationalExpression;
 
-    using RelationalExpressionPtr = std::shared_ptr<const RelationalExpression>;
+    using RelationalExpressionPtr = std::unique_ptr<const RelationalExpression>;
 
-    class RelationalExpression : public Expression {
+    class RelationalExpression : public ExpressionBase {
     public:
         RelationalExpression(RelationalExpressionPtr left, ShiftExpressionPtr right, RelationalOperator op) : left_(
                 std::move(left)), right_(std::move(right)), op_(op) {}

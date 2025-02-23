@@ -17,13 +17,22 @@
 %union{
   Node*        	node;
   NodeList*    	node_list;
-  Expression*  	expression; // Will be removed in fullness of time
+  ExpressionBase* expression_base;
   PostfixExpression* postfix_expression;
   UnaryExpression* unary_expression;
   MultiplicativeExpression* multiplicative_expression;
   AdditiveExpression* additive_expression;
   ShiftExpression* shift_expression;
   RelationalExpression* relational_expression;
+  EqualityExpression* equality_expression;
+  AndExpression* and_expression;
+  ExclusiveOrExpression* exclusive_or_expression;
+  InclusiveOrExpression* inclusive_or_expression;
+  LogicalAndExpression* logical_and_expression;
+  LogicalOrExpression* logical_or_expression;
+  ConditionalExpression* conditional_expression;
+  AssignmentExpression* assignment_expression; AssignmentOperator assignment_operator;
+  Expression*  	expression;
   ParameterDeclaration*     parameter_declaration;
   DirectDeclarator*         direct_declarator;
   ParameterList* parameter_list;
@@ -45,9 +54,9 @@
 // Note: Prefer %nterm over %type
 
 %type <node> translation_unit external_declaration function_definition
-%type <expression> primary_expression argument_expression_list
-%type <expression> equality_expression and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression
-%type <expression> conditional_expression assignment_expression expression constant_expression
+%type <expression_base> primary_expression argument_expression_list
+
+%type <expression_base> constant_expression
 %type <node> declaration init_declarator_list
 %type <node> init_declarator struct_specifier struct_declaration_list struct_declaration specifier_qualifier_list struct_declarator_list
 %type <node> struct_declarator enum_specifier enumerator_list enumerator pointer
@@ -68,8 +77,18 @@
 %nterm <additive_expression> additive_expression
 %nterm <shift_expression> shift_expression
 %nterm <relational_expression> relational_expression
+%nterm <equality_expression> equality_expression
+%nterm <and_expression> and_expression
+%nterm <exclusive_or_expression> exclusive_or_expression
+%nterm <inclusive_or_expression> inclusive_or_expression
+%nterm <logical_and_expression> logical_and_expression
+%nterm <logical_or_expression> logical_or_expression
+%nterm <conditional_expression> conditional_expression
+%nterm <assignment_expression> assignment_expression
+%nterm <assignment_operator> assignment_operator
+%nterm <expression> expression
 
-%type <string> unary_operator assignment_operator storage_class_specifier
+%type <string> unary_operator storage_class_specifier
 
 %type <number_int> INT_CONSTANT STRING_LITERAL
 %type <number_float> FLOAT_CONSTANT
@@ -128,7 +147,7 @@ primary_expression
 	;
 
 postfix_expression
-	: primary_expression { $$ = new PostfixExpression(ExpressionPtr($1)); }
+	: primary_expression { $$ = new PostfixExpression(ExpressionBasePtr($1)); }
 	| postfix_expression '[' expression ']'
 	| postfix_expression '(' ')'
 	| postfix_expression '(' argument_expression_list ')'
@@ -201,64 +220,63 @@ relational_expression
 	;
 
 equality_expression
-	: relational_expression
-	| equality_expression EQ_OP relational_expression
-	| equality_expression NE_OP relational_expression
+	: relational_expression { $$ = new EqualityExpression(RelationalExpressionPtr($1)); }
+	| equality_expression EQ_OP relational_expression { $$ = new EqualityExpression(EqualityExpressionPtr($1), RelationalExpressionPtr($3), EqualityOperator::Equality); }
+	| equality_expression NE_OP relational_expression { $$ = new EqualityExpression(EqualityExpressionPtr($1), RelationalExpressionPtr($3), EqualityOperator::Inequality); }
 	;
 
 and_expression
-	: equality_expression
-	| and_expression '&' equality_expression
+	: equality_expression { $$ = new AndExpression(EqualityExpressionPtr($1)); }
+	| and_expression '&' equality_expression { $$ = new AndExpression(AndExpressionPtr($1), EqualityExpressionPtr($3)); }
 	;
 
 exclusive_or_expression
-	: and_expression
-	| exclusive_or_expression '^' and_expression
+	: and_expression { $$ = new ExclusiveOrExpression(AndExpressionPtr($1)); }
+	| exclusive_or_expression '^' and_expression { $$ = new ExclusiveOrExpression(ExclusiveOrExpressionPtr($1), AndExpressionPtr($3)); }
 	;
 
 inclusive_or_expression
-	: exclusive_or_expression
-	| inclusive_or_expression '|' exclusive_or_expression
+	: exclusive_or_expression { $$ = new InclusiveOrExpression(ExclusiveOrExpressionPtr($1)); }
+	| inclusive_or_expression '|' exclusive_or_expression { $$ = new InclusiveOrExpression(InclusiveOrExpressionPtr($1), ExclusiveOrExpressionPtr($3)); }
 	;
 
 logical_and_expression
-	: inclusive_or_expression
-	| logical_and_expression AND_OP inclusive_or_expression
+	: inclusive_or_expression { $$ = new LogicalAndExpression(InclusiveOrExpressionPtr($1)); }
+	| logical_and_expression AND_OP inclusive_or_expression { $$ = new LogicalAndExpression(LogicalAndExpressionPtr($1), InclusiveOrExpressionPtr($3)); }
 	;
 
 logical_or_expression
-	: logical_and_expression
-	| logical_or_expression OR_OP logical_and_expression
+	: logical_and_expression { $$ = new LogicalOrExpression(LogicalAndExpressionPtr($1)); }
+	| logical_or_expression OR_OP logical_and_expression { $$ = new LogicalOrExpression(LogicalOrExpressionPtr($1), LogicalAndExpressionPtr($3)); }
 	;
 
 conditional_expression
-	: logical_or_expression
-	| logical_or_expression '?' expression ':' conditional_expression
+	: logical_or_expression { $$ = new ConditionalExpression(LogicalOrExpressionPtr($1)); }
+	| logical_or_expression '?' expression ':' conditional_expression { $$ = new ConditionalExpression(LogicalOrExpressionPtr($1), ExpressionPtr($3), ConditionalExpressionPtr($5)); }
 	;
 
 assignment_expression
-	: conditional_expression
-	| unary_expression assignment_operator assignment_expression
+	: conditional_expression { $$ = new AssignmentExpression(ConditionalExpressionPtr($1)); }
+	| unary_expression assignment_operator assignment_expression { $$ = new AssignmentExpression(UnaryExpressionPtr($1), $2, AssignmentExpressionPtr($3)); }
 	;
 
-// TODO enum mapping for this simple
 assignment_operator
-	: '='
-	| MUL_ASSIGN
-	| DIV_ASSIGN
-	| MOD_ASSIGN
-	| ADD_ASSIGN
-	| SUB_ASSIGN
-	| LEFT_ASSIGN
-	| RIGHT_ASSIGN
-	| AND_ASSIGN
-	| XOR_ASSIGN
-	| OR_ASSIGN
+	: '=' { $$ = AssignmentOperator::Assign; }
+	| MUL_ASSIGN { $$ = AssignmentOperator::MultiplyAssign; }
+	| DIV_ASSIGN { $$ = AssignmentOperator::DivideAssign; }
+	| MOD_ASSIGN { $$ = AssignmentOperator::ModuloAssign; }
+	| ADD_ASSIGN { $$ = AssignmentOperator::AddAssign; }
+	| SUB_ASSIGN { $$ = AssignmentOperator::SubtractAssign; }
+	| LEFT_ASSIGN { $$ = AssignmentOperator::LeftShiftAssign; }
+	| RIGHT_ASSIGN { $$ = AssignmentOperator::RightShiftAssign; }
+	| AND_ASSIGN { $$ = AssignmentOperator::BitwiseAndAssign; }
+	| XOR_ASSIGN { $$ = AssignmentOperator::BitwiseXorAssign; }
+	| OR_ASSIGN { $$ = AssignmentOperator::BitwiseOrAssign; }
 	;
 
 expression
-	: assignment_expression
-	| expression ',' assignment_expression
+	: assignment_expression { $$ = new Expression(AssignmentExpressionPtr($1)); }
+	| expression ',' assignment_expression { $$ = new Expression(ExpressionPtr($1), AssignmentExpressionPtr($3)); }
 	;
 
 constant_expression
@@ -503,7 +521,7 @@ iteration_statement
 	;
 
 jump_statement
-	: GOTO IDENTIFIER ';'
+    : GOTO IDENTIFIER ';' { std::cerr << "goto keyword is unsupported" << std::endl; exit(1); }
 	| CONTINUE ';'
 	| BREAK ';'
 	| RETURN ';' {

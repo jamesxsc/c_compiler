@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ast_expression.hpp"
+#include "ast_expression_base.hpp"
 #include "ast_multiplicative_expression.hpp"
 
 namespace ast {
@@ -14,7 +14,7 @@ namespace ast {
     class AdditiveExpression; // Forward declaration for recursive using declaration
     using AdditiveExpressionPtr = std::unique_ptr<const AdditiveExpression>;
 
-    class AdditiveExpression : public Expression {
+    class AdditiveExpression : public ExpressionBase {
     public:
         AdditiveExpression(AdditiveExpressionPtr left, MultiplicativeExpressionPtr right, AdditiveOperator op) : left_(
                 std::move(left)), right_(std::move(right)), op_(op) {}

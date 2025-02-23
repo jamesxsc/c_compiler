@@ -1,11 +1,11 @@
 #pragma once
 
-#include "ast_expression.hpp"
+#include "ast_expression_base.hpp"
 #include "ast_postfix_expression.hpp"
 
 namespace ast {
 
-    class UnaryExpression : public Expression
+    class UnaryExpression : public ExpressionBase
     {
     public:
         UnaryExpression(PostfixExpressionPtr child) : child_(std::move(child)) {
