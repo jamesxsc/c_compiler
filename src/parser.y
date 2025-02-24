@@ -36,6 +36,8 @@
   ParameterDeclaration*     parameter_declaration;
   Declarator*         direct_declarator;
   InitDeclarator*     init_declarator;
+  InitDeclaratorList* init_declarator_list;
+  Initializer*        initializer;
   ParameterList* parameter_list;
   int          	number_int;
   double       	number_float;
@@ -58,10 +60,10 @@
 %type <expression_base> primary_expression argument_expression_list
 
 %type <expression_base> constant_expression
-%type <node> declaration init_declarator_list
+%type <node> declaration initializer_list
 %type <node> struct_specifier struct_declaration_list struct_declaration specifier_qualifier_list struct_declarator_list
 %type <node> struct_declarator enum_specifier enumerator_list enumerator pointer
-%type <node> identifier_list type_name abstract_declarator direct_abstract_declarator initializer initializer_list statement labeled_statement
+%type <node> identifier_list type_name abstract_declarator direct_abstract_declarator statement labeled_statement
 %type <node> compound_statement declaration_list expression_statement selection_statement iteration_statement jump_statement
 
 %nterm <node_list> statement_list
@@ -69,6 +71,8 @@
 
 %nterm <direct_declarator> direct_declarator declarator // Differentiated by a bool member
 %nterm <init_declarator> init_declarator
+%nterm <init_declarator_list> init_declarator_list
+%nterm <initializer> initializer
 %nterm <parameter_declaration> parameter_declaration
 
 // Expression hierachy
@@ -281,14 +285,9 @@ constant_expression
 	: conditional_expression
 	;
 
-// Hmmmm
-// declaration (NEEDS CREATING)
-// specifiers ; (pointless) or specifiers init_declarator_list ; (BITSET?/FLAGS?) (NEEDS CREATING)
-// NA                      init_declarator_list ; = init declarator (can be list) (NEEDS CREATING)
-//                         declarator or declarator = initializer (NEEDS IMPL)
 declaration
-	: declaration_specifiers ';'
-	| declaration_specifiers init_declarator_list ';'
+	: declaration_specifiers ';' { std::cerr << "Need to implement declaration specifiers only declaration" << std::endl; exit(1); }
+	| declaration_specifiers init_declarator_list ';' { $$ = new Declaration($1, InitDeclaratorListPtr($2)); }
 	;
 
 declaration_specifiers
@@ -299,8 +298,8 @@ declaration_specifiers
 	;
 
 init_declarator_list
-	: init_declarator
-	| init_declarator_list ',' init_declarator
+	: init_declarator { $$ = new InitDeclaratorList(InitDeclaratorPtr($1)); }
+	| init_declarator_list ',' init_declarator { $1->PushBack(InitDeclaratorPtr($3)); $$=$1; }
 	;
 
 init_declarator
@@ -452,13 +451,13 @@ direct_abstract_declarator
 	;
 
 initializer
-	: assignment_expression
+	: assignment_expression { $$ = new Initializer(AssignmentExpressionPtr($1)); }
 	| '{' initializer_list '}'
 	| '{' initializer_list ',' '}'
 	;
 
 initializer_list
-	: initializer
+	: initializer { $$ = $1; } // Temp
 	| initializer_list ',' initializer
 	;
 
