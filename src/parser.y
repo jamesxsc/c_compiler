@@ -19,7 +19,7 @@
   NodeList*    	node_list;
   ExpressionBase* expression_base;
   PostfixExpression* postfix_expression;
-  UnaryExpression* unary_expression;
+  UnaryExpression* unary_expression; UnaryOperator unary_operator;
   MultiplicativeExpression* multiplicative_expression;
   AdditiveExpression* additive_expression;
   ShiftExpression* shift_expression;
@@ -73,6 +73,7 @@
 // Expression hierachy
 %nterm <postfix_expression> postfix_expression
 %nterm <unary_expression> unary_expression
+%nterm <unary_operator> unary_operator
 %nterm <multiplicative_expression> multiplicative_expression
 %nterm <additive_expression> additive_expression
 %nterm <shift_expression> shift_expression
@@ -88,7 +89,7 @@
 %nterm <assignment_operator> assignment_operator
 %nterm <expression> expression
 
-%type <string> unary_operator storage_class_specifier
+%type <string> storage_class_specifier
 
 %type <number_int> INT_CONSTANT STRING_LITERAL
 %type <number_float> FLOAT_CONSTANT
@@ -116,12 +117,7 @@ external_declaration
 	;
 
 function_definition
-	: declaration_specifiers declarator declaration_list compound_statement {
-	    // Check we didn't somehow get a non-function declarator
-	    auto * decl = dynamic_cast<FunctionDeclarator*>($2);
-	    assert(decl != nullptr && "Expected a function declarator in function_definition");
-	    $$ = new FunctionDefinition($1, FunctionDeclaratorPtr(decl), NodePtr($3), NodePtr($4));
-	}
+	: declaration_specifiers declarator declaration_list compound_statement
 	| declaration_specifiers declarator compound_statement {
 	    // Check we didn't somehow get a non-function declarator
 	    auto * decl = dynamic_cast<FunctionDeclarator*>($2);
@@ -174,12 +170,12 @@ unary_expression
 	;
 
 unary_operator
-	: '&'
-	| '*'
-	| '+'
-	| '-'
-	| '~'
-	| '!'
+	: '&' { $$ = UnaryOperator::AddressOf; }
+	| '*' { $$ = UnaryOperator::Dereference; }
+	| '+' { $$ = UnaryOperator::Plus; }
+	| '-' { $$ = UnaryOperator::Minus; }
+	| '~' { $$ = UnaryOperator::BitwiseNot; }
+	| '!' { $$ = UnaryOperator::LogicalNot; }
 	;
 
 //cast_expression
@@ -308,8 +304,8 @@ init_declarator
 
 storage_class_specifier
 	: TYPEDEF
-	| EXTERN
-	| STATIC
+	| EXTERN { std::cerr << "The extern keyword is not supported" << std::endl; exit(1); }
+	| STATIC { std::cerr << "The static keyword is not supported" << std::endl; exit(1); }
 	| AUTO
 	| REGISTER
 	;
@@ -317,9 +313,9 @@ storage_class_specifier
 type_specifier
 	: VOID
 	| CHAR
-	| SHORT
+	| SHORT { std::cerr << "Short type is unsupported." << std::endl; exit(1); }
 	| INT { $$ = TypeSpecifier::INT; }
-	| LONG
+	| LONG { std::cerr << "Long type is unsupported." << std::endl; exit(1); }
 	| FLOAT
 	| DOUBLE
 	| SIGNED
@@ -417,10 +413,9 @@ parameter_declaration
 	| declaration_specifiers
 	;
 
-// TODO is this strictly required given K&R style declarations are not required
 identifier_list
 	: IDENTIFIER
-	| identifier_list ',' IDENTIFIER
+	| identifier_list ',' IDENTIFIER { std::cerr << "An identifier list has been created. Note that K&R style declarations are not supported." << std::endl; exit(1); }
 	;
 
 type_name

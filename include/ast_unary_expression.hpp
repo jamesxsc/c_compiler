@@ -5,18 +5,31 @@
 
 namespace ast {
 
+    enum class UnaryOperator {
+        PostfixPromote,
+        Increment,
+        Decrement,
+        SizeofUnary,
+        SizeofType,
+
+        AddressOf,
+        Dereference,
+        Plus,
+        Minus,
+        BitwiseNot,
+        LogicalNot
+    };
+
     class UnaryExpression : public ExpressionBase
     {
     public:
-        UnaryExpression(PostfixExpressionPtr child) : child_(std::move(child)) {
-
-        };
-        // TODO support other constructors
+        UnaryExpression(PostfixExpressionPtr child) : child_(std::move(child)), op_(UnaryOperator::PostfixPromote) {};
         void EmitRISC(std::ostream &stream, Context &context, int destReg) const override;
         void Print(std::ostream &stream) const override;
 
     private:
         PostfixExpressionPtr child_;
+        UnaryOperator op_;
     };
 
     using UnaryExpressionPtr = std::unique_ptr<const UnaryExpression>;

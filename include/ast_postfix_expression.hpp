@@ -11,7 +11,6 @@ namespace ast {
         PostfixExpression(ExpressionBasePtr child) : child_(std::move(child)) {
             std::cout << "PostfixExpression constructor called" << std::endl;
         };
-        // TODO support other constructors
 
         void EmitRISC(std::ostream &stream, Context &context, int destReg) const override;
         void Print(std::ostream &stream) const override;
