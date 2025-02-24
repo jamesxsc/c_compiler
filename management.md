@@ -27,6 +27,9 @@
 * Register system/type for passing dest reg - at the moment we don't distinguish x and t type which is big bad (why ADD1 fails)
 * Other multiplication operations
 * Full expression hierarchy - James
+* Ternary operator - James
+* Multiple functions in a translation unit/ file
+* Context make unique
 * Stack frame structure - how is size determined exactly
 * Prepare code for other types/ variable sizes
 * Local variables (scoping?)
@@ -34,7 +37,6 @@
 * Control blocks - if-else/while etc.
 * Arrays local or global
 * Enum
-* Ternary operator - James
 * Short circuiting logic
 * Sizeof
 * Pointers

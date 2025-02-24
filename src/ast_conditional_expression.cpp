@@ -9,7 +9,7 @@ namespace ast {
         // for now (temp) just emit the middle
         if (ternary_)
             stream << "/* :ConditionalExpression::EmitRISC Temporary logic */" << std::endl;
-        middle_->EmitRISC(stream, context, destReg);
+        left_->EmitRISC(stream, context, destReg);
     }
 
     void ConditionalExpression::Print(std::ostream &stream) const {

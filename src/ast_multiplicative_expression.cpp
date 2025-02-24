@@ -3,7 +3,6 @@
 namespace ast {
 
     void MultiplicativeExpression::EmitRISC(std::ostream &stream, Context &context, int destReg) const {
-        // TODO a better type for destReg/ registers in general?
         switch (op_) {
             case MultiplicativeOperator::Multiply: {
                 int leftReg = context.AllocateTemporary();
