@@ -20,6 +20,7 @@
   - With exceptions like function declarator - but these are clear if you read the parser
     - Good example to discuss as declarator handles just variable declarations and function declarations
 - There may be things that get untidy - but prioritise making them neat as it makes future problems/features easier to solve/develop.
+- Trying to stay original - neither of us familiar with other C compilers.
 
 # Milestones (Draft)
 

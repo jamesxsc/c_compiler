@@ -2,7 +2,7 @@
 
 #include "ast_node.hpp"
 #include "ast_type_specifier.hpp"
-#include "ast_direct_declarator.hpp"
+#include "ast_declarator.hpp"
 
 namespace ast {
 
@@ -10,7 +10,7 @@ namespace ast {
     {
     public:
         // TODO identifier type and possibilities
-        ParameterDeclaration(TypeSpecifier type, DirectDeclaratorPtr identifier) : type_(type), identifier_(std::move(identifier)) {
+        ParameterDeclaration(TypeSpecifier type, DeclaratorPtr identifier) : type_(type), identifier_(std::move(identifier)) {
             std::cout << "Declaration constructor called" << std::endl;
         }
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
@@ -18,7 +18,7 @@ namespace ast {
         [[nodiscard]] const std::string &GetIdentifier() const;
     private:
         TypeSpecifier type_;
-        DirectDeclaratorPtr identifier_;
+        DeclaratorPtr identifier_;
     };
 
     using ParameterDeclarationPtr = std::unique_ptr<const ParameterDeclaration>;

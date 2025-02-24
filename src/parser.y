@@ -34,7 +34,8 @@
   AssignmentExpression* assignment_expression; AssignmentOperator assignment_operator;
   Expression*  	expression;
   ParameterDeclaration*     parameter_declaration;
-  DirectDeclarator*         direct_declarator;
+  Declarator*         direct_declarator;
+  InitDeclarator*     init_declarator;
   ParameterList* parameter_list;
   int          	number_int;
   double       	number_float;
@@ -58,7 +59,7 @@
 
 %type <expression_base> constant_expression
 %type <node> declaration init_declarator_list
-%type <node> init_declarator struct_specifier struct_declaration_list struct_declaration specifier_qualifier_list struct_declarator_list
+%type <node> struct_specifier struct_declaration_list struct_declaration specifier_qualifier_list struct_declarator_list
 %type <node> struct_declarator enum_specifier enumerator_list enumerator pointer
 %type <node> identifier_list type_name abstract_declarator direct_abstract_declarator initializer initializer_list statement labeled_statement
 %type <node> compound_statement declaration_list expression_statement selection_statement iteration_statement jump_statement
@@ -66,8 +67,8 @@
 %nterm <node_list> statement_list
 %nterm <parameter_list> parameter_list
 
-// TODO separate declarator and direct_declarator layers
-%nterm <direct_declarator> direct_declarator declarator
+%nterm <direct_declarator> direct_declarator declarator // Differentiated by a bool member
+%nterm <init_declarator> init_declarator
 %nterm <parameter_declaration> parameter_declaration
 
 // Expression hierachy
@@ -280,6 +281,11 @@ constant_expression
 	: conditional_expression
 	;
 
+// Hmmmm
+// declaration (NEEDS CREATING)
+// specifiers ; (pointless) or specifiers init_declarator_list ; (BITSET?/FLAGS?) (NEEDS CREATING)
+// NA                      init_declarator_list ; = init declarator (can be list) (NEEDS CREATING)
+//                         declarator or declarator = initializer (NEEDS IMPL)
 declaration
 	: declaration_specifiers ';'
 	| declaration_specifiers init_declarator_list ';'
@@ -298,8 +304,8 @@ init_declarator_list
 	;
 
 init_declarator
-	: declarator
-	| declarator '=' initializer
+	: declarator { $$ = new InitDeclarator(DeclaratorPtr($1)); }
+	| declarator '=' initializer { $$ = new InitDeclarator(DeclaratorPtr($1), InitializerPtr($3)); }
 	;
 
 storage_class_specifier
@@ -374,26 +380,30 @@ enumerator
 
 declarator
 	: pointer direct_declarator
-	| direct_declarator { $$ = $1; }
+	| direct_declarator { $$ = $1; $$->Indirect(); }
 	;
 
 // TODO this is complicated and may need more work
+// Most of the recursion here is unsupported in the C std hence we don't have a list of `ParameterList`s etc.
 direct_declarator
 	: IDENTIFIER {
-		$$ = new DirectDeclarator(*$1);
+		$$ = new Declarator(*$1, true);
 	}
-	| '(' declarator ')'
+	| '(' declarator ')' {
+	    $$ = $2;
+	    $$->Direct();
+	}
 	| direct_declarator '[' constant_expression ']'
 	| direct_declarator '[' ']'
 	| direct_declarator '(' parameter_list ')' {
-        $$ = new FunctionDeclarator(DirectDeclaratorPtr($1), ParameterListPtr($3));
+        $$ = new FunctionDeclarator(DeclaratorPtr($1), ParameterListPtr($3));
 	}
 	| direct_declarator '(' identifier_list ')' {
 	    std::cerr << "Need to support identifier_list in direct_declarator" << std::endl;
 	    exit(1);
 	}
 	| direct_declarator '(' ')' {
-		$$ = new FunctionDeclarator(DirectDeclaratorPtr($1));
+		$$ = new FunctionDeclarator(DeclaratorPtr($1));
 	}
 	;
 
@@ -408,7 +418,7 @@ parameter_list
 	;
 
 parameter_declaration
-	: declaration_specifiers declarator { $$ = new ParameterDeclaration($1, DirectDeclaratorPtr($2)); }
+	: declaration_specifiers declarator { $$ = new ParameterDeclaration($1, DeclaratorPtr($2)); }
 	| declaration_specifiers abstract_declarator
 	| declaration_specifiers
 	;

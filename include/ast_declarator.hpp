@@ -4,21 +4,26 @@
 
 namespace ast {
 
-    class DirectDeclarator : public Node {
+    class Declarator : public Node {
     private:
         std::string identifier_;
-        // Note this is a basic implementation only supporting an identifier
+        bool isDirect_;
 
     public:
-        explicit DirectDeclarator(std::string identifier) : identifier_(std::move(identifier)) {};
+        explicit Declarator(std::string identifier, bool isDirect) : identifier_(std::move(identifier)), isDirect_(isDirect) {};
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
 
         void Print(std::ostream &stream) const override;
 
         [[nodiscard]] const std::string& GetIdentifier() const;
+
+        [[nodiscard]] bool IsDirect() const;
+
+        void Indirect();
+        void Direct();
     };
 
-    using DirectDeclaratorPtr = std::unique_ptr<const DirectDeclarator>;
+    using DeclaratorPtr = std::unique_ptr<const Declarator>;
 
 }
