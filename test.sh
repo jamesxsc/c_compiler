@@ -5,3 +5,4 @@ if ! python3 --version > /dev/null 2>&1; then
 else
     ./scripts/test.py $@
 fi
+
