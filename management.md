@@ -25,7 +25,7 @@
 
 * Cerr outputs for all unsupported features
 * Register system/type for passing dest reg - at the moment we don't distinguish x and t type which is big bad (why ADD1 fails)
-* Other multiplication operations
+* Other multiplication operations - Eliott
 * Full expression hierarchy - James
 * Ternary operator - James
 * Multiple functions in a translation unit/ file
