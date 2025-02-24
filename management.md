@@ -25,14 +25,14 @@
 
 * Cerr outputs for all unsupported features
 * Register system/type for passing dest reg - at the moment we don't distinguish x and t type which is big bad (why ADD1 fails)
-* Other multiplication operations - Eliott
-* Full expression hierarchy - James
+* ~~Other multiplication operations - Eliott~~
+* ~~Full expression hierarchy - James~~
 * Ternary operator - James
 * Multiple functions in a translation unit/ file
-* Context make unique
+* ~~Context make unique - James~~
 * Stack frame structure - how is size determined exactly
 * Prepare code for other types/ variable sizes
-* Local variables (scoping?)
+* Local variables (scoping?) - James
 * Structs
 * Control blocks - if-else/while etc.
 * Arrays local or global

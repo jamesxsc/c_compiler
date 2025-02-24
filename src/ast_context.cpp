@@ -35,4 +35,11 @@ namespace ast {
         stack_.push_back(frame);
     }
 
+    std::string Context::MakeLabel(const std::string &prefix) {
+        std::string label{prefix};
+        label.push_back('_');
+        label.append(std::to_string(labelId_++));
+        return label;
+    }
+
 } // namespace ast
