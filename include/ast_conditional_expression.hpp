@@ -21,7 +21,7 @@ namespace ast {
     private:
         bool ternary_;
         LogicalOrExpressionPtr left_;
-        ExpressionPtr middle_; // TODO rename existing expression class to expressionbase or equivalent
+        ExpressionPtr middle_;
         ConditionalExpressionPtr right_;
     };
 

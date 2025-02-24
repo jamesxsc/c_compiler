@@ -14,13 +14,12 @@ namespace ast {
             for (const auto& param: parameters_) {
                 // TODO types sizes etc
                 // TODO correct frame size and stack structure logic
-                int offset = -32 + 4 * (static_cast<int>(Size()) - idx);
+                int offset = -20 - 4 * idx;
                 context.CurrentFrame().bindings.insert({param->GetIdentifier(), Variable{
                         .offset = offset,
                         .size = 4,
                         .reg = -1
                 }});
-                // TODO this overlaps the stack with the return address - fix indexing logic
                 stream << "sw a" << idx << ", " << offset << "(s0)" << std::endl;
                 ++idx;
             }

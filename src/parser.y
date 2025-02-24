@@ -105,7 +105,6 @@
 ROOT
   : translation_unit { g_root = $1; }
 
-// TODO support multiple functions in a file
 translation_unit
 	: external_declaration { $$ = $1; }
 	| translation_unit external_declaration
@@ -130,7 +129,9 @@ function_definition
 		$$ = new FunctionDefinition($1, FunctionDeclaratorPtr(decl), NodePtr($3));
 	}
 	| declarator declaration_list compound_statement
-	| declarator compound_statement
+	| declarator compound_statement {
+	    std::cerr << "Unimplemented function definition grammar" << std::endl;
+	}
 	;
 
 
@@ -393,6 +394,7 @@ direct_declarator
 	}
 	| direct_declarator '(' identifier_list ')' {
 	    std::cerr << "Need to support identifier_list in direct_declarator" << std::endl;
+	    exit(1);
 	}
 	| direct_declarator '(' ')' {
 		$$ = new FunctionDeclarator(DirectDeclaratorPtr($1));
@@ -471,14 +473,14 @@ labeled_statement
 	;
 
 compound_statement
+    // Scoping logic required here?
 	: '{' '}' {
 		// TODO: correct this
 		std::cerr << "Need to fix issues in compound_statement" << std::endl;
 		$$ = nullptr;
 	}
 	| '{' statement_list '}' {
-		$$ = $2;
-		std::cerr << "Need to fix issues in compound_statement" << std::endl;
+		$$ = $2; // This should work for now
 	}
 	| '{' declaration_list '}' {
 		// TODO: correct this
@@ -487,7 +489,7 @@ compound_statement
 	}
 	| '{' declaration_list statement_list '}'  {
 		// TODO: correct this
-		$$ = nullptr;
+		$$ = $3; // Temp - just pass the statement list
 		std::cerr << "Need to fix issues in compound_statement" << std::endl;
 	}
 	;
