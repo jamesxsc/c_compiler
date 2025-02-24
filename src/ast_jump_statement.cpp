@@ -2,17 +2,17 @@
 
 namespace ast {
 
-void ReturnStatement::EmitRISC(std::ostream& stream, Context& context, int destReg) const
+void ReturnStatement::EmitRISC(std::ostream& stream, Context& context, Register destReg) const
 {
     if (expression_ != nullptr)
     {
-        expression_->EmitRISC(stream, context, 10); // a0
+        expression_->EmitRISC(stream, context, Register::a0);
     }
 
     // Stack/frame pointer/return address teardown
-    stream << "lw ra, " << context.CurrentFrame().size - 4 << "(sp)" << std::endl;
-    stream << "lw s0, " << context.CurrentFrame().size - 8 << "(sp)" << std::endl;
-    stream << "addi sp, sp, " << context.CurrentFrame().size << std::endl;
+    stream << "lw ra," << context.CurrentFrame().size - 4 << "(sp)" << std::endl;
+    stream << "lw s0," << context.CurrentFrame().size - 8 << "(sp)" << std::endl;
+    stream << "addi sp,sp," << context.CurrentFrame().size << std::endl;
 
     stream << "ret" << std::endl;
 }

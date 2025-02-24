@@ -11,7 +11,7 @@ namespace ast {
         ParameterList(ParameterDeclarationPtr first);
 
         // Used for storing parameters on stack
-        void EmitRISC(std::ostream &stream, Context &context, int destReg) const override;
+        void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
 
         // Used for label args e.g. f(int, int, int):
         void EmitLabelRISC(std::ostream &stream) const;

@@ -2,14 +2,14 @@
 
 namespace ast {
 
-    void MultiplicativeExpression::EmitRISC(std::ostream &stream, Context &context, int destReg) const {
+    void MultiplicativeExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         switch (op_) {
             case MultiplicativeOperator::Multiply: {
-                int leftReg = context.AllocateTemporary();
+                Register leftReg = context.AllocateTemporary();
                 left_->EmitRISC(stream, context, leftReg);
-                int rightReg = context.AllocateTemporary();
+                Register rightReg = context.AllocateTemporary();
                 right_->EmitRISC(stream, context, rightReg);
-                stream << "mul x" << destReg << ",t" << leftReg << ",t" << rightReg << std::endl;
+                stream << "mul " << destReg << "," << leftReg << "," << rightReg << std::endl;
                 context.FreeTemporary(leftReg);
                 context.FreeTemporary(rightReg);
                 break;

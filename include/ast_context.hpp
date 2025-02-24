@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include "register.hpp"
 
 namespace ast {
     struct Variable {
@@ -24,9 +25,9 @@ namespace ast {
     public:
         Context() : temporaries_(0) {}
 
-        int AllocateTemporary();
+        Register AllocateTemporary();
 
-        void FreeTemporary(int index);
+        void FreeTemporary(Register reg);
 
         StackFrame &CurrentFrame();
 

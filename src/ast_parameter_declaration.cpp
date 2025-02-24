@@ -2,7 +2,7 @@
 
 namespace ast {
 
-    void ParameterDeclaration::EmitRISC(std::ostream &stream, Context &context, int destReg) const {
+    void ParameterDeclaration::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
 
     }
 

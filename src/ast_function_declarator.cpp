@@ -1,13 +1,11 @@
 #include "ast_function_declarator.hpp"
-#include "ast_identifier.hpp"
 #include "ast_parameter_declaration.hpp"
 
 namespace ast {
 
-    void FunctionDeclarator::EmitRISC(std::ostream &stream, Context &context, int destReg) const {
+    void FunctionDeclarator::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         stream << ".globl " << GetIdentifier() << std::endl;
         stream << GetIdentifier();
-        parameterList_->EmitLabelRISC(stream);
         stream << ":" << std::endl;
         int frameSize = 32; // bytes // TODO dynamic size
         context.PushFrame({
@@ -22,7 +20,9 @@ namespace ast {
         stream << "addi s0, sp, " << frameSize << std::endl;
 
         // Store args
-        parameterList_->EmitRISC(stream, context, destReg);
+        if (parameterList_) {
+            parameterList_->EmitRISC(stream, context, destReg);
+        }
     }
 
     void FunctionDeclarator::Print(std::ostream &stream) const {

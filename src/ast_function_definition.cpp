@@ -2,7 +2,7 @@
 
 namespace ast {
 
-    void FunctionDefinition::EmitRISC(std::ostream &stream, Context &context, int destReg) const {
+    void FunctionDefinition::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         // Emit assembler directives.
         // TODO investigate directives and what is actually required for the scope of this project
         stream << ".text" << std::endl;

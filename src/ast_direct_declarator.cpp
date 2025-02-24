@@ -6,7 +6,7 @@ namespace ast {
 
     }
 
-    void DirectDeclarator::EmitRISC(std::ostream &stream, Context &context, int destReg) const {
+    void DirectDeclarator::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
 
     }
 

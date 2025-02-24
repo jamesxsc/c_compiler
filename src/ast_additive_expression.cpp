@@ -2,15 +2,15 @@
 
 namespace ast {
 
-    void AdditiveExpression::EmitRISC(std::ostream &stream, Context &context, int destReg) const {
+    void AdditiveExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         switch (op_) {
             // Blocks to allow reuse of variable names
             case AdditiveOperator::Add: {
-                int leftReg = context.AllocateTemporary();
+                Register leftReg = context.AllocateTemporary();
                 left_->EmitRISC(stream, context, leftReg);
-                int rightReg = context.AllocateTemporary();
+                Register rightReg = context.AllocateTemporary();
                 right_->EmitRISC(stream, context, rightReg);
-                stream << "add x" << destReg << ",t" << leftReg << ",t" << rightReg << std::endl;
+                stream << "add " << destReg << "," << leftReg << "," << rightReg << std::endl;
                 context.FreeTemporary(leftReg);
                 context.FreeTemporary(rightReg);
                 break;

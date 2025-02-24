@@ -1,8 +1,9 @@
 #include "ast_expression.hpp"
 
+// Note that this feature isn't technically required
 namespace ast {
 
-    void ast::Expression::EmitRISC(std::ostream &stream, Context &context, int destReg) const {
+    void ast::Expression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         if (first_)
             first_->EmitRISC(stream, context, destReg);
 

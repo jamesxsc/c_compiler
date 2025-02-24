@@ -2,15 +2,15 @@
 
 namespace ast {
 
-    void ExclusiveOrExpression::EmitRISC(std::ostream &stream, Context &context, int destReg) const {
+    void ExclusiveOrExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         if (left_ == nullptr) { // Promotion from and expression
             right_->EmitRISC(stream, context, destReg);
         } else {
-            int leftReg = context.AllocateTemporary();
+            Register leftReg = context.AllocateTemporary();
             left_->EmitRISC(stream, context, leftReg);
-            int rightReg = context.AllocateTemporary();
+            Register rightReg = context.AllocateTemporary();
             right_->EmitRISC(stream, context, rightReg);
-            stream << "xor x" << destReg << ",t" << leftReg << ",t" << rightReg << std::endl;
+            stream << "xor " << destReg << "," << leftReg << "," << rightReg << std::endl;
             context.FreeTemporary(leftReg);
             context.FreeTemporary(rightReg);
         }

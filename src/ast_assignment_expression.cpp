@@ -4,7 +4,7 @@
 namespace ast {
 
 
-    void AssignmentExpression::EmitRISC(std::ostream &stream, Context &context, int destReg) const {
+    void AssignmentExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         // TODO implement other assignment operators
         if (op_ == AssignmentOperator::ConditionalPromote) {
             conditional_->EmitRISC(stream, context, destReg);

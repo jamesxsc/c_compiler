@@ -14,7 +14,7 @@ namespace ast {
         Expression(ExpressionPtr first, AssignmentExpressionPtr assignment) : assignment_(std::move(assignment)), first_(std::move(first)) {}
         explicit Expression(AssignmentExpressionPtr assignment) : assignment_(std::move(assignment)), first_(nullptr) {}
 
-        void EmitRISC(std::ostream &stream, Context &context, int destReg) const override;
+        void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
         void Print(std::ostream &stream) const override;
     private:
         AssignmentExpressionPtr assignment_;

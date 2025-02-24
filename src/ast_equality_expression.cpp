@@ -2,28 +2,28 @@
 
 namespace ast {
 
-    void EqualityExpression::EmitRISC(std::ostream &stream, Context &context, int destReg) const {
+    void EqualityExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         switch (op_) {
             case EqualityOperator::Equality: {
-                int leftReg = context.AllocateTemporary();
+                Register leftReg = context.AllocateTemporary();
                 left_->EmitRISC(stream, context, leftReg);
-                int rightReg = context.AllocateTemporary();
+                Register rightReg = context.AllocateTemporary();
                 right_->EmitRISC(stream, context, rightReg);
-                stream << "sub x" << destReg << ",t" << leftReg << ",t" << rightReg << std::endl;
-                stream << "seqz x" << destReg << ",x" << destReg << std::endl;
-                stream << "andi x" << destReg << ",x" << destReg << ",0xff" << std::endl;
+                stream << "sub " << destReg << "," << leftReg << "," << rightReg << std::endl;
+                stream << "seqz " << destReg << "," << destReg << std::endl;
+                stream << "andi " << destReg << "," << destReg << ",0xff" << std::endl;
                 context.FreeTemporary(leftReg);
                 context.FreeTemporary(rightReg);
                 break;
             }
             case EqualityOperator::Inequality: {
-                int leftReg = context.AllocateTemporary();
+                Register leftReg = context.AllocateTemporary();
                 left_->EmitRISC(stream, context, leftReg);
-                int rightReg = context.AllocateTemporary();
+                Register rightReg = context.AllocateTemporary();
                 right_->EmitRISC(stream, context, rightReg);
-                stream << "sub x" << destReg << ",t" << leftReg << ",t" << rightReg << std::endl;
-                stream << "snez x" << destReg << ",x" << destReg << std::endl;
-                stream << "andi x" << destReg << ",x" << destReg << ",0xff" << std::endl;
+                stream << "sub " << destReg << "," << leftReg << "," << rightReg << std::endl;
+                stream << "snez " << destReg << "," << destReg << std::endl;
+                stream << "andi " << destReg << "," << destReg << ",0xff" << std::endl;
                 context.FreeTemporary(leftReg);
                 context.FreeTemporary(rightReg);
                 break;

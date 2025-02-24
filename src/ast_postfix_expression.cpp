@@ -2,7 +2,7 @@
 
 namespace ast {
 
-    void PostfixExpression::EmitRISC(std::ostream &stream, Context &context, int destReg) const
+    void PostfixExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const
     {
         child_->EmitRISC(stream, context, destReg);
     }

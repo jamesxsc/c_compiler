@@ -3,7 +3,7 @@
 
 namespace ast {
 
-    void ConditionalExpression::EmitRISC(std::ostream &stream, Context &context, int destReg) const {
+    void ConditionalExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         // TODO implement stubs
         // Do we reuse some logic from if/else blocks?
         // for now (temp) just emit the middle

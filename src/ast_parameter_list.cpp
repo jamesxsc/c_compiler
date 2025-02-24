@@ -8,12 +8,13 @@ namespace ast {
         parameters_.push_back(std::move(first));
     }
 
-    void ParameterList::EmitRISC(std::ostream &stream, Context &context, int destReg) const {
+    void ParameterList::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         if (!parameters_.empty()) {
             int idx = 0;
             for (const auto& param: parameters_) {
                 // TODO types sizes etc
                 // TODO correct frame size and stack structure logic
+                // also please use register enum
                 int offset = -20 - 4 * idx;
                 context.CurrentFrame().bindings.insert({param->GetIdentifier(), Variable{
                         .offset = offset,
@@ -26,17 +27,18 @@ namespace ast {
         }
     }
 
-    void ParameterList::EmitLabelRISC(std::ostream &stream) const {
-        stream << "(";
-        for (auto it = parameters_.begin(); it != parameters_.end(); ++it) {
-            // TODO fix when types are supported
-            stream << "int";
-            if (it + 1 != parameters_.end()) {
-                stream << ", ";
-            }
-        }
-        stream << ")";
-    }
+// Not sure what I was thinking but this doesn't seem to be needed
+//    void ParameterList::EmitLabelRISC(std::ostream &stream) const {
+//        stream << "(";
+//        for (auto it = parameters_.begin(); it != parameters_.end(); ++it) {
+//            // TODO fix when types are supported
+//            stream << "int";
+//            if (it + 1 != parameters_.end()) {
+//                stream << ", ";
+//            }
+//        }
+//        stream << ")";
+//    }
 
     void ParameterList::Print(std::ostream &stream) const {
         // (int x, int y, int z)
