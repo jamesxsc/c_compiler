@@ -1,4 +1,5 @@
 #include "ast_direct_declarator.hpp"
+#include "ast_type_specifier.hpp"
 
 namespace ast {
 
@@ -14,4 +15,9 @@ namespace ast {
         return identifier_;
     }
 
+
+
+    ast::Type DirectDeclarator::GetType(Context&) const {
+        return ast::Type(ast::TypeSpecifier::INT, true);
+    }
 }

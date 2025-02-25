@@ -1,5 +1,6 @@
 #include "ast_assignment_expression.hpp"
 #include "ast_expression.hpp"
+#include "ast_type_specifier.hpp"
 
 namespace ast {
 
@@ -65,4 +66,9 @@ namespace ast {
     AssignmentExpression::AssignmentExpression(UnaryExpressionPtr unary, AssignmentOperator op,
                                                AssignmentExpressionPtr assignment) : op_(op), conditional_(nullptr), unary_(std::move(unary)), assignment_(std::move(assignment)) {}
 
+
+
+    ast::Type AssignmentExpression::GetType(Context&) const {
+        return ast::Type(ast::TypeSpecifier::INT, true);
+    }
 }

@@ -3,15 +3,16 @@
 #include "ast_node.hpp"
 #include "ast_parameter_list.hpp"
 #include "ast_direct_declarator.hpp"
+#include "ast_type_specifier.hpp"
 
 namespace ast {
 
     class FunctionDeclarator : public DirectDeclarator {
     private:
-        // Identifier is stored in DirectDeclarator base class
         ParameterListPtr parameterList_;
 
     public:
+        Type GetType(Context &context) const;
         explicit FunctionDeclarator(DirectDeclaratorPtr identifier) : DirectDeclarator(
                 identifier->GetIdentifier()) {};
 

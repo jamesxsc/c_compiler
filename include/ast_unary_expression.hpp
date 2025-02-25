@@ -23,6 +23,7 @@ namespace ast {
     class UnaryExpression : public ExpressionBase
     {
     public:
+        Type GetType(Context &context) const override;
         UnaryExpression(PostfixExpressionPtr child) : child_(std::move(child)), op_(UnaryOperator::PostfixPromote) {};
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
         void Print(std::ostream &stream) const override;

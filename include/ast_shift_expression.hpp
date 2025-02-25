@@ -15,6 +15,7 @@ namespace ast {
     using ShiftExpressionPtr = std::unique_ptr<const ShiftExpression>;
     class ShiftExpression : public ExpressionBase {
     public:
+        Type GetType(Context &context) const override;
         ShiftExpression(ShiftExpressionPtr left, AdditiveExpressionPtr right, ShiftOperator op) : left_(std::move(left)), right_(std::move(right)), op_(op) {}
         // Overload for additive promotion
         explicit ShiftExpression(AdditiveExpressionPtr right) : left_(nullptr), right_(std::move(right)), op_(ShiftOperator::AdditivePromote) {}

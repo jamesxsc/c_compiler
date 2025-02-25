@@ -28,6 +28,7 @@ namespace ast {
     using AssignmentExpressionPtr = std::unique_ptr<const AssignmentExpression>;
     class AssignmentExpression : public ExpressionBase {
     public:
+        Type GetType(Context &context) const override;
         explicit AssignmentExpression(ConditionalExpressionPtr conditional);
         AssignmentExpression(UnaryExpressionPtr unary, AssignmentOperator op, AssignmentExpressionPtr assignment);
 

@@ -1,4 +1,5 @@
 #include "ast_relational_expression.hpp"
+#include "ast_type_specifier.hpp"
 
 namespace ast {
 
@@ -29,7 +30,6 @@ namespace ast {
                 left_->EmitRISC(stream, context, leftReg);
                 Register rightReg = context.AllocateTemporary();
                 right_->EmitRISC(stream, context, rightReg);
-                // Achieve by inverting greater than result
                 stream << "sgt " << destReg << "," << leftReg << "," << rightReg << std::endl;
                 stream << "seqz " << destReg << "," << destReg << std::endl;
                 stream << "andi " << destReg << "," << destReg << ",0xff" << std::endl;
@@ -42,7 +42,6 @@ namespace ast {
                 left_->EmitRISC(stream, context, leftReg);
                 Register rightReg = context.AllocateTemporary();
                 right_->EmitRISC(stream, context, rightReg);
-                // Achieve by inverting less than result
                 stream << "sle " << destReg << "," << leftReg << "," << rightReg << std::endl;
                 stream << "seqz " << destReg << "," << destReg << std::endl;
                 stream << "andi " << destReg << "," << destReg << ",0xff" << std::endl;
@@ -77,6 +76,10 @@ namespace ast {
                 break;
         }
         right_->Print(stream);
+    }
+
+    Type RelationalExpression::GetType(Context &context) const {  
+        return Type(TypeSpecifier::INT, true);
     }
 
 }

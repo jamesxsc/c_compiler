@@ -1,4 +1,5 @@
 #include "ast_inclusive_or_expression.hpp"
+#include "ast_type_specifier.hpp"
 
 namespace ast {
 
@@ -23,5 +24,9 @@ namespace ast {
         }
         right_->Print(stream);
 
+    }
+
+    ast::Type InclusiveOrExpression::GetType(Context&) const {
+        return ast::Type(ast::TypeSpecifier::INT, true);
     }
 }

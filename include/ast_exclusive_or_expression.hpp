@@ -9,6 +9,7 @@ namespace ast {
     using ExclusiveOrExpressionPtr = std::unique_ptr<const ExclusiveOrExpression>;
     class ExclusiveOrExpression : public ExpressionBase {
     public:
+        Type GetType(Context &context) const override;
         ExclusiveOrExpression(ExclusiveOrExpressionPtr left, AndExpressionPtr right) : left_(std::move(left)), right_(std::move(right)) {}
         // Overload for and promotion
         explicit ExclusiveOrExpression(AndExpressionPtr right) : left_(nullptr), right_(std::move(right)) {}

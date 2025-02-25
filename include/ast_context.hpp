@@ -5,6 +5,8 @@
 #include <string>
 #include <unordered_map>
 #include "register.hpp"
+#include "ast_type_specifier.hpp"
+
 
 namespace ast {
     struct Variable {
@@ -23,6 +25,7 @@ namespace ast {
 // compiled (e.g. function scope and variable names).
     class Context {
     public:
+        Type GetType(Context &context) const;
         Context() : temporaries_(0) {}
 
         Register AllocateTemporary();

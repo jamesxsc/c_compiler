@@ -8,22 +8,16 @@ namespace ast {
 
     class ParameterList : public Node {
     public:
+        Type GetType(Context &context) const;
         ParameterList(ParameterDeclarationPtr first);
 
-        // Used for storing parameters on stack
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
-
-        // Used for label args e.g. f(int, int, int):
         void EmitLabelRISC(std::ostream &stream) const;
-
         void Print(std::ostream &stream) const override;
-
-        void PushBack(ParameterDeclarationPtr item);
+        void PushBack(ParameterDeclarationPtr item); 
 
         [[nodiscard]] size_t Size() const;
-
         [[nodiscard]] std::vector<ParameterDeclarationPtr>::const_iterator begin() const;
-
         [[nodiscard]] std::vector<ParameterDeclarationPtr>::const_iterator end() const;
 
     private:

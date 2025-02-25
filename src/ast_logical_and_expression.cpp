@@ -1,4 +1,5 @@
 #include "ast_logical_and_expression.hpp"
+#include "ast_type_specifier.hpp"
 
 namespace ast {
 
@@ -34,4 +35,9 @@ namespace ast {
         right_->Print(stream);
     }
 
+
+    ast::Type LogicalAndExpression::GetType(Context&) const {
+        return ast::Type(ast::TypeSpecifier::INT, true);
+    }
 }
+

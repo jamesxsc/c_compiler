@@ -1,4 +1,5 @@
 #include "ast_unary_expression.hpp"
+#include "ast_type_specifier.hpp"
 
 namespace ast {
 
@@ -10,4 +11,8 @@ namespace ast {
         child_->Print(stream);
     }
 
-} // namespace ast
+    Type UnaryExpression::GetType(Context &context) const { 
+        return child_->GetType(context);
+    }
+
+}

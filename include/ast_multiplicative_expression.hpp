@@ -18,6 +18,7 @@ namespace ast {
     class MultiplicativeExpression : public ExpressionBase
     {
     public:
+        Type GetType(Context &context) const override;
         MultiplicativeExpression(MultiplicativeExpressionPtr left, UnaryExpressionPtr right, MultiplicativeOperator op)
             : left_(std::move(left)), right_(std::move(right)), op_(op) {}
         // Overload for unary promotion

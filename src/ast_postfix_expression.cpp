@@ -1,15 +1,18 @@
 #include "ast_postfix_expression.hpp"
+#include "ast_type_specifier.hpp"
 
 namespace ast {
 
-    void PostfixExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const
-    {
+    void PostfixExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         child_->EmitRISC(stream, context, destReg);
     }
 
-    void PostfixExpression::Print(std::ostream &stream) const
-    {
-        child_->Print(stream); // Only support primary expression which we just print as is
+    void PostfixExpression::Print(std::ostream &stream) const {
+        child_->Print(stream);
     }
 
-} // namespace ast
+    Type PostfixExpression::GetType(Context &context) const { 
+        return child_->GetType(context);
+    }
+
+}

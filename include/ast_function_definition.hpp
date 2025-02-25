@@ -15,10 +15,12 @@ private:
     NodePtr compound_statement_;
 
 public:
-    FunctionDefinition(TypeSpecifier declaration_specifiers, FunctionDeclaratorPtr declarator, NodePtr compound_statement) : declaration_specifiers_(declaration_specifiers), declarator_(std::move(declarator)), compound_statement_(std::move(compound_statement)){};
+    FunctionDefinition(TypeSpecifier declaration_specifiers, FunctionDeclaratorPtr declarator, NodePtr compound_statement) 
+        : declaration_specifiers_(declaration_specifiers), declarator_(std::move(declarator)), compound_statement_(std::move(compound_statement)) {}
 
     void EmitRISC(std::ostream& stream, Context& context, Register destReg) const override;
     void Print(std::ostream& stream) const override;
-};
+
+    Type GetType(Context &context) const; 
 
 } // namespace ast

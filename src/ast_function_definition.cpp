@@ -1,4 +1,5 @@
 #include "ast_function_definition.hpp"
+#include "ast_type_specifier.hpp"
 
 namespace ast {
 
@@ -26,6 +27,11 @@ namespace ast {
             compound_statement_->Print(stream);
         }
         stream << "}" << std::endl;
+    }
+
+
+    ast::Type FunctionDefinition::GetType(Context&) const {
+        return ast::Type(ast::TypeSpecifier::INT, true);
     }
 
 }

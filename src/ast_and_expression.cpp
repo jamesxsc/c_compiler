@@ -1,4 +1,5 @@
 #include "ast_and_expression.hpp"
+#include "ast_type_specifier.hpp"
 
 namespace ast {
 
@@ -22,5 +23,9 @@ namespace ast {
             stream << " & ";
         }
         right_->Print(stream);
+    }
+
+    ast::Type AndExpression::GetType(Context&) const {
+        return ast::Type(ast::TypeSpecifier::INT, true);
     }
 }

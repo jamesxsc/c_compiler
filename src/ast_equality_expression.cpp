@@ -1,4 +1,5 @@
 #include "ast_equality_expression.hpp"
+#include "ast_type_specifier.hpp"
 
 namespace ast {
 
@@ -55,4 +56,9 @@ namespace ast {
         right_->Print(stream);
     }
 
+
+
+    ast::Type EqualityExpression::GetType(Context&) const {
+        return ast::Type(ast::TypeSpecifier::INT, true);
+    }
 }

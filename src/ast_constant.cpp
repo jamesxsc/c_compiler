@@ -1,4 +1,5 @@
 #include "ast_constant.hpp"
+#include "ast_type_specifier.hpp"
 
 namespace ast {
 
@@ -11,5 +12,6 @@ void IntConstant::Print(std::ostream& stream) const
 {
     stream << value_;
 }
+
 
 } // namespace ast

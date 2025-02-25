@@ -1,4 +1,5 @@
 #include "ast_multiplicative_expression.hpp"
+#include "ast_type_specifier.hpp"
 
 namespace ast {
 
@@ -76,4 +77,9 @@ namespace ast {
         right_->Print(stream);
     }
 
-} // namespace ast
+
+
+    ast::Type MultiplicativeExpression::GetType(Context&) const {
+        return ast::Type(ast::TypeSpecifier::INT, true);
+    }
+}

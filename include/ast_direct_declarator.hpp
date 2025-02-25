@@ -7,10 +7,10 @@ namespace ast {
     class DirectDeclarator : public Node {
     private:
         std::string identifier_;
-        // Note this is a basic implementation only supporting an identifier
 
     public:
-        explicit DirectDeclarator(std::string identifier) : identifier_(std::move(identifier)) {};
+        Type GetType(Context &context) const;
+        explicit DirectDeclarator(std::string identifier) : identifier_(std::move(identifier)) {}
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
 
