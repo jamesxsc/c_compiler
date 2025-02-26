@@ -46,8 +46,6 @@ add_executable(c_compiler
         ${SOURCES}
         ${BISON_Parser_OUTPUTS}
         ${FLEX_Scanner_OUTPUTS}
-        src/ast_init_declarator_list.cpp
-        include/ast_init_declarator_list.hpp
 )
 
 # Set output directory

@@ -7,10 +7,11 @@
 #include "register.hpp"
 
 namespace ast {
+    // TODO this will need to hold type info
     struct Variable {
         int offset;
         int size;
-        int reg;
+        Register reg;
     };
 
     struct StackFrame {

@@ -461,9 +461,10 @@ initializer_list
 	| initializer_list ',' initializer
 	;
 
+// This will need work, a class
 statement
 	: labeled_statement
-	| compound_statement
+	| compound_statement { $$ = $1; }
 	| expression_statement
 	| selection_statement
 	| iteration_statement
@@ -478,6 +479,7 @@ labeled_statement
 
 compound_statement
     // Scoping logic required here?
+    // TODO Will probably want a type/class for this
 	: '{' '}' {
 		// TODO: correct this
 		std::cerr << "Need to fix issues in compound_statement" << std::endl;
@@ -488,18 +490,20 @@ compound_statement
 	}
 	| '{' declaration_list '}' {
 		// TODO: correct this
-		$$ = nullptr;
+		$$ = $2;
 		std::cerr << "Need to fix issues in compound_statement" << std::endl;
 	}
 	| '{' declaration_list statement_list '}'  {
 		// TODO: correct this
-		$$ = $3; // Temp - just pass the statement list
+		// Temp just insert declaration (singular; we haven't implemented list yet) at start
+		$3->InsertFront(NodePtr($2));
+		$$ = $3;
 		std::cerr << "Need to fix issues in compound_statement" << std::endl;
 	}
 	;
 
 declaration_list
-	: declaration
+	: declaration { $$ = $1; } // Temp
 	| declaration_list declaration
 	;
 

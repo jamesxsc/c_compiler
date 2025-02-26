@@ -1,5 +1,6 @@
 int f(int x, int y)
 {
-    /*TODO return to original - use local variable z*/
-    return x-y;
+    int z;
+    z = x + y;
+    return z;
 }

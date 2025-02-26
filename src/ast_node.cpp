@@ -43,4 +43,8 @@ void NodeList::Print(std::ostream& stream) const
         return nodes_.size();
     }
 
+    void NodeList::InsertFront(NodePtr item) {
+        nodes_.insert(nodes_.begin(), std::move(item));
+    }
+
 }

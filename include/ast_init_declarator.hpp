@@ -13,6 +13,8 @@ namespace ast {
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
         void Print(std::ostream &stream) const override;
+        [[nodiscard]] const std::string& GetIdentifier() const;
+        [[nodiscard]] bool HasInitializer() const;
     private:
         DeclaratorPtr declarator_;
         InitializerPtr initializer_;

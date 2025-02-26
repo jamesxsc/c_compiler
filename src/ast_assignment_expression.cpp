@@ -6,10 +6,41 @@ namespace ast {
 
     void AssignmentExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         // TODO implement other assignment operators
-        if (op_ == AssignmentOperator::ConditionalPromote) {
-            conditional_->EmitRISC(stream, context, destReg);
-        } else {
-            std::cerr << "This assignment operator is not implemented" << std::endl;
+        switch (op_) {
+
+            case AssignmentOperator::ConditionalPromote:
+                conditional_->EmitRISC(stream, context, destReg);
+                break;
+            case AssignmentOperator::Assign: {
+                // We need a register for lhs // TODO do we want to check if it's already in a register?
+                Register lhsReg = context.AllocateTemporary();
+
+                // todo diff types and arrays will be different here
+                // this is for int
+                assignment_->EmitRISC(stream, context, lhsReg);
+
+                // todo if it is already in a reg AND (BIG IF) WE DECIDE TO STORE REGISTERS/VARIABLES IN CONTEXT THEN UPDATE THAT
+
+                // Can only assign to lvalue so this call should succeed
+                Variable lhsVariable = context.CurrentFrame().bindings.at(unary_->GetIdentifier());
+
+                stream << "sw " << lhsReg << "," << lhsVariable.offset << "(s0)"   << std::endl;
+
+                context.FreeTemporary(lhsReg);
+                break;
+            }
+            case AssignmentOperator::MultiplyAssign:
+            case AssignmentOperator::DivideAssign:
+            case AssignmentOperator::ModuloAssign:
+            case AssignmentOperator::AddAssign:
+            case AssignmentOperator::SubtractAssign:
+            case AssignmentOperator::LeftShiftAssign:
+            case AssignmentOperator::RightShiftAssign:
+            case AssignmentOperator::BitwiseAndAssign:
+            case AssignmentOperator::BitwiseXorAssign:
+            case AssignmentOperator::BitwiseOrAssign:
+                std::cerr << "This assignment operator is not implemented" << std::endl;
+                break;
         }
     }
 
@@ -59,10 +90,14 @@ namespace ast {
         }
     }
 
-    AssignmentExpression::AssignmentExpression(ConditionalExpressionPtr conditional) : op_(AssignmentOperator::ConditionalPromote), conditional_(std::move(conditional)), unary_(
+    AssignmentExpression::AssignmentExpression(ConditionalExpressionPtr conditional) : op_(
+            AssignmentOperator::ConditionalPromote), conditional_(std::move(conditional)), unary_(
             nullptr), assignment_(nullptr) {}
 
     AssignmentExpression::AssignmentExpression(UnaryExpressionPtr unary, AssignmentOperator op,
-                                               AssignmentExpressionPtr assignment) : op_(op), conditional_(nullptr), unary_(std::move(unary)), assignment_(std::move(assignment)) {}
+                                               AssignmentExpressionPtr assignment) : op_(op), conditional_(nullptr),
+                                                                                     unary_(std::move(unary)),
+                                                                                     assignment_(
+                                                                                             std::move(assignment)) {}
 
 }

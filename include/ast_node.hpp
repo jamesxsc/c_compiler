@@ -31,6 +31,7 @@ public:
     NodeList(NodePtr first_node) { nodes_.push_back(std::move(first_node)); }
 
     void PushBack(NodePtr item);
+    void InsertFront(NodePtr item); // TODO remove this eventually
     [[nodiscard]] std::vector<NodePtr>::const_iterator begin() const;
     [[nodiscard]] std::vector<NodePtr>::const_iterator end() const;
     [[nodiscard]] size_t Size() const;

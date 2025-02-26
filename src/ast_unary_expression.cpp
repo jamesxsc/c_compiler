@@ -10,4 +10,9 @@ namespace ast {
         child_->Print(stream);
     }
 
+    // We don't use references since at a lower level there may be a cast leaving a dangling reference
+    std::string UnaryExpression::GetIdentifier() const {
+        return child_->GetIdentifier();
+    }
+
 } // namespace ast
