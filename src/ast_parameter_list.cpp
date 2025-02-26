@@ -1,6 +1,5 @@
 #include "ast_parameter_list.hpp"
-#include "ast_context.hpp"
-#include "ast_identifier.hpp"
+#include "ast_type_specifier.hpp"
 
 namespace ast {
 
@@ -12,9 +11,6 @@ namespace ast {
         if (!parameters_.empty()) {
             int idx = 0;
             for (const auto& param: parameters_) {
-                // TODO types sizes etc
-                // TODO correct frame size and stack structure logic
-                // also please use register enum
                 int offset = -20 - 4 * idx;
                 context.CurrentFrame().bindings.insert({param->GetIdentifier(), Variable{
                         .offset = offset,
@@ -27,21 +23,7 @@ namespace ast {
         }
     }
 
-// Not sure what I was thinking but this doesn't seem to be needed
-//    void ParameterList::EmitLabelRISC(std::ostream &stream) const {
-//        stream << "(";
-//        for (auto it = parameters_.begin(); it != parameters_.end(); ++it) {
-//            // TODO fix when types are supported
-//            stream << "int";
-//            if (it + 1 != parameters_.end()) {
-//                stream << ", ";
-//            }
-//        }
-//        stream << ")";
-//    }
-
     void ParameterList::Print(std::ostream &stream) const {
-        // (int x, int y, int z)
         if (!parameters_.empty()) {
             stream << "(";
             for (auto it = parameters_.begin(); it != parameters_.end(); ++it) {
@@ -68,6 +50,10 @@ namespace ast {
 
     std::vector<ParameterDeclarationPtr>::const_iterator ParameterList::end() const {
         return parameters_.end();
+    }
+
+    ast::Type ParameterList::GetType(Context&) const {
+        return ast::Type(ast::TypeSpecifier::INT, true);
     }
 
 }

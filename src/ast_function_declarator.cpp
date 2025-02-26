@@ -1,5 +1,6 @@
 #include "ast_function_declarator.hpp"
 #include "ast_parameter_declaration.hpp"
+#include "ast_type_specifier.hpp"
 
 namespace ast {
 
@@ -40,4 +41,10 @@ namespace ast {
         stream << ")";
     }
 
-} // namespace ast
+
+
+    ast::Type FunctionDeclarator::GetType(Context&) const {
+        return ast::Type(ast::TypeSpecifier::INT, true);
+    }
+
+}

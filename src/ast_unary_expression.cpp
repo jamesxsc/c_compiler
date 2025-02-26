@@ -1,4 +1,5 @@
 #include "ast_unary_expression.hpp"
+#include "ast_type_specifier.hpp"
 
 namespace ast {
 
@@ -13,6 +14,10 @@ namespace ast {
     // We don't use references since at a lower level there may be a cast leaving a dangling reference
     std::string UnaryExpression::GetIdentifier() const {
         return child_->GetIdentifier();
+    }
+
+    Type UnaryExpression::GetType(Context &context) const {
+        return child_->GetType(context);
     }
 
 } // namespace ast

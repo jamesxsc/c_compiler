@@ -3,6 +3,7 @@
 #include "ast_node.hpp"
 #include "ast_parameter_list.hpp"
 #include "ast_declarator.hpp"
+#include "ast_type_specifier.hpp"
 
 namespace ast {
 
@@ -25,6 +26,8 @@ namespace ast {
                 throw std::runtime_error("Function identifier declarator must be direct");
             }
         };
+
+        Type GetType(Context &context) const;
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
 

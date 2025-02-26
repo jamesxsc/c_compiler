@@ -14,6 +14,7 @@ namespace ast {
 
     class AndExpression : public ExpressionBase {
     public:
+        Type GetType(Context &context) const override;
         AndExpression(AndExpressionPtr left, EqualityExpressionPtr right) : left_(std::move(left)), right_(std::move(right)) {}
         // Overload for equality promotion
         explicit AndExpression(EqualityExpressionPtr right) : left_(nullptr), right_(std::move(right)) {}

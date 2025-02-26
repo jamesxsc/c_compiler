@@ -10,6 +10,7 @@ namespace ast {
 
     class LogicalAndExpression : public ExpressionBase {
     public:
+        Type GetType(Context &context) const override;
         LogicalAndExpression(LogicalAndExpressionPtr left, InclusiveOrExpressionPtr right) : left_(std::move(left)), right_(std::move(right)) {}
         // Overload for inclusive or promotion
         explicit LogicalAndExpression(InclusiveOrExpressionPtr right) : left_(nullptr), right_(std::move(right)) {}

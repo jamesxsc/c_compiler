@@ -1,5 +1,6 @@
 #include "ast_conditional_expression.hpp"
 #include "ast_expression.hpp"
+#include "ast_type_specifier.hpp"
 
 namespace ast {
 
@@ -30,4 +31,9 @@ namespace ast {
     ConditionalExpression::ConditionalExpression(LogicalOrExpressionPtr left) : ternary_(false), left_(std::move(left)), middle_(nullptr), right_(
             nullptr) {}
 
+
+
+    ast::Type ConditionalExpression::GetType(Context&) const {
+        return ast::Type(ast::TypeSpecifier::INT, true);
+    }
 }

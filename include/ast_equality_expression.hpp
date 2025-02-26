@@ -15,6 +15,7 @@ namespace ast {
     using EqualityExpressionPtr = std::unique_ptr<const EqualityExpression>;
     class EqualityExpression : public ExpressionBase {
     public:
+        Type GetType(Context &context) const override;
         EqualityExpression(EqualityExpressionPtr left, RelationalExpressionPtr right, EqualityOperator op) : left_(std::move(left)), right_(std::move(right)), op_(op) {}
         // Overload for relational promote
         explicit EqualityExpression(RelationalExpressionPtr right) : left_(nullptr), right_(std::move(right)), op_(EqualityOperator::RelationalPromote) {}

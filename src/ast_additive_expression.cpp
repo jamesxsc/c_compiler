@@ -1,3 +1,4 @@
+#include "ast_type_specifier.hpp"
 #include "ast_additive_expression.hpp"
 
 namespace ast {
@@ -12,7 +13,6 @@ namespace ast {
                 Register rightReg = context.AllocateTemporary();
                 right_->EmitRISC(stream, context, rightReg);
 
-                // RISC-V instruction for addition
                 stream << "add " << destReg << "," << leftReg << "," << rightReg << std::endl;
 
                 context.FreeTemporary(leftReg);
@@ -21,14 +21,12 @@ namespace ast {
             }
 
             case AdditiveOperator::Subtract: {
-                // Evaluate left and right subexpressions into temporary registers
                 Register leftReg = context.AllocateTemporary();
                 left_->EmitRISC(stream, context, leftReg);
 
                 Register rightReg = context.AllocateTemporary();
                 right_->EmitRISC(stream, context, rightReg);
 
-                // RISC-V instruction for subtraction
                 stream << "sub " << destReg << "," << leftReg << "," << rightReg << std::endl;
 
                 context.FreeTemporary(leftReg);
@@ -37,7 +35,6 @@ namespace ast {
             }
 
             case AdditiveOperator::MultiplicativePromote: {
-                // Just emit the sub-expression directly into destReg
                 right_->EmitRISC(stream, context, destReg);
                 break;
             }
@@ -58,11 +55,15 @@ namespace ast {
                 stream << " - ";
                 break;
             case AdditiveOperator::MultiplicativePromote:
-                // No operator for a promote
                 break;
         }
         
         right_->Print(stream);
+    }
+
+
+    ast::Type AdditiveExpression::GetType(Context&) const {
+        return ast::Type(ast::TypeSpecifier::INT, true);
     }
 
 } // namespace ast

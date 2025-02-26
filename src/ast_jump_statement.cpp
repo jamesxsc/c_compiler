@@ -1,4 +1,5 @@
 #include "ast_jump_statement.hpp"
+#include "ast_type_specifier.hpp"
 
 namespace ast {
 
@@ -30,4 +31,8 @@ void ReturnStatement::Print(std::ostream& stream) const
     stream << ";" << std::endl;
 }
 
+
+    ast::Type ReturnStatement::GetType(Context&) const {
+        return ast::Type(ast::TypeSpecifier::INT, true);
+    }
 }

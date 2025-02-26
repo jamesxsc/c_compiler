@@ -1,5 +1,6 @@
 #include "ast_assignment_expression.hpp"
 #include "ast_expression.hpp"
+#include "ast_type_specifier.hpp"
 
 namespace ast {
 
@@ -100,4 +101,9 @@ namespace ast {
                                                                                      assignment_(
                                                                                              std::move(assignment)) {}
 
+
+
+    ast::Type AssignmentExpression::GetType(Context&) const {
+        return ast::Type(ast::TypeSpecifier::INT, true);
+    }
 }

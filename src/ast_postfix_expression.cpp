@@ -1,5 +1,6 @@
 #include "ast_postfix_expression.hpp"
 #include "ast_identifier.hpp"
+#include "ast_type_specifier.hpp"
 
 namespace ast {
 
@@ -7,8 +8,13 @@ namespace ast {
         child_->EmitRISC(stream, context, destReg);
     }
 
-    void PostfixExpression::Print(std::ostream &stream) const {
+    void PostfixExpression::Print(std::ostream &stream) const
+    {
         child_->Print(stream); // Only support primary expression which we just print as is
+    }
+
+    Type PostfixExpression::GetType(Context &context) const {
+        return child_->GetType(context);
     }
 
     std::string PostfixExpression::GetIdentifier() const {

@@ -19,6 +19,7 @@ namespace ast {
 
     class RelationalExpression : public ExpressionBase {
     public:
+        Type GetType(Context &context) const override;
         RelationalExpression(RelationalExpressionPtr left, ShiftExpressionPtr right, RelationalOperator op) : left_(
                 std::move(left)), right_(std::move(right)), op_(op) {}
 

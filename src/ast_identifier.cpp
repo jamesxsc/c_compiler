@@ -1,4 +1,5 @@
 #include "ast_identifier.hpp"
+#include "ast_type_specifier.hpp"
 
 namespace ast {
 
@@ -20,6 +21,12 @@ namespace ast {
 
     const std::string &Identifier::GetIdentifier() const {
         return identifier_;
+    }
+
+
+
+    ast::Type Identifier::GetType(Context&) const {
+        return ast::Type(ast::TypeSpecifier::INT, true);
     }
 
 }

@@ -1,15 +1,12 @@
 #pragma once
 
 #include "ast_expression_base.hpp"
-#include "ast_primary_expression.hpp"
 
 namespace ast {
 
     class PostfixExpression : public ExpressionBase {
     public:
-        explicit PostfixExpression(ExpressionBasePtr child) : child_(std::move(child)) {
-            std::cout << "PostfixExpression constructor called" << std::endl;
-        };
+        explicit PostfixExpression(ExpressionBasePtr child) : child_(std::move(child)) {};
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
 
@@ -20,6 +17,7 @@ namespace ast {
 
     private:
         ExpressionBasePtr child_;
+        Type GetType(Context &context) const override;
     };
 
     using PostfixExpressionPtr = std::unique_ptr<const PostfixExpression>;
