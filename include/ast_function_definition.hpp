@@ -6,21 +6,24 @@
 
 namespace ast {
 
-class FunctionDefinition : public Node
-{
-private:
-    const TypeSpecifier declaration_specifiers_;
-    FunctionDeclaratorPtr declarator_;
-    NodePtr declaration_list_;
-    NodePtr compound_statement_;
+    class FunctionDefinition : public Node {
+    private:
+        const TypeSpecifier declaration_specifiers_;
+        FunctionDeclaratorPtr declarator_;
+        NodePtr declaration_list_;
+        NodePtr compound_statement_;
 
-public:
-    FunctionDefinition(TypeSpecifier declaration_specifiers, FunctionDeclaratorPtr declarator, NodePtr compound_statement) 
-        : declaration_specifiers_(declaration_specifiers), declarator_(std::move(declarator)), compound_statement_(std::move(compound_statement)) {}
+    public:
+        FunctionDefinition(TypeSpecifier declaration_specifiers, FunctionDeclaratorPtr declarator,
+                           NodePtr compound_statement)
+                : declaration_specifiers_(declaration_specifiers), declarator_(std::move(declarator)),
+                  compound_statement_(std::move(compound_statement)) {}
 
-    void EmitRISC(std::ostream& stream, Context& context, Register destReg) const override;
-    void Print(std::ostream& stream) const override;
+        void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
 
-    Type GetType(Context &context) const; 
+        void Print(std::ostream &stream) const override;
+
+        Type GetType(Context &context) const;
+    };
 
 } // namespace ast
