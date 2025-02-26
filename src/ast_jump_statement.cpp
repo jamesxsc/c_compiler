@@ -10,9 +10,10 @@ void ReturnStatement::EmitRISC(std::ostream& stream, Context& context, Register 
     }
 
     // Stack/frame pointer/return address teardown
-    // TODO these are wrong when there are local variables because the frame size has changed
-    stream << "lw ra," << context.CurrentFrame().size - 4 << "(sp)" << std::endl;
-    stream << "lw s0," << context.CurrentFrame().size - 8 << "(sp)" << std::endl;
+    // todo we need to decide if we allow decrementing the stack pointer mid functino or if we force ourselves to determine it before emitting the prologue
+    // ideally we use sp not s0 here but if we grow the frame we can't rely on sp + size - 4/8
+    stream << "lw ra," << -4 << "(s0)" << std::endl;
+    stream << "lw s0," << -8 << "(s0)" << std::endl;
     stream << "addi sp,sp," << context.CurrentFrame().size << std::endl;
 
     stream << "ret" << std::endl;
