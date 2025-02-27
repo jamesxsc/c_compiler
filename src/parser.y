@@ -144,6 +144,7 @@ function_definition
 	    // Check we didn't somehow get a non-function declarator
 	    auto * decl = dynamic_cast<FunctionDeclarator*>($2);
 	    assert(decl != nullptr && "Expected a function declarator in function_definition");
+	    $3->SetFunction();
 		$$ = new FunctionDefinition($1, FunctionDeclaratorPtr(decl), CompoundStatementPtr($3));
 	}
 	| declarator declaration_list compound_statement

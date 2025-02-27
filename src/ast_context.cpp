@@ -35,6 +35,24 @@ namespace ast {
         stack_.push_back(frame);
     }
 
+    void Context::PopScope(std::ostream &stream) {
+        assert(!stack_.empty() && "Attempted to pop frame from empty stack");
+        stream << "addi sp,sp," << CurrentFrame().size - stack_.end()[-2].size  << std::endl;
+        stack_.pop_back();
+        // todo do we need to store anything
+        // and restore registers? unclear
+    }
+
+    void Context::PopFrame() {
+        assert(!stack_.empty() && "Attempted to pop frame from empty stack");
+        stack_.pop_back();
+    }
+
+    void Context::PushScope() {
+        assert(!stack_.empty() && "Attempted to push scope without frame on stack");
+        stack_.push_back(stack_.back()); // Makes a copy
+    }
+
     std::string Context::MakeLabel(const std::string &prefix) {
         std::string label{prefix};
         label.push_back('_');

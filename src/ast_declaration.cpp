@@ -16,28 +16,29 @@ namespace ast {
             stream << "addi sp, sp, -" << size << std::endl;
 
             // Bindings and init
+            // Note that 17's insert or assign is used to overwrite variables with the same name if they are refined in a block scope
             if (initDeclarator->HasInitializer()) {
                 switch (typeSpecifier_) {
                     case TypeSpecifier::INT:
                         // Generates initializer/assignment code
                         initDeclarator->EmitRISC(stream, context, destReg);
 
-                        context.CurrentFrame().bindings.insert({identifier, Variable{
+                        context.CurrentFrame().bindings.insert_or_assign(identifier, Variable{
                                 .offset = context.CurrentFrame().size,
                                 .size = size,
                                 .reg = destReg
-                        }});
+                        });
 
                         stream << "sw " << destReg << ",0(sp)" << std::endl;
                         break;
                 }
             } else {
                 // Allocated, but not initialized
-                context.CurrentFrame().bindings.insert({identifier, Variable{
+                context.CurrentFrame().bindings.insert_or_assign(identifier, Variable{
                         .offset = context.CurrentFrame().size,
                         .size = size,
                         .reg = Register::zero
-                }});
+                });
             }
         }
     }

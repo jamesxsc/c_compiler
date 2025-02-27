@@ -30,11 +30,13 @@
 * ~~Local variables - James~~
 * ~~Context make unique - James~~
 * Scoping - James
+* Function calls - James
 * Short-circuiting logic
 * Selection and iteration statements - if-else/while etc.
 * Multiple functions in a translation unit/ file
 * Cerr outputs for all unsupported features
 * Prepare code for other types/ variable sizes
+* Global variables
 * Stack frame structure - how is size determined exactly - see related comments
 * Arrays local or global
 * Structs

@@ -36,13 +36,18 @@ namespace ast {
 
         void PushFrame(const StackFrame &frame);
 
-        std::string MakeLabel(const std::string &prefix);
+        void PushScope();
 
+        void PopScope(std::ostream &stream);
+
+        void PopFrame();
+
+        std::string MakeLabel(const std::string &prefix);
     private:
         std::bitset<7> temporaries_; // using t0... notation for contiguous numbering
         std::vector<StackFrame> stack_;
-        int labelId_{};
 
+        int labelId_{};
     };
 
 } // namespace ast
