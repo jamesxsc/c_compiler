@@ -10,9 +10,7 @@ namespace ast {
     {
     public:
         // TODO identifier type and possibilities
-        ParameterDeclaration(TypeSpecifier type, DeclaratorPtr identifier) : type_(type), identifier_(std::move(identifier)) {
-            std::cout << "Declaration constructor called" << std::endl;
-        }
+        ParameterDeclaration(TypeSpecifier type, DeclaratorPtr identifier) : type_(type), identifier_(std::move(identifier)) {};
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
         void Print(std::ostream &stream) const override;

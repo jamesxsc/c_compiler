@@ -8,7 +8,7 @@ namespace ast {
         stream << ".globl " << GetIdentifier() << std::endl;
         stream << GetIdentifier();
         stream << ":" << std::endl;
-        int frameSize = 32; // bytes // TODO dynamic size
+        int frameSize = 32; // bytes // TODO dynamic size - involves decision whether to fix size before generating prologue
         context.PushFrame({
                                   .size = frameSize,
                                   .bindings = {}

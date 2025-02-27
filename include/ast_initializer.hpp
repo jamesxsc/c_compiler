@@ -6,8 +6,7 @@
 
 namespace ast {
     class Initializer : public Node {
-        // TODO impl, basically just takes an assignment expression
-        // TODO add initializer list
+        // TODO implement initializer list - possibly best to wait until structs
     public:
         explicit Initializer(AssignmentExpressionPtr expression): expression_(std::move(expression)) {}
 

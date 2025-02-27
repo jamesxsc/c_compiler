@@ -44,7 +44,6 @@ namespace ast {
 
     void Declaration::Print(std::ostream &stream) const {
         stream << typeSpecifier_; // This is overloaded to provide a string representation
-        // TODO we are missing a space but not sure where to add it
         initDeclaratorList_->Print(stream);
     }
 

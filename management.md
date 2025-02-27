@@ -24,21 +24,22 @@
 
 # Milestones (Draft)
 
-* Cerr outputs for all unsupported features
-* Register system/type for passing dest reg - at the moment we don't distinguish x and t type which is big bad (why ADD1 fails)
+* ~~Register system/type for passing dest reg - at the moment we don't distinguish x and t type which is big bad (why ADD1 fails) - James~~
 * ~~Other multiplication operations - Eliott~~
 * ~~Full expression hierarchy - James~~
-* Ternary operator - James
-* Multiple functions in a translation unit/ file
+* ~~Local variables - James~~
 * ~~Context make unique - James~~
-* Stack frame structure - how is size determined exactly
+* Scoping - James
+* Short-circuiting logic
+* Selection and iteration statements - if-else/while etc.
+* Multiple functions in a translation unit/ file
+* Cerr outputs for all unsupported features
 * Prepare code for other types/ variable sizes
-* Local variables (scoping?) - James
-* Structs
-* Control blocks - if-else/while etc.
+* Stack frame structure - how is size determined exactly - see related comments
 * Arrays local or global
+* Structs
 * Enum
-* Short circuiting logic
+* Ternary operator
 * Sizeof
 * Pointers
 

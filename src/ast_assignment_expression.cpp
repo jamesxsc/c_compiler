@@ -14,6 +14,7 @@ namespace ast {
                 break;
             case AssignmentOperator::Assign: {
                 // We need a register for lhs // TODO do we want to check if it's already in a register?
+                // also this is common between this and the other operators
                 Register lhsReg = context.AllocateTemporary();
 
                 // todo diff types and arrays will be different here

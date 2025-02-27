@@ -18,7 +18,7 @@ namespace ast {
     }
 
     std::string PostfixExpression::GetIdentifier() const {
-        // todo handle array/member case
+        // todo handle array[constexpr]/identifier.member case
         Identifier identifier = dynamic_cast<const Identifier&>(*child_);
         return identifier.GetIdentifier();
     }
