@@ -52,8 +52,4 @@ namespace ast {
         return parameters_.end();
     }
 
-    ast::Type ParameterList::GetType(Context&) const {
-        return ast::Type(ast::TypeSpecifier::INT, true);
-    }
-
 }

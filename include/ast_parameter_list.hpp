@@ -8,8 +8,7 @@ namespace ast {
 
     class ParameterList : public Node {
     public:
-        Type GetType(Context &context) const;
-        ParameterList(ParameterDeclarationPtr first);
+        explicit ParameterList(ParameterDeclarationPtr first);
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
         void EmitLabelRISC(std::ostream &stream) const;
