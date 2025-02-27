@@ -45,6 +45,8 @@
   StatementList* statement_list;
   CompoundStatement* compound_statement;
   ExpressionStatement* expression_statement;
+  IterationStatement* iteration_statement;
+  SelectionStatement* selection_statement;
   int          	number_int;
   double       	number_float;
   std::string* 	string;
@@ -70,13 +72,15 @@
 %type <node> struct_specifier struct_declaration_list struct_declaration specifier_qualifier_list struct_declarator_list
 %type <node> struct_declarator enum_specifier enumerator_list enumerator pointer
 %type <node> identifier_list type_name abstract_declarator direct_abstract_declarator labeled_statement
-%type <node> selection_statement iteration_statement jump_statement
+%type <node> jump_statement
 
 // Statement types
 %nterm <statement> statement
 %nterm <statement_list> statement_list
 %nterm <compound_statement> compound_statement
 %nterm <expression_statement> expression_statement
+%nterm <selection_statement> selection_statement
+%nterm <iteration_statement> iteration_statement
 
 %nterm <declaration_list> declaration_list
 %nterm <parameter_list> parameter_list
@@ -479,8 +483,8 @@ statement
 	: labeled_statement
 	| compound_statement { $$ = $1; }
 	| expression_statement { $$ = $1; }
-	| selection_statement
-	| iteration_statement
+	| selection_statement { $$ = $1; }
+	| iteration_statement { $$ = $1; }
 	| jump_statement
 	;
 
