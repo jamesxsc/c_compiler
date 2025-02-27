@@ -67,7 +67,8 @@
 // Note: Prefer %nterm over %type
 
 // Unchanged types
-%type <node> translation_unit external_declaration function_definition
+%type <node_list> translation_unit
+%type <node> external_declaration function_definition
 %type <expression_base> primary_expression
 %type <expression_base> constant_expression
 %type <node> initializer_list
@@ -133,8 +134,9 @@ ROOT
   : translation_unit { g_root = $1; }
 
 translation_unit
-	: external_declaration { $$ = $1; }
-	| translation_unit external_declaration
+// Use nodelist for now
+	: external_declaration { $$ = new NodeList(NodePtr($1)); }
+	| translation_unit external_declaration { $1->PushBack(NodePtr($2)); $$ = $1; }
 	;
 
 external_declaration

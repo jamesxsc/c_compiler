@@ -7,6 +7,8 @@ namespace ast {
             arguments_->EmitRISC(stream, context, destReg);
         }
         stream << "call " << function_->GetIdentifier() << std::endl;
+        if (destReg != Register::a0)
+            stream << "mv " << destReg << "," << Register::a0 << std::endl; // Assumes single return value in a0
     }
 
     void FunctionCallExpression::Print(std::ostream &stream) const {
