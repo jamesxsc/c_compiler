@@ -19,6 +19,7 @@
   NodeList*    	node_list;
   ExpressionBase* expression_base;
   PostfixExpression* postfix_expression;
+  FunctionCallExpression* function_call_expression;
   UnaryExpression* unary_expression; UnaryOperator unary_operator;
   MultiplicativeExpression* multiplicative_expression;
   AdditiveExpression* additive_expression;
@@ -32,6 +33,7 @@
   LogicalOrExpression* logical_or_expression;
   ConditionalExpression* conditional_expression;
   AssignmentExpression* assignment_expression; AssignmentOperator assignment_operator;
+  ArgumentExpressionList* argument_expression_list;
   Expression*  	expression;
   ParameterDeclaration*     parameter_declaration;
   Declarator*         direct_declarator;
@@ -64,9 +66,9 @@
 
 // Note: Prefer %nterm over %type
 
+// Unchanged types
 %type <node> translation_unit external_declaration function_definition
-%type <expression_base> primary_expression argument_expression_list
-
+%type <expression_base> primary_expression
 %type <expression_base> constant_expression
 %type <node> initializer_list
 %type <node> struct_specifier struct_declaration_list struct_declaration specifier_qualifier_list struct_declarator_list
@@ -94,6 +96,7 @@
 
 // Expression hierachy
 %nterm <postfix_expression> postfix_expression
+%nterm <function_call_expression> function_call_expression
 %nterm <unary_expression> unary_expression
 %nterm <unary_operator> unary_operator
 %nterm <multiplicative_expression> multiplicative_expression
@@ -109,6 +112,7 @@
 %nterm <conditional_expression> conditional_expression
 %nterm <assignment_expression> assignment_expression
 %nterm <assignment_operator> assignment_operator
+%nterm <argument_expression_list> argument_expression_list
 %nterm <expression> expression
 
 %type <string> storage_class_specifier
@@ -135,7 +139,7 @@ translation_unit
 
 external_declaration
 	: function_definition { $$ = $1; }
-	| declaration
+	| declaration { $$ = $1; }
 	;
 
 function_definition
@@ -166,11 +170,16 @@ primary_expression
 	| '(' expression ')'
 	;
 
+// Function call; the extra class here seems the neatest way to do this rather than bloat PostfixExpression
+function_call_expression
+    : postfix_expression '(' argument_expression_list ')' { $$ = new FunctionCallExpression(PostfixExpressionPtr($1), ArgumentExpressionListPtr($3)); }
+	| postfix_expression '(' ')' { $$ = new FunctionCallExpression(PostfixExpressionPtr($1)); }
+    ;
+
 postfix_expression
 	: primary_expression { $$ = new PostfixExpression(ExpressionBasePtr($1)); }
 	| postfix_expression '[' expression ']'
-	| postfix_expression '(' ')'
-	| postfix_expression '(' argument_expression_list ')'
+	| function_call_expression { $$ = new PostfixExpression(ExpressionBasePtr($1)); }
 	| postfix_expression '.' IDENTIFIER
 	| postfix_expression PTR_OP IDENTIFIER
 	| postfix_expression INC_OP
@@ -178,8 +187,8 @@ postfix_expression
 	;
 
 argument_expression_list
-	: assignment_expression
-	| argument_expression_list ',' assignment_expression
+	: assignment_expression { $$ = new ArgumentExpressionList(AssignmentExpressionPtr($1)); }
+	| argument_expression_list ',' assignment_expression { $1->PushBack(AssignmentExpressionPtr($3)); $$=$1; }
 	;
 
 unary_expression
@@ -441,7 +450,7 @@ parameter_declaration
 	;
 
 identifier_list
-	: IDENTIFIER
+	: IDENTIFIER { std::cerr << "An identifier list has been created. Note that K&R style declarations are not supported." << std::endl; exit(1); }
 	| identifier_list ',' IDENTIFIER { std::cerr << "An identifier list has been created. Note that K&R style declarations are not supported." << std::endl; exit(1); }
 	;
 

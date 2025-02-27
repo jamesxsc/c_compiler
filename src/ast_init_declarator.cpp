@@ -1,4 +1,5 @@
 #include "ast_init_declarator.hpp"
+#include "ast_function_declarator.hpp"
 
 namespace ast {
 
@@ -23,6 +24,10 @@ namespace ast {
 
     bool InitDeclarator::HasInitializer() const {
         return initializer_ != nullptr;
+    }
+
+    bool InitDeclarator::IsFunction() const {
+        return dynamic_cast<const FunctionDeclarator*>(declarator_.get()) != nullptr;
     }
 
 }

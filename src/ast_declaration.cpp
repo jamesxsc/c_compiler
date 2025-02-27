@@ -4,41 +4,48 @@ namespace ast {
 
     void Declaration::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         for (const auto &initDeclarator: *initDeclaratorList_) {
-            // Stack work is done here
-            // TODO need to handle different sizes (inferred from type)
-            int size = 4;
-            std::string identifier = initDeclarator->GetIdentifier();
+            // Handle forward declarations
+            if (initDeclarator->IsFunction()) {
+                // TODO store functions in context because we will need size etc information
 
-            destReg = context.AllocateTemporary();
 
-            // Increment frame down
-            context.CurrentFrame().size += size;
-            stream << "addi sp, sp, -" << size << std::endl;
+            } else { // Handle variable declarations
+                // Stack work is done here
+                // TODO need to handle different sizes (inferred from type)
+                int size = 4;
+                std::string identifier = initDeclarator->GetIdentifier();
 
-            // Bindings and init
-            // Note that 17's insert or assign is used to overwrite variables with the same name if they are refined in a block scope
-            if (initDeclarator->HasInitializer()) {
-                switch (typeSpecifier_) {
-                    case TypeSpecifier::INT:
-                        // Generates initializer/assignment code
-                        initDeclarator->EmitRISC(stream, context, destReg);
+                destReg = context.AllocateTemporary();
 
-                        context.CurrentFrame().bindings.insert_or_assign(identifier, Variable{
-                                .offset = context.CurrentFrame().size,
-                                .size = size,
-                                .reg = destReg
-                        });
+                // Increment frame down
+                context.CurrentFrame().size += size;
+                stream << "addi sp, sp, -" << size << std::endl;
 
-                        stream << "sw " << destReg << ",0(sp)" << std::endl;
-                        break;
+                // Bindings and init
+                // Note that 17's insert or assign is used to overwrite variables with the same name if they are refined in a block scope
+                if (initDeclarator->HasInitializer()) {
+                    switch (typeSpecifier_) {
+                        case TypeSpecifier::INT:
+                            // Generates initializer/assignment code
+                            initDeclarator->EmitRISC(stream, context, destReg);
+
+                            context.CurrentFrame().bindings.insert_or_assign(identifier, Variable{
+                                    .offset = context.CurrentFrame().size,
+                                    .size = size,
+                                    .reg = destReg
+                            });
+
+                            stream << "sw " << destReg << ",0(sp)" << std::endl;
+                            break;
+                    }
+                } else {
+                    // Allocated, but not initialized
+                    context.CurrentFrame().bindings.insert_or_assign(identifier, Variable{
+                            .offset = context.CurrentFrame().size,
+                            .size = size,
+                            .reg = Register::zero
+                    });
                 }
-            } else {
-                // Allocated, but not initialized
-                context.CurrentFrame().bindings.insert_or_assign(identifier, Variable{
-                        .offset = context.CurrentFrame().size,
-                        .size = size,
-                        .reg = Register::zero
-                });
             }
         }
     }

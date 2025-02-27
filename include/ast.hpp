@@ -6,6 +6,7 @@
 
 #include "ast_additive_expression.hpp"
 #include "ast_and_expression.hpp"
+#include "ast_argument_expression_list.hpp"
 #include "ast_assignment_expression.hpp"
 #include "ast_compound_statement.hpp"
 #include "ast_conditional_expression.hpp"
@@ -22,6 +23,7 @@
 #include "ast_expression.hpp"
 #include "ast_expression_base.hpp"
 #include "ast_expression_statement.hpp"
+#include "ast_function_call_expression.hpp"
 #include "ast_function_definition.hpp"
 #include "ast_identifier.hpp"
 #include "ast_inclusive_or_expression.hpp"
