@@ -22,6 +22,7 @@ public:
 // (and get rid of the now unnecessary std::move-s)
 using NodePtr = std::unique_ptr<const Node>;
 
+// It would have been nice to template this but implementations of Node functions probably differ too much
 class NodeList : public Node
 {
 private:

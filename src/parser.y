@@ -39,6 +39,12 @@
   InitDeclaratorList* init_declarator_list;
   Initializer*        initializer;
   ParameterList* parameter_list;
+  Declaration* declaration;
+  DeclarationList* declaration_list;
+  Statement* statement;
+  StatementList* statement_list;
+  CompoundStatement* compound_statement;
+  ExpressionStatement* expression_statement;
   int          	number_int;
   double       	number_float;
   std::string* 	string;
@@ -60,19 +66,26 @@
 %type <expression_base> primary_expression argument_expression_list
 
 %type <expression_base> constant_expression
-%type <node> declaration initializer_list
+%type <node> initializer_list
 %type <node> struct_specifier struct_declaration_list struct_declaration specifier_qualifier_list struct_declarator_list
 %type <node> struct_declarator enum_specifier enumerator_list enumerator pointer
-%type <node> identifier_list type_name abstract_declarator direct_abstract_declarator statement labeled_statement
-%type <node> compound_statement declaration_list expression_statement selection_statement iteration_statement jump_statement
+%type <node> identifier_list type_name abstract_declarator direct_abstract_declarator labeled_statement
+%type <node> selection_statement iteration_statement jump_statement
 
-%nterm <node_list> statement_list
+// Statement types
+%nterm <statement> statement
+%nterm <statement_list> statement_list
+%nterm <compound_statement> compound_statement
+%nterm <expression_statement> expression_statement
+
+%nterm <declaration_list> declaration_list
 %nterm <parameter_list> parameter_list
 
 %nterm <direct_declarator> direct_declarator declarator // Differentiated by a bool member
 %nterm <init_declarator> init_declarator
 %nterm <init_declarator_list> init_declarator_list
 %nterm <initializer> initializer
+%nterm <declaration> declaration
 %nterm <parameter_declaration> parameter_declaration
 
 // Expression hierachy
@@ -127,7 +140,7 @@ function_definition
 	    // Check we didn't somehow get a non-function declarator
 	    auto * decl = dynamic_cast<FunctionDeclarator*>($2);
 	    assert(decl != nullptr && "Expected a function declarator in function_definition");
-		$$ = new FunctionDefinition($1, FunctionDeclaratorPtr(decl), NodePtr($3));
+		$$ = new FunctionDefinition($1, FunctionDeclaratorPtr(decl), CompoundStatementPtr($3));
 	}
 	| declarator declaration_list compound_statement
 	| declarator compound_statement {
@@ -461,14 +474,14 @@ initializer_list
 	| initializer_list ',' initializer
 	;
 
-// This will need work, a class
+// Do these need to be cast to StatementPtrs or are derived ptrs ok?
 statement
 	: labeled_statement
 	| compound_statement { $$ = $1; }
-	| expression_statement
+	| expression_statement { $$ = $1; }
 	| selection_statement
 	| iteration_statement
-	| jump_statement { $$ = $1; }
+	| jump_statement
 	;
 
 labeled_statement
@@ -477,44 +490,28 @@ labeled_statement
 	| DEFAULT ':' statement
 	;
 
+// This looks counterintuitive but in C90 declarations must all be at the start of a block
+// todo Scoping logic required here?
 compound_statement
-    // Scoping logic required here?
-    // TODO Will probably want a type/class for this
-	: '{' '}' {
-		// TODO: correct this
-		std::cerr << "Need to fix issues in compound_statement" << std::endl;
-		$$ = nullptr;
-	}
-	| '{' statement_list '}' {
-		$$ = $2; // This should work for now
-	}
-	| '{' declaration_list '}' {
-		// TODO: correct this
-		$$ = $2;
-		std::cerr << "Need to fix issues in compound_statement" << std::endl;
-	}
-	| '{' declaration_list statement_list '}'  {
-		// TODO: correct this
-		// Temp just insert declaration (singular; we haven't implemented list yet) at start
-		$3->InsertFront(NodePtr($2));
-		$$ = $3;
-		std::cerr << "Need to fix issues in compound_statement" << std::endl;
-	}
+	: '{' '}' { $$ = new CompoundStatement(nullptr, nullptr); }
+	| '{' statement_list '}' { $$ = new CompoundStatement(nullptr, StatementListPtr($2)); }
+	| '{' declaration_list '}' { $$ = new CompoundStatement(DeclarationListPtr($2), nullptr); }
+	| '{' declaration_list statement_list '}'  { $$ = new CompoundStatement(DeclarationListPtr($2), StatementListPtr($3)); }
 	;
 
 declaration_list
-	: declaration { $$ = $1; } // Temp
-	| declaration_list declaration
+	: declaration { $$ = new DeclarationList(DeclarationPtr($1)); }
+	| declaration_list declaration { $1->PushBack(DeclarationPtr($2)); $$ = $1; }
 	;
 
 statement_list
-	: statement { $$ = new NodeList(NodePtr($1)); }
-	| statement_list statement { $1->PushBack(NodePtr($2)); $$=$1; }
+	: statement { $$ = new StatementList(StatementPtr($1)); }
+	| statement_list statement { $1->PushBack(StatementPtr($2)); $$=$1; }
 	;
 
 expression_statement
-	: ';'
-	| expression ';' { $$ = $1; }
+	: ';' { $$ = new ExpressionStatement(); }
+	| expression ';' { $$ = new ExpressionStatement(ExpressionPtr($1)); }
 	;
 
 selection_statement

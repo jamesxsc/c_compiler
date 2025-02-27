@@ -19,4 +19,6 @@ namespace ast {
         InitDeclaratorListPtr initDeclaratorList_;
     };
 
+    using DeclarationPtr = std::unique_ptr<const Declaration>;
+
 }

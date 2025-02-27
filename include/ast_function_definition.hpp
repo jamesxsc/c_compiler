@@ -3,6 +3,7 @@
 #include "ast_node.hpp"
 #include "ast_type_specifier.hpp"
 #include "ast_function_declarator.hpp"
+#include "ast_compound_statement.hpp"
 
 namespace ast {
 
@@ -11,11 +12,11 @@ namespace ast {
         const TypeSpecifier declaration_specifiers_;
         FunctionDeclaratorPtr declarator_;
         NodePtr declaration_list_;
-        NodePtr compound_statement_;
+        CompoundStatementPtr compound_statement_;
 
     public:
         FunctionDefinition(TypeSpecifier declaration_specifiers, FunctionDeclaratorPtr declarator,
-                           NodePtr compound_statement)
+                           CompoundStatementPtr compound_statement)
                 : declaration_specifiers_(declaration_specifiers), declarator_(std::move(declarator)),
                   compound_statement_(std::move(compound_statement)) {}
 

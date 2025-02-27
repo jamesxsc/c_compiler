@@ -10,9 +10,7 @@ namespace ast {
         bool isDirect_;
 
     public:
-        Type GetType(Context &context) const;
         explicit Declarator(std::string identifier, bool isDirect) : identifier_(std::move(identifier)), isDirect_(isDirect) {};
-
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
 
         void Print(std::ostream &stream) const override;
@@ -22,7 +20,10 @@ namespace ast {
         [[nodiscard]] bool IsDirect() const;
 
         void Indirect();
+
         void Direct();
+
+        Type GetType(Context &context) const;
     };
 
     using DeclaratorPtr = std::unique_ptr<const Declarator>;

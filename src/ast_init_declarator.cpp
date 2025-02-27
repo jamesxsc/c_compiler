@@ -9,7 +9,6 @@ namespace ast {
     }
 
     void InitDeclarator::Print(std::ostream &stream) const {
-        // TODO cx this
         declarator_->Print(stream);
         if (initializer_) {
             stream << " = ";
