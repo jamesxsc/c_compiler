@@ -35,7 +35,7 @@ namespace ast {
                                     .reg = destReg
                             });
 
-                            stream << "sw " << destReg << ",0(sp)" << std::endl;
+                            stream << "sw " << destReg << "," << context.CurrentFrame().size << "(s0)" << std::endl;
                             break;
                     }
                 } else {

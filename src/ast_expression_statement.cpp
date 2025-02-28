@@ -4,7 +4,6 @@
 namespace ast {
 
 void ExpressionStatement::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-    // If there's no expression, do nothing
     if (expression_) {
         expression_->EmitRISC(stream, context, destReg);
     }
