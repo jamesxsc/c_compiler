@@ -2,14 +2,15 @@
 
 #include "ast_statement.hpp"
 #include "ast_expression.hpp"
-#include "ast_expression_statement.hpp" 
+#include "ast_expression_statement.hpp"
 
 namespace ast {
 
 //--------------------------------------
 // WhileStatement
 //--------------------------------------
-class WhileStatement : public Statement {
+class WhileStatement : public Statement
+{
 public:
     WhileStatement(ExpressionPtr condition, StatementPtr body);
 
@@ -24,7 +25,8 @@ private:
 //--------------------------------------
 // DoWhileStatement
 //--------------------------------------
-class DoWhileStatement : public Statement {
+class DoWhileStatement : public Statement
+{
 public:
     DoWhileStatement(StatementPtr body, ExpressionPtr condition);
 
@@ -39,11 +41,11 @@ private:
 //--------------------------------------
 // ForStatement
 //--------------------------------------
-class ForStatement : public Statement {
+class ForStatement : public Statement
+{
 public:
-
-    ForStatement(ExpressionStatementPtr initStmtParam,
-                 ExpressionStatementPtr condStmtParam,
+    ForStatement(ExpressionStatementPtr initStmt,
+                 ExpressionStatementPtr condStmt,
                  ExpressionPtr increment,
                  StatementPtr body);
 

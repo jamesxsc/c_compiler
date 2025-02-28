@@ -10,15 +10,47 @@ IfStatement::IfStatement(ExpressionPtr condition, StatementPtr thenStmt, Stateme
   , elseStmt_(std::move(elseStmt))
 {}
 
-void IfStatement::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-    stream << "# IfStatement EmitRISC (stub)\n";
+void IfStatement::EmitRISC(std::ostream &stream, Context &context, Register destReg) const
+{
 
-    if (condition_) condition_->EmitRISC(stream, context, destReg);
-    if (thenStmt_)  thenStmt_->EmitRISC(stream, context, destReg);
-    if (elseStmt_)  elseStmt_->EmitRISC(stream, context, destReg);
+    std::string labelElse = context.MakeLabel("else");
+    std::string labelEnd  = context.MakeLabel("endif");
+
+
+    if (condition_) {
+        Register condReg = context.AllocateTemporary();
+        condition_->EmitRISC(stream, context, condReg);
+
+
+        stream << "beq " << condReg << ", zero, " << labelElse << "\n";
+
+        context.FreeTemporary(condReg);
+    }
+
+
+    if (thenStmt_) {
+        thenStmt_->EmitRISC(stream, context, destReg);
+    }
+
+
+    if (elseStmt_) {
+        stream << "j " << labelEnd << "\n";
+    }
+
+
+    stream << labelElse << ":\n";
+    if (elseStmt_) {
+        elseStmt_->EmitRISC(stream, context, destReg);
+    }
+
+
+    if (elseStmt_) {
+        stream << labelEnd << ":\n";
+    }
 }
 
-void IfStatement::Print(std::ostream &stream) const {
+void IfStatement::Print(std::ostream &stream) const
+{
     stream << "IfStatement(\n";
     if (condition_) {
         stream << "  condition: ";
@@ -44,13 +76,24 @@ SwitchStatement::SwitchStatement(ExpressionPtr condition, StatementPtr body)
   , body_(std::move(body))
 {}
 
-void SwitchStatement::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-    stream << "# SwitchStatement EmitRISC (stub)\n";
-    if (condition_) condition_->EmitRISC(stream, context, destReg);
-    if (body_)      body_->EmitRISC(stream, context, destReg);
+void SwitchStatement::EmitRISC(std::ostream &stream, Context &context, Register destReg) const
+{
+
+    stream << "# SwitchStatement (stub)\n";
+
+    if (condition_) {
+        Register condReg = context.AllocateTemporary();
+        condition_->EmitRISC(stream, context, condReg);
+        context.FreeTemporary(condReg);
+    }
+
+    if (body_) {
+        body_->EmitRISC(stream, context, destReg);
+    }
 }
 
-void SwitchStatement::Print(std::ostream &stream) const {
+void SwitchStatement::Print(std::ostream &stream) const
+{
     stream << "SwitchStatement(\n";
     if (condition_) {
         stream << "  condition: ";

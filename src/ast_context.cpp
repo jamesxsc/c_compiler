@@ -27,7 +27,6 @@ namespace ast {
         if (stack_.empty()) {
             throw std::runtime_error("No stack frame");
         }
-
         return stack_.back();
     }
 
@@ -35,12 +34,25 @@ namespace ast {
         stack_.push_back(frame);
     }
 
+
+    // Fixed PopScope (was popping too much) 
+
     void Context::PopScope(std::ostream &stream) {
-        assert(!stack_.empty() && "Attempted to pop frame from empty stack");
-        stream << "addi sp,sp," << CurrentFrame().size - stack_.end()[-2].size  << std::endl;
+
+        assert(!stack_.empty() && "Attempted to pop scope from empty stack");
+
+      
+        if (stack_.size() >= 2) {
+            int topSize = CurrentFrame().size;       
+            int oldSize = stack_.end()[-2].size;    
+            stream << "addi sp,sp," << (topSize - oldSize) << std::endl;
+        } else {
+       
+            stream << "# PopScope: only one frame on stack, skipping sp restore\n";
+        }
+
         stack_.pop_back();
-        // todo do we need to store anything
-        // and restore registers? unclear
+        // TODO: If needed, restore saved registers or do other teardown logic
     }
 
     void Context::PopFrame() {
@@ -50,7 +62,7 @@ namespace ast {
 
     void Context::PushScope() {
         assert(!stack_.empty() && "Attempted to push scope without frame on stack");
-        stack_.push_back(stack_.back()); // Makes a copy
+        stack_.push_back(stack_.back());
     }
 
     std::string Context::MakeLabel(const std::string &prefix) {

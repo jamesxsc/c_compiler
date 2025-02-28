@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ast_statement.hpp"
-#include "ast_expression.hpp" // for ExpressionPtr
+#include "ast_expression.hpp"
 
 namespace ast {
 
@@ -11,9 +11,9 @@ namespace ast {
 class IfStatement : public Statement
 {
 public:
-
     IfStatement(ExpressionPtr condition, StatementPtr thenStmt, StatementPtr elseStmt = nullptr);
 
+    // Use a named destReg parameter
     void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
     void Print(std::ostream &stream) const override;
 
