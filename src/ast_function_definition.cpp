@@ -15,6 +15,9 @@ namespace ast {
         if (compound_statement_ != nullptr) {
             compound_statement_->EmitRISC(stream, context, destReg);
         }
+
+        // Moved from return to fix multiple return statements/return in scope
+        context.PopFrame();
     }
 
     void FunctionDefinition::Print(std::ostream &stream) const {
