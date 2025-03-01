@@ -29,16 +29,17 @@
 * ~~Full expression hierarchy - James~~
 * ~~Local variables - James~~
 * ~~Context make unique - James~~
-* Scoping - James
-* Function calls - James
+* ~~Scoping - James~~
+* ~~Function calls - James~~
 * Short-circuiting logic
-* Selection and iteration statements - if-else/while etc.
-* Multiple functions in a translation unit/ file
+* ~~Selection and iteration statements - if-else/while etc. - Eliott~~
+* ~~Multiple functions in a translation unit/ file - James~~
 * Cerr outputs for all unsupported features
 * Prepare code for other types/ variable sizes
 * Global variables
 * Stack frame structure - how is size determined exactly - see related comments
 * Arrays local or global
+* Floats
 * Structs
 * Enum
 * Ternary operator

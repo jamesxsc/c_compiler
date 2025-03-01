@@ -17,8 +17,6 @@ void ReturnStatement::EmitRISC(std::ostream& stream, Context& context, Register 
     stream << "lw s0," << -8 << "(s0)" << std::endl;
     stream << "addi sp,sp," << context.CurrentFrame().size << std::endl;
     stream << "ret" << std::endl;
-
-    context.PopFrame();
 }
 
 void ReturnStatement::Print(std::ostream& stream) const
