@@ -39,7 +39,10 @@ namespace ast {
         // TODO FIX
         assert(!stack_.empty() && "Attempted to pop scope from empty stack");
 
-        stream << "addi sp,sp," << CurrentFrame().size - stack_.end()[-2].size  << std::endl;
+        int delta = CurrentFrame().size - stack_.end()[-2].size;
+        if (delta != 0)
+            stream << "addi sp,sp," << delta << std::endl;
+        // TODO the above needs to be done before returning - fix by removing altogether and fixing stack size before prologue
         stack_.pop_back();
         // todo do we need to store anything
         // and restore registers? unclear

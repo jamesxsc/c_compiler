@@ -36,6 +36,7 @@
 * ~~Multiple functions in a translation unit/ file - James~~
 * Cerr outputs for all unsupported features
 * Prepare code for other types/ variable sizes
+* Figure out when and how to persist registers in functions - James
 * Global variables
 * Stack frame structure - how is size determined exactly - see related comments
 * Arrays local or global

@@ -268,7 +268,7 @@ def run_test(driver: Path) -> Result:
         log_path=f"{log_path}.simulation",
     )
     if return_code != 0:
-        msg = f"\t> Failed to simulate: \n\t {compiler_log_file_str} \n\t {relevant_files('simulation')}"
+        msg = f"\t> Failed to simulate (return code {return_code}): \n\t {compiler_log_file_str} \n\t {relevant_files('simulation')}"
         return Result(test_case_name=test_name, return_code=return_code, passed=False, timeout=timed_out, error_log=msg)
 
     return Result(test_case_name=test_name, return_code=return_code, passed=True, timeout=False, error_log="")

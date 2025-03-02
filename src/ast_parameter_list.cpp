@@ -11,7 +11,7 @@ namespace ast {
         if (!parameters_.empty()) {
             int idx = 0;
             for (const auto& param: parameters_) {
-                int offset = -20 - 4 * idx;
+                int offset = -40 - 4 * idx; // temp todo fix this to -20...
                 context.CurrentFrame().bindings.insert({param->GetIdentifier(), Variable{
                         .offset = offset,
                         .size = 4,

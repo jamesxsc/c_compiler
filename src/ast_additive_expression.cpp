@@ -10,6 +10,9 @@ namespace ast {
                 Register leftReg = context.AllocateTemporary();
                 left_->EmitRISC(stream, context, leftReg);
 
+                // CHECK: Here we only need to check that right doesn't clobber left?
+                // Doesn't really fit the model of looking for def and use though
+
                 Register rightReg = context.AllocateTemporary();
                 right_->EmitRISC(stream, context, rightReg);
 
