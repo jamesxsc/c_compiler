@@ -196,15 +196,14 @@ argument_expression_list
 
 unary_expression
 	: postfix_expression { $$ = new UnaryExpression(PostfixExpressionPtr($1)); }
-	| INC_OP unary_expression
-	| DEC_OP unary_expression
+	| INC_OP unary_expression { $$ = new UnaryExpression(UnaryExpressionPtr($2), UnaryOperator::PrefixIncrement); }
+	| DEC_OP unary_expression { $$ = new UnaryExpression(UnaryExpressionPtr($2), UnaryOperator::PrefixDecrement); }
 //	| unary_operator cast_expression // Casts are not required to be implemented
-	| unary_operator multiplicative_expression
+	| unary_operator multiplicative_expression { $$ = new UnaryExpression(MultiplicativeExpressionPtr($2), $1); }
 	| SIZEOF unary_expression
 	| SIZEOF '(' type_name ')'
 	;
 
-// todo implement these and the postfix ones
 unary_operator
 	: '&' { $$ = UnaryOperator::AddressOf; }
 	| '*' { $$ = UnaryOperator::Dereference; }

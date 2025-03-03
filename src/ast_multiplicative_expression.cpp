@@ -1,4 +1,5 @@
-#include "ast_multiplicative_expression.hpp"
+#include <cassert>
+#include "ast_multiplicative_unary_expressions.hpp"
 #include "ast_type_specifier.hpp"
 
 namespace ast {
@@ -89,5 +90,10 @@ namespace ast {
         } else {
             return (left_ != nullptr && left_->ContainsFunctionCall()) || right_->ContainsFunctionCall();
         }
+    }
+
+    std::string MultiplicativeExpression::GetIdentifier() const {
+        assert(left_ == nullptr && "MultiplicativeExpression::GetIdentifier() called on an rvalue expression");
+        return right_->GetIdentifier();
     }
 }
