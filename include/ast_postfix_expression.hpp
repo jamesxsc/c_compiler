@@ -4,9 +4,19 @@
 
 namespace ast {
 
+    enum class PostfixOperator {
+        PrimaryPromote,
+//        ArrayAccess,
+        FunctionCallPromote,
+//        MemberAccess,
+//        PointerMemberAccess,
+        PostfixIncrement,
+        PostfixDecrement
+    };
+
     class PostfixExpression : public ExpressionBase {
     public:
-        explicit PostfixExpression(ExpressionBasePtr child) : child_(std::move(child)) {};
+        explicit PostfixExpression(ExpressionBasePtr child, PostfixOperator op) : child_(std::move(child)), op_(op) {};
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
 
@@ -21,6 +31,7 @@ namespace ast {
 
     private:
         ExpressionBasePtr child_;
+        PostfixOperator op_;
     };
 
     using PostfixExpressionPtr = std::unique_ptr<const PostfixExpression>;

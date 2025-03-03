@@ -5,12 +5,41 @@
 namespace ast {
 
     void PostfixExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-        child_->EmitRISC(stream, context, destReg);
+        switch (op_) {
+            case PostfixOperator::PrimaryPromote:
+            case PostfixOperator::FunctionCallPromote:
+                child_->EmitRISC(stream, context, destReg);
+                break;
+            case PostfixOperator::PostfixIncrement:
+            case PostfixOperator::PostfixDecrement:
+                Variable variable = context.CurrentFrame().bindings.at(GetIdentifier());
+                Register tempReg = context.AllocateTemporary();
+                child_->EmitRISC(stream, context, destReg);
+                stream << "lw " << destReg << "," << variable.offset << "(s0)" << std::endl;
+                stream << "addi " << tempReg << "," << destReg << "," << (op_ == PostfixOperator::PostfixIncrement ? 1 : -1) << std::endl;
+                // Store the pre-inc/dec value in the destination register
+                stream << "sw " << tempReg << "," << variable.offset << "(s0)" << std::endl;
+                context.FreeTemporary(tempReg);
+                break;
+        }
     }
 
     void PostfixExpression::Print(std::ostream &stream) const
     {
-        child_->Print(stream); // Only support primary expression which we just print as is
+        switch (op_) {
+            case PostfixOperator::PrimaryPromote:
+            case PostfixOperator::FunctionCallPromote:
+                child_->Print(stream);
+                break;
+            case PostfixOperator::PostfixIncrement:
+                child_->Print(stream);
+                stream << "++";
+                break;
+            case PostfixOperator::PostfixDecrement:
+                child_->Print(stream);
+                stream << "--";
+                break;
+        }
     }
 
     Type PostfixExpression::GetType(Context &context) const {

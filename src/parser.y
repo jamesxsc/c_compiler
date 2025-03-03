@@ -180,13 +180,13 @@ function_call_expression
     ;
 
 postfix_expression
-	: primary_expression { $$ = new PostfixExpression(ExpressionBasePtr($1)); }
+	: primary_expression { $$ = new PostfixExpression(ExpressionBasePtr($1), PostfixOperator::PrimaryPromote); }
 	| postfix_expression '[' expression ']'
-	| function_call_expression { $$ = new PostfixExpression(ExpressionBasePtr($1)); }
+	| function_call_expression { $$ = new PostfixExpression(ExpressionBasePtr($1), PostfixOperator::FunctionCallPromote); }
 	| postfix_expression '.' IDENTIFIER
 	| postfix_expression PTR_OP IDENTIFIER
-	| postfix_expression INC_OP
-	| postfix_expression DEC_OP
+	| postfix_expression INC_OP { $$ = new PostfixExpression(PostfixExpressionPtr($1), PostfixOperator::PostfixIncrement); }
+	| postfix_expression DEC_OP { $$ = new PostfixExpression(PostfixExpressionPtr($1), PostfixOperator::PostfixDecrement); }
 	;
 
 argument_expression_list

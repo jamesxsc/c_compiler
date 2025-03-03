@@ -15,6 +15,7 @@ namespace ast {
                 stream << "lw " << reg << "," << var.offset << "(s0)" << std::endl;
                 stream << "addi " << reg << "," << reg << ",1" << std::endl;
                 stream << "sw " << reg << "," << var.offset << "(s0)" << std::endl;
+                context.FreeTemporary(reg);
                 // Store the incremented value in the destination register
                 unaryChild_->EmitRISC(stream, context, destReg);
                 break;
@@ -25,6 +26,7 @@ namespace ast {
                 stream << "lw " << reg << "," << var.offset << "(s0)" << std::endl;
                 stream << "addi " << reg << "," << reg << ",-1" << std::endl;
                 stream << "sw " << reg << "," << var.offset << "(s0)" << std::endl;
+                context.FreeTemporary(reg);
                 // Store the decremented value in the destination register
                 unaryChild_->EmitRISC(stream, context, destReg);
                 break;
