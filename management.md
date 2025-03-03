@@ -36,7 +36,7 @@
 * ~~Context make unique - James~~
 * ~~Scoping - James~~
 * ~~Function calls - James~~
-* Short-circuiting logic
+* ~~Short-circuiting logic tst - James~~
 * ~~Selection and iteration statements - if-else/while etc. - Eliott~~
 * ~~Multiple functions in a translation unit/ file - James~~
 * Cerr outputs for all unsupported features
@@ -45,6 +45,7 @@
 * Stack frame structure - how is size determined exactly - see related comments
 * Arrays local or global
 * Register spilling
+* Void type/functions
 * Floats
 * Structs
 * Enum

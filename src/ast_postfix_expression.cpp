@@ -16,7 +16,8 @@ namespace ast {
                 Register tempReg = context.AllocateTemporary();
                 child_->EmitRISC(stream, context, destReg);
                 stream << "lw " << destReg << "," << variable.offset << "(s0)" << std::endl;
-                stream << "addi " << tempReg << "," << destReg << "," << (op_ == PostfixOperator::PostfixIncrement ? 1 : -1) << std::endl;
+                stream << "addi " << tempReg << "," << destReg << ","
+                       << (op_ == PostfixOperator::PostfixIncrement ? 1 : -1) << std::endl;
                 // Store the pre-inc/dec value in the destination register
                 stream << "sw " << tempReg << "," << variable.offset << "(s0)" << std::endl;
                 context.FreeTemporary(tempReg);
@@ -24,8 +25,7 @@ namespace ast {
         }
     }
 
-    void PostfixExpression::Print(std::ostream &stream) const
-    {
+    void PostfixExpression::Print(std::ostream &stream) const {
         switch (op_) {
             case PostfixOperator::PrimaryPromote:
             case PostfixOperator::FunctionCallPromote:
@@ -48,7 +48,21 @@ namespace ast {
 
     std::string PostfixExpression::GetIdentifier() const {
         // todo handle array[constexpr]/identifier.member case
-        Identifier identifier = dynamic_cast<const Identifier&>(*child_);
+
+        switch (op_) {
+            case PostfixOperator::PrimaryPromote:
+            case PostfixOperator::FunctionCallPromote: {
+                Identifier identifier = dynamic_cast<const Identifier &>(*child_);
+                return identifier.GetIdentifier();
+            }
+            case PostfixOperator::PostfixIncrement:
+            case PostfixOperator::PostfixDecrement: {
+                // Child is a postfix expression
+                return dynamic_cast<const PostfixExpression*>(child_.get())->GetIdentifier();
+            }
+        }
+
+        Identifier identifier = dynamic_cast<const Identifier &>(*child_);
         return identifier.GetIdentifier();
     }
 

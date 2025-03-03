@@ -23,8 +23,6 @@ namespace ast {
         return identifier_;
     }
 
-
-
     ast::Type Identifier::GetType(Context&) const {
         return ast::Type(ast::TypeSpecifier::INT, true);
     }
