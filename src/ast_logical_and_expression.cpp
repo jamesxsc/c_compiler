@@ -39,5 +39,9 @@ namespace ast {
     ast::Type LogicalAndExpression::GetType(Context&) const {
         return ast::Type(ast::TypeSpecifier::INT, true);
     }
+
+    bool LogicalAndExpression::ContainsFunctionCall() const {
+        return (left_ != nullptr && left_->ContainsFunctionCall()) || right_->ContainsFunctionCall();
+    }
 }
 

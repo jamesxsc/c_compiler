@@ -28,6 +28,8 @@ namespace ast {
 
         void Print(std::ostream &stream) const override;
 
+        [[nodiscard]] bool ContainsFunctionCall() const override;
+
     private:
         AdditiveExpressionPtr left_;
         MultiplicativeExpressionPtr right_;

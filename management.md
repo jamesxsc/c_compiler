@@ -21,6 +21,11 @@
     - Good example to discuss as declarator handles just variable declarations and function declarations
 - There may be things that get untidy - but prioritise making them neat as it makes future problems/features easier to solve/develop.
 - Trying to stay original - neither of us familiar with other C compilers.
+- Deciding when to use a persistent register:
+  - Option 1: Persist in the callee all temporary registers - disbanded because it is super slow
+  - Option 2: Detect clobbering e.g. right hand evaluation contains a function call - this is the current approach
+  - Option 3: Copy register context state through function calls - won't work for recursion
+- We'll see how we go but probably accept some program size inefficiencies such as still having a jump after a return statement in a control block.
 
 # Milestones (Draft)
 
@@ -39,6 +44,7 @@
 * Global variables
 * Stack frame structure - how is size determined exactly - see related comments
 * Arrays local or global
+* Register spilling
 * Floats
 * Structs
 * Enum
@@ -47,4 +53,4 @@
 * Pointers
 
 
-Needs more who did what and collaboration stuff
+Needs more who did what and collaboration stuff and timelines

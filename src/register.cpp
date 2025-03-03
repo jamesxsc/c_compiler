@@ -146,4 +146,66 @@ namespace ast {
         }
     }
 
+    Register persistentAtIndex(int index) {
+        switch (index) {
+            case 0:
+                return Register::s0;
+            case 1:
+                return Register::s1;
+            case 2:
+                return Register::s2;
+            case 3:
+                return Register::s3;
+            case 4:
+                return Register::s4;
+            case 5:
+                return Register::s5;
+            case 6:
+                return Register::s6;
+            case 7:
+                return Register::s7;
+            case 8:
+                return Register::s8;
+            case 9:
+                return Register::s9;
+            case 10:
+                return Register::s10;
+            case 11:
+                return Register::s11;
+            default:
+                return Register::zero;
+        }
+    }
+
+    int indexOfPersistent(Register reg) {
+        switch (reg) {
+            case Register::s0:
+                return 0;
+            case Register::s1:
+                return 1;
+            case Register::s2:
+                return 2;
+            case Register::s3:
+                return 3;
+            case Register::s4:
+                return 4;
+            case Register::s5:
+                return 5;
+            case Register::s6:
+                return 6;
+            case Register::s7:
+                return 7;
+            case Register::s8:
+                return 8;
+            case Register::s9:
+                return 9;
+            case Register::s10:
+                return 10;
+            case Register::s11:
+                return 11;
+            default:
+                return -1;
+        }
+    }
+
 }

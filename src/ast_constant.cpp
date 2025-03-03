@@ -13,5 +13,9 @@ void IntConstant::Print(std::ostream& stream) const
     stream << value_;
 }
 
+    bool IntConstant::ContainsFunctionCall() const {
+        return false;
+    }
+
 
 } // namespace ast

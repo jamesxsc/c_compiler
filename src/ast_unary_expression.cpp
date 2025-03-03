@@ -20,4 +20,8 @@ namespace ast {
         return child_->GetType(context);
     }
 
+    bool UnaryExpression::ContainsFunctionCall() const {
+        return child_->ContainsFunctionCall();
+    }
+
 } // namespace ast

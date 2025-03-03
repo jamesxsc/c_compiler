@@ -107,4 +107,13 @@ namespace ast {
     ast::Type AssignmentExpression::GetType(Context&) const {
         return ast::Type(ast::TypeSpecifier::INT, true);
     }
+
+    bool AssignmentExpression::ContainsFunctionCall() const {
+        if (op_ == AssignmentOperator::ConditionalPromote) {
+            return conditional_->ContainsFunctionCall();
+        } else {
+            return unary_->ContainsFunctionCall() || assignment_->ContainsFunctionCall();
+        }
+    }
+
 }

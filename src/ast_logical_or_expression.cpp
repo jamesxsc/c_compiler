@@ -40,4 +40,9 @@ namespace ast {
     ast::Type LogicalOrExpression::GetType(Context&) const {
         return ast::Type(ast::TypeSpecifier::INT, true);
     }
+
+    bool LogicalOrExpression::ContainsFunctionCall() const {
+        return (left_ != nullptr && left_->ContainsFunctionCall()) || right_->ContainsFunctionCall();
+    }
+
 }

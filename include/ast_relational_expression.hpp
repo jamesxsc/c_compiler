@@ -31,6 +31,8 @@ namespace ast {
 
         void Print(std::ostream &stream) const override;
 
+        [[nodiscard]] bool ContainsFunctionCall() const override;
+
     private:
         RelationalExpressionPtr left_;
         ShiftExpressionPtr right_;

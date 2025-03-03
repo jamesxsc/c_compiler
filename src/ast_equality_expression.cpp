@@ -6,14 +6,20 @@ namespace ast {
     void EqualityExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         switch (op_) {
             case EqualityOperator::Equality: {
-                Register leftReg = context.AllocateTemporary();
+                // Register alloc temp vs. stored
+                // todo storage of used persistent registers
+                // EXAMPLE for equality expression: cx if right clobbers left (makes a call)
+                // todo propogate everywhere if it works, cx every branch where clobbering is possible
+
+                bool leftStored = right_->ContainsFunctionCall();
+                Register leftReg = leftStored ? context.AllocatePersistent() : context.AllocateTemporary();
                 left_->EmitRISC(stream, context, leftReg);
                 Register rightReg = context.AllocateTemporary();
                 right_->EmitRISC(stream, context, rightReg);
                 stream << "sub " << destReg << "," << leftReg << "," << rightReg << std::endl;
                 stream << "seqz " << destReg << "," << destReg << std::endl;
                 stream << "andi " << destReg << "," << destReg << ",0xff" << std::endl;
-                context.FreeTemporary(leftReg);
+                leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg);
                 context.FreeTemporary(rightReg);
                 break;
             }
@@ -57,8 +63,16 @@ namespace ast {
     }
 
 
-
-    ast::Type EqualityExpression::GetType(Context&) const {
+    ast::Type EqualityExpression::GetType(Context &) const {
         return ast::Type(ast::TypeSpecifier::INT, true);
     }
+
+    bool EqualityExpression::ContainsFunctionCall() const {
+        if (op_ == EqualityOperator::RelationalPromote) {
+            return right_->ContainsFunctionCall();
+        } else {
+            return left_->ContainsFunctionCall() || right_->ContainsFunctionCall();
+        }
+    }
+
 }

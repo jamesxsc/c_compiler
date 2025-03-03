@@ -18,6 +18,8 @@ namespace ast {
 
         void Print(std::ostream &stream) const override;
 
+        [[nodiscard]] bool ContainsFunctionCall() const override;
+
         Type GetType(Context &context) const override;
 
     private:

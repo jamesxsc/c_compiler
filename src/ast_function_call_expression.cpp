@@ -23,4 +23,8 @@ namespace ast {
         return Type(TypeSpecifier::INT);
     }
 
+    bool FunctionCallExpression::ContainsFunctionCall() const {
+        return true;
+    }
+
 }

@@ -29,4 +29,8 @@ namespace ast {
     ast::Type InclusiveOrExpression::GetType(Context&) const {
         return ast::Type(ast::TypeSpecifier::INT, true);
     }
+
+    bool InclusiveOrExpression::ContainsFunctionCall() const {
+        return (left_ != nullptr && left_->ContainsFunctionCall()) || right_->ContainsFunctionCall();
+    }
 }

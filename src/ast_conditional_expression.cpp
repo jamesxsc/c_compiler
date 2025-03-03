@@ -36,4 +36,13 @@ namespace ast {
     ast::Type ConditionalExpression::GetType(Context&) const {
         return ast::Type(ast::TypeSpecifier::INT, true);
     }
+
+    bool ConditionalExpression::ContainsFunctionCall() const {
+        if (ternary_) {
+            return left_->ContainsFunctionCall() || middle_->ContainsFunctionCall() || right_->ContainsFunctionCall();
+        } else {
+            return left_->ContainsFunctionCall();
+        }
+    }
+
 }

@@ -30,4 +30,9 @@ namespace ast {
     ast::Type ExclusiveOrExpression::GetType(Context&) const {
         return ast::Type(ast::TypeSpecifier::INT, true);
     }
+
+    bool ExclusiveOrExpression::ContainsFunctionCall() const {
+        return (left_ != nullptr && left_->ContainsFunctionCall()) || right_->ContainsFunctionCall();
+    }
+
 }

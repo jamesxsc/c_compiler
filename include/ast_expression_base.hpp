@@ -12,6 +12,7 @@ namespace ast {
 
         virtual void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override = 0;
         virtual void Print(std::ostream &stream) const override = 0;
+        [[nodiscard]] virtual bool ContainsFunctionCall() const = 0;
         virtual Type GetType(Context &context) const = 0;
     };
 

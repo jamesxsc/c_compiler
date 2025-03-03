@@ -29,4 +29,8 @@ namespace ast {
         return ast::Type(ast::TypeSpecifier::INT, true);
     }
 
+    bool Identifier::ContainsFunctionCall() const {
+        return false;
+    }
+
 }

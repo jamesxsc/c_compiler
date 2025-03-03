@@ -14,7 +14,16 @@ void ReturnStatement::EmitRISC(std::ostream& stream, Context& context, Register 
     // todo we need to decide if we allow decrementing the stack pointer mid functino or if we force ourselves to determine it before emitting the prologue
     // ideally we use sp not s0 here but if we grow the frame we can't rely on sp + size - 4/8
     stream << "lw ra," << -4 << "(s0)" << std::endl;
-    stream << "lw s0," << -8 << "(s0)" << std::endl;
+//    stream << "lw s0," << -8 << "(s0)" << std::endl;
+
+    // Restore used persistent registers
+    // reverse order since we use s0. this can be fixed once above is addressed
+    for (int i = 11; i >= 0; i--) {
+        if (context.CurrentFrame().usedPersistentRegisters.test(i)) {
+            stream << "lw s" << i << ", " << -8 - i * 4 << "(s0)" << std::endl;
+        }
+    }
+
     stream << "addi sp,sp," << context.CurrentFrame().size << std::endl;
     stream << "ret" << std::endl;
 }

@@ -19,8 +19,12 @@ namespace ast {
 
     std::ostream &operator<<(std::ostream &stream, Register reg);
 
+    Register temporaryAtIndex(int index);
+
     int indexOfTemporary(Register reg);
 
-    Register temporaryAtIndex(int index);
+    Register persistentAtIndex(int index);
+
+    int indexOfPersistent(Register reg);
 
 }

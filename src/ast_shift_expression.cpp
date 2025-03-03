@@ -58,4 +58,12 @@ namespace ast {
         return right_->GetType(context);
     }
 
+    bool ShiftExpression::ContainsFunctionCall() const {
+        if (op_ == ShiftOperator::AdditivePromote) {
+            return right_->ContainsFunctionCall();
+        } else {
+            return (left_ != nullptr && left_->ContainsFunctionCall()) || right_->ContainsFunctionCall();
+        }
+    }
+
 }

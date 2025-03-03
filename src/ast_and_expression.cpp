@@ -28,4 +28,8 @@ namespace ast {
     ast::Type AndExpression::GetType(Context&) const {
         return ast::Type(ast::TypeSpecifier::INT, true);
     }
+
+    bool AndExpression::ContainsFunctionCall() const {
+        return (left_ != nullptr && left_->ContainsFunctionCall()) || right_->ContainsFunctionCall();
+    }
 }

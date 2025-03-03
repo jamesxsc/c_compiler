@@ -82,4 +82,12 @@ namespace ast {
         return Type(TypeSpecifier::INT, true);
     }
 
+    bool RelationalExpression::ContainsFunctionCall() const {
+        if (op_ == RelationalOperator::ShiftPromote) {
+            return right_->ContainsFunctionCall();
+        } else {
+            return (left_ != nullptr && left_->ContainsFunctionCall()) || right_->ContainsFunctionCall();
+        }
+    }
+
 }

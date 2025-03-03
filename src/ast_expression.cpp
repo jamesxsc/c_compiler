@@ -24,4 +24,8 @@ namespace ast {
     ast::Type Expression::GetType(Context&) const {
         return ast::Type(ast::TypeSpecifier::INT, true);
     }
+
+    bool Expression::ContainsFunctionCall() const {
+        return (first_ != nullptr && first_->ContainsFunctionCall()) || assignment_->ContainsFunctionCall();
+    }
 }

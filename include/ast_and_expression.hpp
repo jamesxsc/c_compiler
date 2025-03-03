@@ -23,6 +23,8 @@ namespace ast {
 
         void Print(std::ostream &stream) const override;
 
+        [[nodiscard]] bool ContainsFunctionCall() const override;
+
     private:
         AndExpressionPtr left_;
         EqualityExpressionPtr right_;

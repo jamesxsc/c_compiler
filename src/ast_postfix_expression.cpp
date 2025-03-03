@@ -23,4 +23,8 @@ namespace ast {
         return identifier.GetIdentifier();
     }
 
+    bool PostfixExpression::ContainsFunctionCall() const {
+        return child_->ContainsFunctionCall();
+    }
+
 } // namespace ast

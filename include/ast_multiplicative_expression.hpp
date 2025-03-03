@@ -25,6 +25,7 @@ namespace ast {
         explicit MultiplicativeExpression(UnaryExpressionPtr right) : left_(nullptr), right_(std::move(right)), op_(MultiplicativeOperator::UnaryPromote) {}
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
         void Print(std::ostream &stream) const override;
+        [[nodiscard]] bool ContainsFunctionCall() const override;
     private:
         MultiplicativeExpressionPtr left_;
         UnaryExpressionPtr right_;

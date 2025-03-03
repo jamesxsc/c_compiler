@@ -82,4 +82,12 @@ namespace ast {
     ast::Type MultiplicativeExpression::GetType(Context&) const {
         return ast::Type(ast::TypeSpecifier::INT, true);
     }
+
+    bool MultiplicativeExpression::ContainsFunctionCall() const {
+        if (op_ == MultiplicativeOperator::UnaryPromote) {
+            return right_->ContainsFunctionCall();
+        } else {
+            return (left_ != nullptr && left_->ContainsFunctionCall()) || right_->ContainsFunctionCall();
+        }
+    }
 }

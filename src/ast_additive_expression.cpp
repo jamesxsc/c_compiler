@@ -7,7 +7,9 @@ namespace ast {
     {
         switch (op_) {
             case AdditiveOperator::Add: {
-                Register leftReg = context.AllocateTemporary();
+                bool leftStored = right_->ContainsFunctionCall();
+
+                Register leftReg = leftStored ? context.AllocatePersistent() : context.AllocateTemporary();
                 left_->EmitRISC(stream, context, leftReg);
 
                 Register rightReg = context.AllocateTemporary();
@@ -15,7 +17,7 @@ namespace ast {
 
                 stream << "add " << destReg << "," << leftReg << "," << rightReg << std::endl;
 
-                context.FreeTemporary(leftReg);
+                leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg);
                 context.FreeTemporary(rightReg);
                 break;
             }
@@ -64,6 +66,14 @@ namespace ast {
 
     ast::Type AdditiveExpression::GetType(Context&) const {
         return ast::Type(ast::TypeSpecifier::INT, true);
+    }
+
+    bool AdditiveExpression::ContainsFunctionCall() const {
+        if (op_ == AdditiveOperator::MultiplicativePromote) {
+            return right_->ContainsFunctionCall();
+        } else {
+            return (left_ != nullptr && left_->ContainsFunctionCall()) || right_->ContainsFunctionCall();
+        }
     }
 
 } // namespace ast
