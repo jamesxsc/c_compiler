@@ -7,6 +7,7 @@
 #include "register.hpp"
 #include "ast_type_specifier.hpp"
 
+
 namespace ast {
     // TODO this will need to hold type info to infer size etc
     struct Variable {
@@ -18,13 +19,6 @@ namespace ast {
     struct StackFrame {
         int size;
         std::unordered_map<std::string, Variable> bindings;
-        bool isFunctionRoot{true};
-
-        // Do we sacrifice aggregate type for doing the copy logic here
-        // Or do we just remember to set isFunctionRoot to false when we need to
-
-        // Copy constructor for scope frames to be distinguished
-        StackFrame(const StackFrame &other) : size(other.size), bindings(other.bindings), isFunctionRoot(false) {}
     };
 
     class Context {
