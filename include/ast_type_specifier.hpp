@@ -7,11 +7,11 @@ namespace ast {
 
 enum class TypeSpecifier
 {
-    INT
+    INT,
+    FLOAT,
+    DOUBLE
 };
 
-// Minimal wrapper class to hold both a TypeSpecifier (e.g. “int”)
-// and whether it’s signed or unsigned.
 class Type {
 public:
     explicit Type(TypeSpecifier spec, bool isSigned = true)
@@ -26,19 +26,16 @@ private:
     bool is_signed_;
 };
 
-// Existing operator<< for printing out the TypeSpecifier:
 template<typename LogStream>
 LogStream& operator<<(LogStream& ls, const TypeSpecifier& type)
 {
-    const auto TypeToString = [&type] {
-        switch (type)
-        {
-        case TypeSpecifier::INT:
-            return "int";
-        }
-        throw std::runtime_error("Unexpected type specifier");
-    };
-    return ls << TypeToString();
+    switch (type)
+    {
+        case TypeSpecifier::INT:    ls << "int";    break;
+        case TypeSpecifier::FLOAT:  ls << "float";  break;
+        case TypeSpecifier::DOUBLE: ls << "double"; break;
+    }
+    return ls;
 }
 
 } // namespace ast
