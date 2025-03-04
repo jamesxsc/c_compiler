@@ -26,6 +26,7 @@
   - Option 2: Detect clobbering e.g. right hand evaluation contains a function call - this is the current approach
   - Option 3: Copy register context state through function calls - won't work for recursion
 - We'll see how we go but probably accept some program size inefficiencies such as still having a jump after a return statement in a control block.
+- Floats and pointers before structs.
 
 # Milestones (Draft)
 
@@ -46,6 +47,7 @@
 * Arrays local or global
 * Register spilling
 * Void type/functions
+* Assignment operators impl and testing
 * Floats
 * Structs
 * Enum

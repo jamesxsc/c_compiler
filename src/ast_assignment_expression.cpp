@@ -22,9 +22,16 @@ namespace ast {
                 assignment_->EmitRISC(stream, context, lhsReg);
 
                 // todo if it is already in a reg AND (BIG IF) WE DECIDE TO STORE REGISTERS/VARIABLES IN CONTEXT THEN UPDATE THAT
+                // come back to this as a maybe
 
                 // Can only assign to lvalue so this call should succeed
                 Variable lhsVariable = context.CurrentFrame().bindings.at(unary_->GetIdentifier());
+
+                // todo ptrs
+                // thinking about pointers, what's the best way to get the underlying var (it is a var if its a pointer).
+                // maybe it can all be handled un UnaryExpression#GetIdentifier which would be super neat - this basically wouldn't change
+                // hopefully same for dereference and getting the val
+                // should ideally handle everything even unary/postfix operators since they call get identifier
 
                 stream << "sw " << lhsReg << "," << lhsVariable.offset << "(s0)"   << std::endl;
 

@@ -332,6 +332,7 @@ init_declarator_list
 	| init_declarator_list ',' init_declarator { $1->PushBack(InitDeclaratorPtr($3)); $$=$1; }
 	;
 
+// todo handle pointer declarators here and upwards
 init_declarator
 	: declarator { $$ = new InitDeclarator(DeclaratorPtr($1)); }
 	| declarator '=' initializer { $$ = new InitDeclarator(DeclaratorPtr($1), InitializerPtr($3)); }
@@ -355,7 +356,7 @@ type_specifier
 	| DOUBLE
 	| SIGNED
 	| UNSIGNED
-  | struct_specifier
+    | struct_specifier
 	| enum_specifier
 	| TYPE_NAME
 	;
@@ -408,7 +409,8 @@ enumerator
 	;
 
 declarator
-	: pointer direct_declarator
+    // todo do we need to support double pointers?
+	: pointer direct_declarator { $$ = new PointerDeclarator(DeclaratorPtr($2)); }
 	| direct_declarator { $$ = $1; $$->Indirect(); }
 	;
 
@@ -508,7 +510,6 @@ labeled_statement
 	;
 
 // This looks counterintuitive but in C90 declarations must all be at the start of a block
-// todo Scoping logic required here?
 compound_statement
 	: '{' '}' { $$ = new CompoundStatement(nullptr, nullptr); }
 	| '{' statement_list '}' { $$ = new CompoundStatement(nullptr, StatementListPtr($2)); }
@@ -532,65 +533,17 @@ expression_statement
 	;
 
 selection_statement
-  : IF '(' expression ')' statement
-    {
-      $$ = new IfStatement(
-        ExpressionPtr($3),
-        StatementPtr($5),
-        nullptr
-      );
-    }
-  | IF '(' expression ')' statement ELSE statement
-    {
-      $$ = new IfStatement(
-        ExpressionPtr($3),
-        StatementPtr($5),
-        StatementPtr($7)
-      );
-    }
-  | SWITCH '(' expression ')' statement
-    {
-      $$ = new SwitchStatement(
-        ExpressionPtr($3),
-        StatementPtr($5)
-      );
-    }
-;
+    : IF '(' expression ')' statement { $$ = new IfStatement(ExpressionPtr($3), StatementPtr($5), nullptr); }
+    | IF '(' expression ')' statement ELSE statement { $$ = new IfStatement(ExpressionPtr($3), StatementPtr($5), StatementPtr($7)); }
+    | SWITCH '(' expression ')' statement { $$ = new SwitchStatement(ExpressionPtr($3), StatementPtr($5)); }
+    ;
 
 iteration_statement
-  : WHILE '(' expression ')' statement
-    {
-      $$ = new WhileStatement(
-        ExpressionPtr($3),
-        StatementPtr($5)
-      );
-    }
-  | DO statement WHILE '(' expression ')' ';'
-    {
-      $$ = new DoWhileStatement(
-        StatementPtr($2),
-        ExpressionPtr($5)
-      );
-    }
-  | FOR '(' expression_statement expression_statement ')' statement
-    {
-      $$ = new ForStatement(
-        ExpressionStatementPtr($3), // init
-        ExpressionStatementPtr($4), // condition
-        nullptr,                    // no increment
-        StatementPtr($6)            // body
-      );
-    }
-  | FOR '(' expression_statement expression_statement expression ')' statement
-    {
-      $$ = new ForStatement(
-        ExpressionStatementPtr($3), // init
-        ExpressionStatementPtr($4), // condition
-        ExpressionPtr($5),          // increment
-        StatementPtr($7)            // body
-      );
-    }
-;
+    : WHILE '(' expression ')' statement { $$ = new WhileStatement(ExpressionPtr($3), StatementPtr($5)); }
+    | DO statement WHILE '(' expression ')' ';' { $$ = new DoWhileStatement(StatementPtr($2), ExpressionPtr($5)); }
+    | FOR '(' expression_statement expression_statement ')' statement { $$ = new ForStatement(ExpressionStatementPtr($3), ExpressionStatementPtr($4), nullptr, StatementPtr($6)); }
+    | FOR '(' expression_statement expression_statement expression ')' statement { $$ = new ForStatement(ExpressionStatementPtr($3), ExpressionStatementPtr($4), ExpressionPtr($5), StatementPtr($7)); }
+    ;
 
 jump_statement
     : GOTO IDENTIFIER ';' { std::cerr << "goto keyword is unsupported" << std::endl; exit(1); }
@@ -603,8 +556,6 @@ jump_statement
 		$$ = new ReturnStatement(NodePtr($2));
 	}
 	;
-
-
 
 %%
 

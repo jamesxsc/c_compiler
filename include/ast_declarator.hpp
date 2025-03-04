@@ -15,6 +15,7 @@ namespace ast {
 
         void Print(std::ostream &stream) const override;
 
+        // todo cx if these should be virtual here since this is a base and a concrete class
         [[nodiscard]] const std::string& GetIdentifier() const;
 
         [[nodiscard]] bool IsDirect() const;

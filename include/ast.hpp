@@ -20,6 +20,7 @@
 #include "ast_function_declarator.hpp"
 #include "ast_parameter_declaration.hpp"
 #include "ast_parameter_list.hpp"
+#include "ast_pointer_declarator.hpp"
 #include "ast_expression.hpp"
 #include "ast_expression_base.hpp"
 #include "ast_expression_statement.hpp"

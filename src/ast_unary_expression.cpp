@@ -3,9 +3,9 @@
 
 namespace ast {
 
+    // Lvalue asserts are in GetIdentifier impls
     void UnaryExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         switch (op_) {
-            // todo implement these
             case UnaryOperator::PostfixPromote:
                 postfixChild_->EmitRISC(stream, context, destReg);
                 break;
@@ -32,10 +32,22 @@ namespace ast {
                 break;
             }
             // Below all multiplicative child expression
-            case UnaryOperator::AddressOf:
+            case UnaryOperator::AddressOf: {
+                // Variable is of non-pointer type - get offset + frame pointer
+                Variable atAddress = context.CurrentFrame().bindings.at(multiplicativeChild_->GetIdentifier());
+                stream << "addi " << destReg << ",s0," << atAddress.offset << std::endl;
                 break;
-            case UnaryOperator::Dereference:
+            }
+            case UnaryOperator::Dereference: {
+                // Variable is a pointer - get value at address in variable
+                // todo maybe abstract some of the bindings searches so we don't get segfaults
+                Variable ptr = context.CurrentFrame().bindings.at(multiplicativeChild_->GetIdentifier());
+                Register tempReg = context.AllocateTemporary();
+                stream << "lw " << tempReg << "," << ptr.offset << "(s0)" << std::endl;
+                stream << "lw " << destReg << ",0(" << tempReg << ")" << std::endl;
+                context.FreeTemporary(tempReg);
                 break;
+            }
             case UnaryOperator::Plus:
                 // Does nothing
                 multiplicativeChild_->EmitRISC(stream, context, destReg);
@@ -105,8 +117,11 @@ namespace ast {
             case UnaryOperator::PrefixDecrement:
                 return unaryChild_->GetIdentifier();
             case UnaryOperator::AddressOf:
+                std::cerr << "Non an lvalue?" << std::endl;
+                exit(1);
             case UnaryOperator::Dereference:
-                return "TODO"; // todo ptrs
+                std::cerr << "Need to look-up in table - surely this has to be stored" << std::endl;
+                exit(1);
             case UnaryOperator::Plus:
             case UnaryOperator::Minus:
             case UnaryOperator::BitwiseNot:
@@ -126,7 +141,7 @@ namespace ast {
                 return unaryChild_->GetType(context);
             case UnaryOperator::AddressOf:
             case UnaryOperator::Dereference:
-                return Type(TypeSpecifier::INT, true); // todo ptrs
+                return Type(TypeSpecifier::INT, true); // todo ptrs, maybe table required for this
             case UnaryOperator::Plus:
             case UnaryOperator::Minus:
             case UnaryOperator::BitwiseNot:
