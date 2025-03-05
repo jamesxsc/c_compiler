@@ -25,8 +25,8 @@ namespace ast {
         right_->Print(stream);
     }
 
-    ast::Type AndExpression::GetType(Context&) const {
-        return ast::Type(ast::TypeSpecifier::INT, true);
+    TypeSpecifier AndExpression::GetType(Context& context) const {
+        return right_->GetType(context);
     }
 
     bool AndExpression::ContainsFunctionCall() const {

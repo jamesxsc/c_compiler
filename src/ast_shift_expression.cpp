@@ -20,9 +20,7 @@ namespace ast {
                 left_->EmitRISC(stream, context, leftReg);
                 Register rightReg = context.AllocateTemporary();
                 right_->EmitRISC(stream, context, rightReg);
-                Type leftType = left_->GetType(context);
-                bool isSigned = leftType.IsSigned();
-                if (isSigned) {
+                if (IsSigned(left_->GetType(context))) {
                     stream << "sra " << destReg << "," << leftReg << "," << rightReg << std::endl;
                 } else {
                     stream << "srl " << destReg << "," << leftReg << "," << rightReg << std::endl;
@@ -54,7 +52,7 @@ namespace ast {
         right_->Print(stream);
     }
 
-    Type ShiftExpression::GetType(Context &context) const {  
+    TypeSpecifier ShiftExpression::GetType(Context &context) const {
         return right_->GetType(context);
     }
 

@@ -132,7 +132,7 @@ namespace ast {
         exit(1);
     }
 
-    Type UnaryExpression::GetType(Context &context) const {
+    TypeSpecifier UnaryExpression::GetType(Context &context) const {
         switch (op_) {
             case UnaryOperator::PostfixPromote:
                 return postfixChild_->GetType(context);
@@ -141,7 +141,7 @@ namespace ast {
                 return unaryChild_->GetType(context);
             case UnaryOperator::AddressOf:
             case UnaryOperator::Dereference:
-                return Type(TypeSpecifier::INT, true); // todo ptrs, maybe table required for this
+                return TypeSpecifier::INT; // todo ptrs, maybe table required for this
             case UnaryOperator::Plus:
             case UnaryOperator::Minus:
             case UnaryOperator::BitwiseNot:

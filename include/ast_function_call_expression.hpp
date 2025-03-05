@@ -20,7 +20,7 @@ namespace ast {
 
         [[nodiscard]] bool ContainsFunctionCall() const override;
 
-        Type GetType(Context &context) const override;
+        TypeSpecifier GetType(Context &context) const override;
 
     private:
         PostfixExpressionPtr function_;

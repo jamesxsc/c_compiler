@@ -44,7 +44,7 @@ namespace ast {
         [[nodiscard]] bool ContainsFunctionCall() const override;
         // This should only be called in a context where we know it is an lvalue (identifier)
         [[nodiscard]] std::string GetIdentifier() const;
-        Type GetType(Context &context) const override;
+        TypeSpecifier GetType(Context &context) const override;
 
     private:
         // Only one of these will ever be non-null depending on the operator (see parser)
@@ -57,7 +57,7 @@ namespace ast {
     class MultiplicativeExpression : public ExpressionBase
     {
     public:
-        Type GetType(Context &context) const override;
+        TypeSpecifier GetType(Context &context) const override;
         MultiplicativeExpression(MultiplicativeExpressionPtr left, UnaryExpressionPtr right, MultiplicativeOperator op)
             : left_(std::move(left)), right_(std::move(right)), op_(op) {}
         // Overload for unary promotion

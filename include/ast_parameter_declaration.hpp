@@ -15,7 +15,7 @@ namespace ast {
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
         void Print(std::ostream &stream) const override;
         [[nodiscard]] const std::string &GetIdentifier() const;
-        Type GetType(Context &context) const;
+        TypeSpecifier GetType(Context &context) const;
     private:
         TypeSpecifier type_;
         DeclaratorPtr identifier_;

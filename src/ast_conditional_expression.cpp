@@ -33,8 +33,8 @@ namespace ast {
 
 
 
-    ast::Type ConditionalExpression::GetType(Context&) const {
-        return ast::Type(ast::TypeSpecifier::INT, true);
+    TypeSpecifier ConditionalExpression::GetType(Context& context) const {
+        return left_->GetType(context);
     }
 
     bool ConditionalExpression::ContainsFunctionCall() const {

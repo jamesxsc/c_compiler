@@ -3,7 +3,6 @@
 
 // Note that this feature isn't technically required
 namespace ast {
-
     void ast::Expression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         if (first_)
             first_->EmitRISC(stream, context, destReg);
@@ -19,10 +18,8 @@ namespace ast {
         assignment_->Print(stream);
     }
 
-
-
-    ast::Type Expression::GetType(Context&) const {
-        return ast::Type(ast::TypeSpecifier::INT, true);
+    TypeSpecifier Expression::GetType(Context& context) const {
+        return assignment_->GetType(context);
     }
 
     bool Expression::ContainsFunctionCall() const {

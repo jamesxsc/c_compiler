@@ -12,7 +12,7 @@ namespace ast {
         std::string identifier_;
 
     public:
-        Type GetType(Context &context) const override;
+        TypeSpecifier GetType(Context &context) const override;
         explicit Identifier(std::string identifier) : identifier_(std::move(identifier)) {
             std::cout << "Identifier constructor called" << std::endl;
         };

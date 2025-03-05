@@ -27,8 +27,8 @@ namespace ast {
     }
 
 
-    ast::Type ExclusiveOrExpression::GetType(Context&) const {
-        return ast::Type(ast::TypeSpecifier::INT, true);
+    TypeSpecifier ExclusiveOrExpression::GetType(Context& context) const {
+        return right_->GetType(context);
     }
 
     bool ExclusiveOrExpression::ContainsFunctionCall() const {

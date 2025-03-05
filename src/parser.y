@@ -553,7 +553,7 @@ jump_statement
 		$$ = new ReturnStatement(nullptr);
 	}
 	| RETURN expression ';' {
-		$$ = new ReturnStatement(NodePtr($2));
+		$$ = new ReturnStatement(ExpressionPtr($2));
 	}
 	;
 

@@ -30,8 +30,12 @@ namespace ast {
         isDirect_ = true;
     }
 
-    Type Declarator::GetType(Context &context) const {
-        return Type(TypeSpecifier::INT);
+    TypeSpecifier Declarator::GetType(Context &context) const {
+        return TypeSpecifier::INT; // TODO get type for declarator
+    }
+
+    bool Declarator::IsPointer() const {
+        return false;
     }
 
 }

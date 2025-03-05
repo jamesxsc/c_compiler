@@ -10,4 +10,8 @@ namespace ast {
     void PointerDeclarator::Print(std::ostream &stream) const {
         stream << " *" << GetIdentifier();
     }
+
+    bool PointerDeclarator::IsPointer() const {
+        return true;
+    }
 }

@@ -34,8 +34,8 @@ namespace ast {
 
 
 
-    ast::Type FunctionDeclarator::GetType(Context&) const {
-        return ast::Type(ast::TypeSpecifier::INT, true);
+    TypeSpecifier FunctionDeclarator::GetType(Context& context) const {
+        return TypeSpecifier::INT; // todo fix this
     }
 
 }

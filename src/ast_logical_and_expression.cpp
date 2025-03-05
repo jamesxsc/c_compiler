@@ -36,8 +36,8 @@ namespace ast {
     }
 
 
-    ast::Type LogicalAndExpression::GetType(Context&) const {
-        return ast::Type(ast::TypeSpecifier::INT, true);
+    TypeSpecifier LogicalAndExpression::GetType(Context& context) const {
+        return right_->GetType(context);
     }
 
     bool LogicalAndExpression::ContainsFunctionCall() const {

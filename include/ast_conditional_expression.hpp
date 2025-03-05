@@ -12,7 +12,7 @@ namespace ast {
     using ConditionalExpressionPtr = std::unique_ptr<const ConditionalExpression>;
     class ConditionalExpression : public ExpressionBase {
     public:
-        Type GetType(Context &context) const override;
+        TypeSpecifier GetType(Context &context) const override;
         ConditionalExpression(LogicalOrExpressionPtr left, ExpressionPtr middle, ConditionalExpressionPtr right);
         // Overload for logical or promotion
         explicit ConditionalExpression(LogicalOrExpressionPtr left);

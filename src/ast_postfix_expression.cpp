@@ -42,7 +42,7 @@ namespace ast {
         }
     }
 
-    Type PostfixExpression::GetType(Context &context) const {
+    TypeSpecifier PostfixExpression::GetType(Context &context) const {
         return child_->GetType(context);
     }
 

@@ -40,7 +40,7 @@ void ReturnStatement::Print(std::ostream& stream) const
 }
 
 
-    ast::Type ReturnStatement::GetType(Context&) const {
-        return ast::Type(ast::TypeSpecifier::INT, true);
+    TypeSpecifier ReturnStatement::GetType(Context& context) const {
+        return expression_->GetType(context);
     }
 }

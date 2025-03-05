@@ -14,6 +14,7 @@ namespace ast {
         int offset;
         int size;
         Register reg;
+        TypeSpecifier type;
     };
 
     struct StackFrame {

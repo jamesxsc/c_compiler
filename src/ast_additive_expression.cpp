@@ -64,8 +64,8 @@ namespace ast {
     }
 
 
-    ast::Type AdditiveExpression::GetType(Context&) const {
-        return ast::Type(ast::TypeSpecifier::INT, true);
+    TypeSpecifier AdditiveExpression::GetType(Context& context) const {
+        return right_->GetType(context);
     }
 
     bool AdditiveExpression::ContainsFunctionCall() const {

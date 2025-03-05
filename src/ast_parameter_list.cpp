@@ -15,7 +15,8 @@ namespace ast {
                 context.CurrentFrame().bindings.insert({param->GetIdentifier(), Variable{
                         .offset = offset,
                         .size = 4,
-                        .reg = Register::zero
+                        .reg = Register::zero,
+                        .type = param->GetType(context)
                 }});
                 stream << "sw a" << idx << ", " << offset << "(s0)" << std::endl;
                 ++idx;

@@ -18,11 +18,9 @@ public:
     void Print(std::ostream& stream) const override;
     [[nodiscard]] bool ContainsFunctionCall() const override;
 
-    // Add this override to fix the abstract-class issue
-    Type GetType(Context &context) const override
+    TypeSpecifier GetType(Context &context) const override
     {
-        // For now, just always treat integer constants as `signed int`
-        return Type(TypeSpecifier::INT, /*isSigned=*/true);
+        return TypeSpecifier::INT;
     }
 };
 

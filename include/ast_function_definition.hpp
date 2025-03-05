@@ -24,7 +24,7 @@ namespace ast {
 
         void Print(std::ostream &stream) const override;
 
-        Type GetType(Context &context) const;
+        TypeSpecifier GetType(Context &context) const;
     };
 
 } // namespace ast

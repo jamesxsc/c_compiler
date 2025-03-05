@@ -19,8 +19,8 @@ namespace ast {
         stream << ")";
     }
 
-    Type FunctionCallExpression::GetType(Context &context) const {
-        return Type(TypeSpecifier::INT);
+    TypeSpecifier FunctionCallExpression::GetType(Context &context) const {
+        return TypeSpecifier::INT; // TODO store function types in context and use here
     }
 
     bool FunctionCallExpression::ContainsFunctionCall() const {

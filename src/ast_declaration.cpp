@@ -24,6 +24,7 @@ namespace ast {
                 // Bindings and init
                 // Note that 17's insert or assign is used to overwrite variables with the same name if they are refined in a block scope
                 if (initDeclarator->HasInitializer()) {
+                    // todo different logic in if and else for pointers
                     switch (typeSpecifier_) {
                         case TypeSpecifier::INT:
                             // Generates initializer/assignment code
@@ -32,10 +33,14 @@ namespace ast {
                             context.CurrentFrame().bindings.insert_or_assign(identifier, Variable{
                                     .offset = context.CurrentFrame().size,
                                     .size = size,
-                                    .reg = destReg
+                                    .reg = destReg,
+                                    .type = typeSpecifier_
                             });
 
                             stream << "sw " << destReg << "," << context.CurrentFrame().size << "(s0)" << std::endl;
+                            break;
+                        case TypeSpecifier::POINTER:
+                            // probably will never happen? this is the pointed to type
                             break;
                     }
                 } else {
@@ -43,7 +48,8 @@ namespace ast {
                     context.CurrentFrame().bindings.insert_or_assign(identifier, Variable{
                             .offset = context.CurrentFrame().size,
                             .size = size,
-                            .reg = Register::zero
+                            .reg = Register::zero,
+                            .type = typeSpecifier_
                     });
                 }
             }

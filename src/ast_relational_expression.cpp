@@ -78,8 +78,8 @@ namespace ast {
         right_->Print(stream);
     }
 
-    Type RelationalExpression::GetType(Context &context) const {  
-        return Type(TypeSpecifier::INT, true);
+    TypeSpecifier RelationalExpression::GetType(Context &context) const {
+        return right_->GetType(context);
     }
 
     bool RelationalExpression::ContainsFunctionCall() const {

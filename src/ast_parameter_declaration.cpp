@@ -14,8 +14,8 @@ namespace ast {
         return identifier_->GetIdentifier();
     }
 
-    ast::Type ParameterDeclaration::GetType(Context&) const { // ✅ Moved inside the namespace
-        return ast::Type(ast::TypeSpecifier::INT, true);
+    TypeSpecifier ParameterDeclaration::GetType(Context&) const {
+        return type_;
     }
 
 } // namespace ast

@@ -18,13 +18,15 @@ namespace ast {
         // todo cx if these should be virtual here since this is a base and a concrete class
         [[nodiscard]] const std::string& GetIdentifier() const;
 
+        [[nodiscard]] virtual bool IsPointer() const;
+
         [[nodiscard]] bool IsDirect() const;
 
         void Indirect();
 
         void Direct();
 
-        Type GetType(Context &context) const;
+        TypeSpecifier GetType(Context &context) const;
     };
 
     using DeclaratorPtr = std::unique_ptr<const Declarator>;

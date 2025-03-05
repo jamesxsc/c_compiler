@@ -16,7 +16,7 @@ namespace ast {
 
     class AdditiveExpression : public ExpressionBase {
     public:
-        Type GetType(Context &context) const override;
+        TypeSpecifier GetType(Context &context) const override;
         AdditiveExpression(AdditiveExpressionPtr left, MultiplicativeExpressionPtr right, AdditiveOperator op) : left_(
                 std::move(left)), right_(std::move(right)), op_(op) {}
 

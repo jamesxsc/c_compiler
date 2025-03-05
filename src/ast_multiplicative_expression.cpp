@@ -80,8 +80,8 @@ namespace ast {
 
 
 
-    ast::Type MultiplicativeExpression::GetType(Context&) const {
-        return ast::Type(ast::TypeSpecifier::INT, true);
+    TypeSpecifier MultiplicativeExpression::GetType(Context& context) const {
+        return right_->GetType(context);
     }
 
     bool MultiplicativeExpression::ContainsFunctionCall() const {

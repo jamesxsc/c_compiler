@@ -26,8 +26,8 @@ namespace ast {
 
     }
 
-    ast::Type InclusiveOrExpression::GetType(Context&) const {
-        return ast::Type(ast::TypeSpecifier::INT, true);
+    TypeSpecifier InclusiveOrExpression::GetType(Context& context) const {
+        return right_->GetType(context);
     }
 
     bool InclusiveOrExpression::ContainsFunctionCall() const {

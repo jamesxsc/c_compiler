@@ -27,7 +27,7 @@ namespace ast {
             }
         };
 
-        Type GetType(Context &context) const;
+        TypeSpecifier GetType(Context &context) const;
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
 

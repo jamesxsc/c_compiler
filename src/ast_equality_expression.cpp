@@ -63,8 +63,8 @@ namespace ast {
     }
 
 
-    ast::Type EqualityExpression::GetType(Context &) const {
-        return ast::Type(ast::TypeSpecifier::INT, true);
+    TypeSpecifier EqualityExpression::GetType(Context & context) const {
+        return right_->GetType(context);
     }
 
     bool EqualityExpression::ContainsFunctionCall() const {

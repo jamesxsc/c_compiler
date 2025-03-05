@@ -27,7 +27,7 @@ namespace ast {
         // This should only be called in a context where we know it is an lvalue (identifier)
         [[nodiscard]] std::string GetIdentifier() const;
 
-        Type GetType(Context &context) const override;
+        TypeSpecifier GetType(Context &context) const override;
 
     private:
         ExpressionBasePtr child_;

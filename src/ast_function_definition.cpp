@@ -60,8 +60,8 @@ namespace ast {
     }
 
 
-    ast::Type FunctionDefinition::GetType(Context &) const {
-        return ast::Type(ast::TypeSpecifier::INT, true);
+    TypeSpecifier FunctionDefinition::GetType(Context &) const {
+        return declaration_specifiers_; // TODO cx and probably remove this member func from declarator
     }
 
 }

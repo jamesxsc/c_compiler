@@ -1,5 +1,6 @@
 #include "ast_identifier.hpp"
 #include "ast_type_specifier.hpp"
+#include "cassert"
 
 namespace ast {
 
@@ -23,8 +24,9 @@ namespace ast {
         return identifier_;
     }
 
-    ast::Type Identifier::GetType(Context&) const {
-        return ast::Type(ast::TypeSpecifier::INT, true);
+    TypeSpecifier Identifier::GetType(Context& context) const {
+        Variable var = context.CurrentFrame().bindings.at(identifier_);
+        return var.type;
     }
 
     bool Identifier::ContainsFunctionCall() const {
