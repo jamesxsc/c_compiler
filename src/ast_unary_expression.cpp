@@ -23,29 +23,28 @@ namespace ast {
             case UnaryOperator::PrefixDecrement: {
                 Variable var = context.CurrentFrame().bindings.at(unaryChild_->GetIdentifier());
                 Register reg = context.AllocateTemporary();
-                stream << "lw " << reg << "," << var.offset << "(s0)" << std::endl;
+                stream << "lw " << reg << "," << var.offset << "(sp)" << std::endl;
                 stream << "addi " << reg << "," << reg << ",-1" << std::endl;
-                stream << "sw " << reg << "," << var.offset << "(s0)" << std::endl;
+                stream << "sw " << reg << "," << var.offset << "(sp)" << std::endl;
                 context.FreeTemporary(reg);
                 // Store the decremented value in the destination register
                 unaryChild_->EmitRISC(stream, context, destReg);
                 break;
             }
-            // Below all multiplicative child expression
+                // Below all multiplicative child expression
             case UnaryOperator::AddressOf: {
                 // Variable is of non-pointer type - get offset + frame pointer
                 Variable atAddress = context.CurrentFrame().bindings.at(multiplicativeChild_->GetIdentifier());
-                stream << "addi " << destReg << ",s0," << atAddress.offset << std::endl;
+                stream << "addi " << destReg << ",sp," << atAddress.offset << std::endl;
                 break;
             }
             case UnaryOperator::Dereference: {
                 // Variable is a pointer - get value at address in variable
                 // todo maybe abstract some of the bindings searches so we don't get segfaults
                 Variable ptr = context.CurrentFrame().bindings.at(multiplicativeChild_->GetIdentifier());
-                Register tempReg = context.AllocateTemporary();
-                stream << "lw " << tempReg << "," << ptr.offset << "(s0)" << std::endl;
-                stream << "lw " << destReg << ",0(" << tempReg << ")" << std::endl;
-                context.FreeTemporary(tempReg);
+                // Reuse destReg rather than waste a temporary
+                stream << "lw " << destReg << "," << ptr.offset << "(sp)" << std::endl;
+                stream << "lw " << destReg << ",0(" << destReg << ")" << std::endl;
                 break;
             }
             case UnaryOperator::Plus:
@@ -117,11 +116,7 @@ namespace ast {
             case UnaryOperator::PrefixDecrement:
                 return unaryChild_->GetIdentifier();
             case UnaryOperator::AddressOf:
-                std::cerr << "Non an lvalue?" << std::endl;
-                exit(1);
-            case UnaryOperator::Dereference:
-                std::cerr << "Need to look-up in table - surely this has to be stored" << std::endl;
-                exit(1);
+            case UnaryOperator::Dereference: // This can be called on lhs or rhs of assignment, should work the same in both
             case UnaryOperator::Plus:
             case UnaryOperator::Minus:
             case UnaryOperator::BitwiseNot:

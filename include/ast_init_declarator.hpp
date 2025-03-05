@@ -15,6 +15,7 @@ namespace ast {
         void Print(std::ostream &stream) const override;
         [[nodiscard]] const std::string& GetIdentifier() const;
         [[nodiscard]] bool HasInitializer() const;
+        [[nodiscard]] bool IsPointer() const;
 
         bool IsFunction() const;
     private:

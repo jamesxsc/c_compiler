@@ -24,33 +24,55 @@ namespace ast {
                 // Bindings and init
                 // Note that 17's insert or assign is used to overwrite variables with the same name if they are refined in a block scope
                 if (initDeclarator->HasInitializer()) {
-                    // todo different logic in if and else for pointers
-                    switch (typeSpecifier_) {
-                        case TypeSpecifier::INT:
-                            // Generates initializer/assignment code
-                            initDeclarator->EmitRISC(stream, context, destReg);
+                    if (initDeclarator->IsPointer()) {
+                        // Probably a unary & address of (this obtains an address)
+                        initDeclarator->EmitRISC(stream, context, destReg);
 
-                            context.CurrentFrame().bindings.insert_or_assign(identifier, Variable{
-                                    .offset = context.CurrentFrame().size,
-                                    .size = size,
-                                    .reg = destReg,
-                                    .type = typeSpecifier_
-                            });
+                        context.CurrentFrame().bindings.insert_or_assign(identifier, Variable{
+                                .offset = context.CurrentFrame().size,
+                                .size = size,
+                                .reg = destReg,
+                                .type = TypeSpecifier::POINTER
+                        });
 
-                            stream << "sw " << destReg << "," << context.CurrentFrame().size << "(s0)" << std::endl;
-                            break;
-                        case TypeSpecifier::POINTER:
-                            // probably will never happen? this is the pointed to type
-                            break;
+                        stream << "sw " << destReg << "," << context.CurrentFrame().size << "(s0)" << std::endl;
+                    } else {
+                        switch (typeSpecifier_) {
+                            case TypeSpecifier::INT:
+                                // Generates initializer/assignment code
+                                initDeclarator->EmitRISC(stream, context, destReg);
+
+                                context.CurrentFrame().bindings.insert_or_assign(identifier, Variable{
+                                        .offset = context.CurrentFrame().size,
+                                        .size = size,
+                                        .reg = destReg,
+                                        .type = typeSpecifier_
+                                });
+
+                                stream << "sw " << destReg << "," << context.CurrentFrame().size << "(s0)" << std::endl;
+                                break;
+                            case TypeSpecifier::POINTER:
+                                // probably will never happen? this is the pointed to type
+                                break;
+                        }
                     }
                 } else {
-                    // Allocated, but not initialized
-                    context.CurrentFrame().bindings.insert_or_assign(identifier, Variable{
-                            .offset = context.CurrentFrame().size,
-                            .size = size,
-                            .reg = Register::zero,
-                            .type = typeSpecifier_
-                    });
+                    if (initDeclarator->IsPointer()) {
+                        context.CurrentFrame().bindings.insert_or_assign(identifier, Variable{
+                                .offset = context.CurrentFrame().size,
+                                .size = size,
+                                .reg = Register::zero,
+                                .type = TypeSpecifier::POINTER
+                        });
+                    } else {
+                        // Allocated, but not initialized
+                        context.CurrentFrame().bindings.insert_or_assign(identifier, Variable{
+                                .offset = context.CurrentFrame().size,
+                                .size = size,
+                                .reg = Register::zero,
+                                .type = typeSpecifier_
+                        });
+                    }
                 }
             }
         }

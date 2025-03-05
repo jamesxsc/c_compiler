@@ -30,4 +30,8 @@ namespace ast {
         return dynamic_cast<const FunctionDeclarator*>(declarator_.get()) != nullptr;
     }
 
+    bool InitDeclarator::IsPointer() const {
+        return declarator_->IsPointer();
+    }
+
 }
