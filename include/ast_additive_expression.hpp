@@ -11,7 +11,7 @@ namespace ast {
         Subtract
     };
 
-    class AdditiveExpression; // Forward declaration for recursive using declaration
+    class AdditiveExpression; 
     using AdditiveExpressionPtr = std::unique_ptr<const AdditiveExpression>;
 
     class AdditiveExpression : public ExpressionBase {
@@ -20,9 +20,10 @@ namespace ast {
         AdditiveExpression(AdditiveExpressionPtr left, MultiplicativeExpressionPtr right, AdditiveOperator op) : left_(
                 std::move(left)), right_(std::move(right)), op_(op) {}
 
-        // Overload for multiplicative promotion
         explicit AdditiveExpression(MultiplicativeExpressionPtr right) : left_(nullptr), right_(std::move(right)),
                                                                          op_(AdditiveOperator::MultiplicativePromote) {}
+
+        ~AdditiveExpression();
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
 
@@ -35,4 +36,3 @@ namespace ast {
     };
 
 }
-

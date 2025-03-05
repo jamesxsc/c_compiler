@@ -21,28 +21,28 @@ namespace ast {
         BitwiseOrAssign
     };
 
-    class Expression; // Forward declaration for recursive using declaration
+    class Expression; 
     using ExpressionPtr = std::unique_ptr<const Expression>;
 
-    class AssignmentExpression; // Forward declaration for recursive using declaration
+    class AssignmentExpression;
     using AssignmentExpressionPtr = std::unique_ptr<const AssignmentExpression>;
+
     class AssignmentExpression : public ExpressionBase {
     public:
         Type GetType(Context &context) const override;
         explicit AssignmentExpression(ConditionalExpressionPtr conditional);
         AssignmentExpression(UnaryExpressionPtr unary, AssignmentOperator op, AssignmentExpressionPtr assignment);
 
+        ~AssignmentExpression();  
+
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
         void Print(std::ostream &stream) const override;
+
     private:
         AssignmentOperator op_;
-
-        // For promotion
         ConditionalExpressionPtr conditional_;
-        // For assignment
         UnaryExpressionPtr unary_;
         AssignmentExpressionPtr assignment_;
     };
-
 
 }

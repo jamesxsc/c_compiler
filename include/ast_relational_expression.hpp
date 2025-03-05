@@ -23,9 +23,10 @@ namespace ast {
         RelationalExpression(RelationalExpressionPtr left, ShiftExpressionPtr right, RelationalOperator op) : left_(
                 std::move(left)), right_(std::move(right)), op_(op) {}
 
-        // Overload for shift promote
         explicit RelationalExpression(ShiftExpressionPtr right) : left_(nullptr), right_(std::move(right)),
                                                                   op_(RelationalOperator::ShiftPromote) {}
+
+        ~RelationalExpression();
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
 

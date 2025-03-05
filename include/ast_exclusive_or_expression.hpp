@@ -11,9 +11,8 @@ namespace ast {
     public:
         Type GetType(Context &context) const override;
         ExclusiveOrExpression(ExclusiveOrExpressionPtr left, AndExpressionPtr right) : left_(std::move(left)), right_(std::move(right)) {}
-        // Overload for and promotion
         explicit ExclusiveOrExpression(AndExpressionPtr right) : left_(nullptr), right_(std::move(right)) {}
-
+        ~ExclusiveOrExpression();
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
         void Print(std::ostream &stream) const override;
     private:

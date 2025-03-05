@@ -1,5 +1,4 @@
 #pragma once
-
 #include "ast_expression_base.hpp"
 #include <memory>
 

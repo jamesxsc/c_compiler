@@ -1,23 +1,26 @@
 #include "ast_unary_expression.hpp"
+#include "ast_postfix_expression.hpp"
+#include "ast_multiplicative_expression.hpp"
 #include "ast_type_specifier.hpp"
 
 namespace ast {
 
-    void UnaryExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-        child_->EmitRISC(stream, context, destReg);
-    }
+UnaryExpression::~UnaryExpression() = default;
 
-    void UnaryExpression::Print(std::ostream &stream) const {
-        child_->Print(stream);
-    }
+void UnaryExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
+    child_->EmitRISC(stream, context, destReg);
+}
 
-    // We don't use references since at a lower level there may be a cast leaving a dangling reference
-    std::string UnaryExpression::GetIdentifier() const {
-        return child_->GetIdentifier();
-    }
+void UnaryExpression::Print(std::ostream &stream) const {
+    child_->Print(stream);
+}
 
-    Type UnaryExpression::GetType(Context &context) const {
-        return child_->GetType(context);
-    }
+std::string UnaryExpression::GetIdentifier() const {
+    return "";
+}
+
+Type UnaryExpression::GetType(Context &context) const {
+    return child_->GetType(context);
+}
 
 } // namespace ast

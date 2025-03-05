@@ -3,10 +3,10 @@
 %code requires{
     #include "ast.hpp"
     #include <cassert>
-	#include "ast_string_literal.hpp"
-	#include "ast_continue_statement.hpp"
-	#include "ast_break_statement.hpp"
-	#include "ast_unary_expression.hpp"
+    #include "ast_string_literal.hpp"
+    #include "ast_continue_statement.hpp"
+    #include "ast_break_statement.hpp"
+    #include "ast_unary_expression.hpp"
     using namespace ast;
 
     extern Node* g_root;
@@ -16,7 +16,6 @@
     int yylex_destroy(void);
 }
 
-// Represents the value associated with any kind of AST node.
 %union{
   Node*               node;
   NodeList*           node_list;
@@ -114,7 +113,8 @@
 %nterm <expression> expression
 
 %type <string> storage_class_specifier
-%type <number_int> INT_CONSTANT STRING_LITERAL
+%type <number_int> INT_CONSTANT
+%type <string> STRING_LITERAL
 %type <number_float> FLOAT_CONSTANT
 %type <string> IDENTIFIER
 %type <type_specifier> type_specifier
@@ -180,16 +180,18 @@ function_call_expression
 
 postfix_expression
     : primary_expression { $$ = new PostfixExpression(ExpressionBasePtr($1)); }
-    | postfix_expression '[' expression ']' { /* Array subscripting (not fully implemented) */ }
+    | postfix_expression '[' expression ']' 
     | function_call_expression { $$ = new PostfixExpression(ExpressionBasePtr($1)); }
-    | postfix_expression '.' IDENTIFIER { /* Struct member access (not fully implemented) */ }
-    | postfix_expression PTR_OP IDENTIFIER { /* Struct pointer access (not fully implemented) */ }
-    | postfix_expression INC_OP { /* Post-increment (not fully implemented) */ }
-    | postfix_expression DEC_OP { /* Post-decrement (not fully implemented) */ }
+    | postfix_expression '.' IDENTIFIER
+    | postfix_expression PTR_OP IDENTIFIER
+    | postfix_expression INC_OP
+    | postfix_expression DEC_OP
     ;
 
 argument_expression_list
-    : assignment_expression { $$ = new ArgumentExpressionList(AssignmentExpressionPtr($1)); }
+    : assignment_expression {
+        $$ = new ArgumentExpressionList(AssignmentExpressionPtr($1));
+    }
     | argument_expression_list ',' assignment_expression {
         $1->PushBack(AssignmentExpressionPtr($3));
         $$=$1;
@@ -197,14 +199,16 @@ argument_expression_list
     ;
 
 unary_expression
-    : postfix_expression { $$ = new UnaryExpression(PostfixExpressionPtr($1)); }
-    | INC_OP unary_expression { /* Pre-increment (not fully implemented) */ }
-    | DEC_OP unary_expression { /* Pre-decrement (not fully implemented) */ }
+    : postfix_expression {
+        $$ = new UnaryExpression(PostfixExpressionPtr($1));
+    }
+    | INC_OP unary_expression
+    | DEC_OP unary_expression
     | unary_operator multiplicative_expression {
         $$ = new UnaryExpression(MultiplicativeExpressionPtr($2), $1);
     }
-    | SIZEOF unary_expression { /* sizeof expression (not fully implemented) */ }
-    | SIZEOF '(' type_name ')' { /* sizeof type (not fully implemented) */ }
+    | SIZEOF unary_expression
+    | SIZEOF '(' type_name ')'
     ;
 
 unary_operator
@@ -322,13 +326,19 @@ logical_and_expression
     ;
 
 logical_or_expression
-    : logical_and_expression {
-        $$ = new LogicalOrExpression(LogicalAndExpressionPtr($1));
+  : logical_and_expression
+    {
+      $$ = new LogicalOrExpression(LogicalAndExpressionPtr($1));
     }
-    | logical_or_expression OR_OP logical_and_expression {
-        $$ = new LogicalOrExpression(LogicalOrExpressionPtr($1), LogicalAndExpressionPtr($3));
+  | logical_or_expression OR_OP logical_and_expression
+    {
+      $$ = new LogicalOrExpression(
+          LogicalOrExpressionPtr($1),
+          LogicalAndExpressionPtr($3)
+      );
     }
-    ;
+  ;
+
 
 conditional_expression
     : logical_or_expression {

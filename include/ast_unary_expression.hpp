@@ -2,7 +2,7 @@
 
 #include "ast_expression_base.hpp"
 #include "ast_postfix_expression.hpp"
-#include "ast_multiplicative_expression.hpp"  // Make sure this is included
+#include "ast_multiplicative_expression.hpp"
 
 namespace ast {
 
@@ -34,6 +34,8 @@ public:
         , op_(op)
     {
     }
+
+    ~UnaryExpression();
 
     Type GetType(Context &context) const override;
     void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
