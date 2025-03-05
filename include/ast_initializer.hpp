@@ -16,7 +16,6 @@ namespace ast {
 
     private:
         AssignmentExpressionPtr expression_;
-        // TODO can hold initializer list
     };
 
     using InitializerPtr = std::unique_ptr<const Initializer>;

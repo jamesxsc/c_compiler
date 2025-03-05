@@ -13,7 +13,7 @@ namespace ast {
                 conditional_->EmitRISC(stream, context, destReg);
                 break;
             case AssignmentOperator::Assign: {
-                // We need a register for lhs // TODO do we want to check if it's already in a register?
+                // We need a register for lhs
                 // also this is common between this and the other operators
                 Register lhsReg = context.AllocateTemporary();
 

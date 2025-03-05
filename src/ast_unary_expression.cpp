@@ -41,7 +41,6 @@ namespace ast {
             case UnaryOperator::Dereference: {
                 // Variable is a pointer - get value at address in variable
                 // This should only be called for RHS
-                // todo maybe abstract some of the bindings searches so we don't get segfaults
                 Variable ptr = context.CurrentFrame().bindings.Get(multiplicativeChild_->GetIdentifier());
                 // Reuse destReg rather than waste a temporary
                 stream << "lw " << destReg << "," << ptr.offset << "(s0)" << std::endl;

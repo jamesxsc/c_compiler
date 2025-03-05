@@ -332,7 +332,6 @@ init_declarator_list
 	| init_declarator_list ',' init_declarator { $1->PushBack(InitDeclaratorPtr($3)); $$=$1; }
 	;
 
-// todo handle pointer declarators here and upwards
 init_declarator
 	: declarator { $$ = new InitDeclarator(DeclaratorPtr($1)); }
 	| declarator '=' initializer { $$ = new InitDeclarator(DeclaratorPtr($1), InitializerPtr($3)); }

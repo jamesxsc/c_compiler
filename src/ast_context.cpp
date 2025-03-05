@@ -87,16 +87,11 @@ namespace ast {
     }
 
     void Context::PopScope(std::ostream &stream) {
-
-        // TODO FIX
         assert(stack_.size() >= 2 && "Attempted to pop scope from empty stack");
 
-        // todo is this the best way to do this?
         // Any persistent registers used in the scope need to be saved back to the function root frame
         stack_.end()[-2].usedPersistentRegisters |= CurrentFrame().usedPersistentRegisters;
 
-        // todo this needs to be before return (although won't be relevant eventually - stack size will be fixed)
-        stream << "addi sp,sp," << CurrentFrame().size - stack_.end()[-2].size << std::endl;
         stack_.pop_back();
 
         // todo do we need to store anything
@@ -111,7 +106,6 @@ namespace ast {
 //        }
 //
 //        stack_.pop_back();
-        // TODO: If needed, restore saved registers or do other teardown logic
     }
 
     void Context::PopFrame() {

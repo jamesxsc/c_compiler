@@ -41,8 +41,6 @@ namespace ast {
         // Set the frame pointer
         stream << "addi s0, sp, " << frameSize << std::endl;
 
-        // todo size of prologue or whatever in stack to use for offset of other variables
-
         // Now emit the parameters and function body
         stream << bodyStream.rdbuf();
 
