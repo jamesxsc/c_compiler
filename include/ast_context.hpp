@@ -4,22 +4,43 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <memory>
+#include <deque>
 #include "register.hpp"
 #include "ast_type_specifier.hpp"
 
 
 namespace ast {
-    // TODO this will need to hold type info to infer size etc
     struct Variable {
-        int offset;
+        int offset{0};
         int size;
-        Register reg;
+        Register reg{Register::zero}; // probably avoid use
         TypeSpecifier type;
+    };
+    using VariablePtr = std::shared_ptr<const Variable>;
+
+    // I prefer this, but it may be possible to ditch the deque and just store a counter
+    class Bindings {
+    public:
+        Bindings(int size, int start) : size_(size), start_(start) {};
+
+        const Variable &Get(const std::string &identifier) const;
+
+        const Variable &Insert(const std::string &identifier, Variable variable);
+
+        // This is for in a scope - removes old and reallocated because may be a different type/size
+        const Variable &InsertOrOverwrite(const std::string &identifier, Variable variable);
+
+    private:
+        int size_;
+        int start_; // Don't overwrite saved ra and s... registers
+        std::deque<VariablePtr> bindings_;
+        std::unordered_map<std::string, const Variable *> bindingsMap_;
     };
 
     struct StackFrame {
         int size;
-        std::unordered_map<std::string, Variable> bindings;
+        Bindings bindings;
         std::bitset<12> usedPersistentRegisters{1}; // s0 is always used
     };
 
@@ -37,7 +58,7 @@ namespace ast {
 
         StackFrame &CurrentFrame();
 
-        void PushFrame(const StackFrame &frame);
+        void PushFrame(StackFrame &&frame);
 
         void PushScope();
 

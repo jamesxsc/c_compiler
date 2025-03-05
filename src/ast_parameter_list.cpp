@@ -11,14 +11,12 @@ namespace ast {
         if (!parameters_.empty()) {
             int idx = 0;
             for (const auto& param: parameters_) {
-                int offset = -20 - 4 * idx;
-                context.CurrentFrame().bindings.insert({param->GetIdentifier(), Variable{
-                        .offset = offset,
+                Variable var = context.CurrentFrame().bindings.Insert(param->GetIdentifier(), Variable{
                         .size = 4,
                         .reg = Register::zero,
                         .type = param->GetType(context)
-                }});
-                stream << "sw a" << idx << ", " << offset << "(s0)" << std::endl;
+                });
+                stream << "sw a" << idx << ", " << var.offset << "(s0)" << std::endl;
                 ++idx;
             }
         }

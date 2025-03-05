@@ -10,7 +10,7 @@ namespace ast {
                 postfixChild_->EmitRISC(stream, context, destReg);
                 break;
             case UnaryOperator::PrefixIncrement: {
-                Variable var = context.CurrentFrame().bindings.at(unaryChild_->GetIdentifier());
+                Variable var = context.CurrentFrame().bindings.Get(unaryChild_->GetIdentifier());
                 Register reg = context.AllocateTemporary();
                 stream << "lw " << reg << "," << var.offset << "(s0)" << std::endl;
                 stream << "addi " << reg << "," << reg << ",1" << std::endl;
@@ -21,11 +21,11 @@ namespace ast {
                 break;
             }
             case UnaryOperator::PrefixDecrement: {
-                Variable var = context.CurrentFrame().bindings.at(unaryChild_->GetIdentifier());
+                Variable var = context.CurrentFrame().bindings.Get(unaryChild_->GetIdentifier());
                 Register reg = context.AllocateTemporary();
-                stream << "lw " << reg << "," << var.offset << "(sp)" << std::endl;
+                stream << "lw " << reg << "," << var.offset << "(s0)" << std::endl;
                 stream << "addi " << reg << "," << reg << ",-1" << std::endl;
-                stream << "sw " << reg << "," << var.offset << "(sp)" << std::endl;
+                stream << "sw " << reg << "," << var.offset << "(s0)" << std::endl;
                 context.FreeTemporary(reg);
                 // Store the decremented value in the destination register
                 unaryChild_->EmitRISC(stream, context, destReg);
@@ -34,16 +34,17 @@ namespace ast {
                 // Below all multiplicative child expression
             case UnaryOperator::AddressOf: {
                 // Variable is of non-pointer type - get offset + frame pointer
-                Variable atAddress = context.CurrentFrame().bindings.at(multiplicativeChild_->GetIdentifier());
-                stream << "addi " << destReg << ",sp," << atAddress.offset << std::endl;
+                Variable atAddress = context.CurrentFrame().bindings.Get(multiplicativeChild_->GetIdentifier());
+                stream << "addi " << destReg << ",s0," << atAddress.offset << std::endl;
                 break;
             }
             case UnaryOperator::Dereference: {
                 // Variable is a pointer - get value at address in variable
+                // This should only be called for RHS
                 // todo maybe abstract some of the bindings searches so we don't get segfaults
-                Variable ptr = context.CurrentFrame().bindings.at(multiplicativeChild_->GetIdentifier());
+                Variable ptr = context.CurrentFrame().bindings.Get(multiplicativeChild_->GetIdentifier());
                 // Reuse destReg rather than waste a temporary
-                stream << "lw " << destReg << "," << ptr.offset << "(sp)" << std::endl;
+                stream << "lw " << destReg << "," << ptr.offset << "(s0)" << std::endl;
                 stream << "lw " << destReg << ",0(" << destReg << ")" << std::endl;
                 break;
             }
@@ -115,8 +116,8 @@ namespace ast {
             case UnaryOperator::PrefixIncrement:
             case UnaryOperator::PrefixDecrement:
                 return unaryChild_->GetIdentifier();
-            case UnaryOperator::AddressOf:
             case UnaryOperator::Dereference: // This can be called on lhs or rhs of assignment, should work the same in both
+            case UnaryOperator::AddressOf:
             case UnaryOperator::Plus:
             case UnaryOperator::Minus:
             case UnaryOperator::BitwiseNot:
@@ -136,7 +137,7 @@ namespace ast {
                 return unaryChild_->GetType(context);
             case UnaryOperator::AddressOf:
             case UnaryOperator::Dereference:
-                return TypeSpecifier::INT; // todo ptrs, maybe table required for this
+                return TypeSpecifier::POINTER; // todo ptrs addressof is probably wrong if ever called
             case UnaryOperator::Plus:
             case UnaryOperator::Minus:
             case UnaryOperator::BitwiseNot:

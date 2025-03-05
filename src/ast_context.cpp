@@ -5,6 +5,35 @@
 
 namespace ast {
 
+    const Variable &Bindings::Get(const std::string &identifier) const {
+        auto it = bindingsMap_.find(identifier);
+        assert(it != bindingsMap_.end() && "Variable not found in bindings");
+        return *it->second;
+    }
+
+    const Variable &Bindings::Insert(const std::string &identifier, Variable variable) {
+        assert(bindingsMap_.find(identifier) == bindingsMap_.end() && "Variable already exists in bindings");
+        if (bindings_.empty()) {
+            variable.offset = start_;
+        } else {
+            variable.offset = bindings_.back()->offset - bindings_.back()->size;
+        }
+        assert(variable.offset > -size_ && "Bindings exceed allocated stack frame size");
+        VariablePtr ptr = std::make_shared<Variable>(variable);
+        bindingsMap_.emplace(identifier, ptr.get());
+        bindings_.push_back(std::move(ptr));
+        return *bindings_.back();
+    }
+
+    const Variable &Bindings::InsertOrOverwrite(const std::string &identifier, ast::Variable variable) {
+        auto it = bindingsMap_.find(identifier);
+        if (it != bindingsMap_.end()) {
+            // Don't remove from deque because it will allow that offset region to be overwritten
+            bindingsMap_.erase(it);
+        }
+        return Insert(identifier, variable);
+    }
+
     Register Context::AllocateTemporary() {
         for (size_t i = 0; i < temporaries_.size(); i++) {
             if (!temporaries_.test(i)) {
@@ -53,8 +82,8 @@ namespace ast {
         return stack_.back();
     }
 
-    void Context::PushFrame(const StackFrame &frame) {
-        stack_.push_back(frame);
+    void Context::PushFrame(StackFrame &&frame) {
+        stack_.push_back(std::move(frame));
     }
 
     void Context::PopScope(std::ostream &stream) {
@@ -101,5 +130,4 @@ namespace ast {
         label.append(std::to_string(labelId_++));
         return label;
     }
-
 } // namespace ast

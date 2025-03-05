@@ -16,7 +16,7 @@ namespace ast {
         int frameSize = 512; // bytes // fixed until we get time to perform analysis of how large the frame needs to be
         context.PushFrame({
                                   .size = frameSize,
-                                  .bindings = {}
+                                  .bindings = Bindings(frameSize, -4 * 13), // 4 * 13 is the size of the saved registers (max case)
                           });
         // Execute the declarator and function body without emitting it to determine which registers need to be saved
         std::stringstream bodyStream;
@@ -31,6 +31,7 @@ namespace ast {
 
 
         // Save used persistent registers s0-s11
+        // TODO make this not waste space for unused ones
         for (int i = 0; i < 12; i++) {
             if (context.CurrentFrame().usedPersistentRegisters.test(i)) {
                 stream << "sw s" << i << ", " << frameSize - 8 - i * 4 << "(sp)" << std::endl;

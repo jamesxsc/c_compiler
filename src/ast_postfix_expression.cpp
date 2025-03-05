@@ -12,7 +12,7 @@ namespace ast {
                 break;
             case PostfixOperator::PostfixIncrement:
             case PostfixOperator::PostfixDecrement:
-                Variable variable = context.CurrentFrame().bindings.at(GetIdentifier());
+                Variable variable = context.CurrentFrame().bindings.Get(GetIdentifier());
                 Register tempReg = context.AllocateTemporary();
                 child_->EmitRISC(stream, context, destReg);
                 stream << "lw " << destReg << "," << variable.offset << "(s0)" << std::endl;

@@ -24,16 +24,20 @@ namespace ast {
                 // todo if it is already in a reg AND (BIG IF) WE DECIDE TO STORE REGISTERS/VARIABLES IN CONTEXT THEN UPDATE THAT
                 // come back to this as a maybe
 
+                // todo i dont like how we don't always call unary emit risc
+
                 // Can only assign to lvalue so this call should succeed
-                Variable lhsVariable = context.CurrentFrame().bindings.at(unary_->GetIdentifier());
+                Variable lhsVariable = context.CurrentFrame().bindings.Get(unary_->GetIdentifier());
+                if (unary_->GetType(context) == TypeSpecifier::POINTER) {
+                    // Pointer, load the address (LHS equivalent of UnaryOperator::Derference)
+                    Register addrReg = context.AllocateTemporary();
+                    stream << "lw " << addrReg << "," << lhsVariable.offset << "(s0)" << std::endl;
+                    stream << "sw " << lhsReg << ",0(" << addrReg << ")" << std::endl;
+                    context.FreeTemporary(addrReg);
+                } else {
+                    stream << "sw " << lhsReg << "," << lhsVariable.offset << "(s0)"   << std::endl;
+                }
 
-                // todo ptrs
-                // thinking about pointers, what's the best way to get the underlying var (it is a var if its a pointer).
-                // maybe it can all be handled un UnaryExpression#GetIdentifier which would be super neat - this basically wouldn't change
-                // hopefully same for dereference and getting the val
-                // should ideally handle everything even unary/postfix operators since they call get identifier
-
-                stream << "sw " << lhsReg << "," << lhsVariable.offset << "(s0)"   << std::endl;
 
                 context.FreeTemporary(lhsReg);
                 break;

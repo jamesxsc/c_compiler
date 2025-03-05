@@ -6,13 +6,8 @@ namespace ast {
 
     void Identifier::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         // TODO There can be some optimisation if it's already in a reg. but needs some thinking - can we free the source reg?
-        auto it = context.CurrentFrame().bindings.find(identifier_);
-        if (it == context.CurrentFrame().bindings.end()) {
-            throw std::runtime_error("Variable " + identifier_ + " not found in current scope");
-        }
-        int offset = it->second.offset;
+        int offset = context.CurrentFrame().bindings.Get(identifier_).offset;
 
-        // Assuming temporary numbering here
         stream << "lw " << destReg << "," << offset << "(s0)" << std::endl;
     }
 
@@ -25,7 +20,7 @@ namespace ast {
     }
 
     TypeSpecifier Identifier::GetType(Context& context) const {
-        Variable var = context.CurrentFrame().bindings.at(identifier_);
+        Variable var = context.CurrentFrame().bindings.Get(identifier_);
         return var.type;
     }
 
