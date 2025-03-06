@@ -1,14 +1,13 @@
+#include <cassert>
 #include "ast_declaration.hpp"
 
 namespace ast {
 
     void Declaration::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         for (const auto &initDeclarator: *initDeclaratorList_) {
-            // Handle forward declarations
             if (initDeclarator->IsFunction()) {
-                // TODO store functions in context because we will need size etc information
-
-
+                // Handle forward declarations
+                // todo function store
             } else { // Handle variable declarations
                 // Stack work is done here
                 // TODO need to handle different sizes (inferred from type)
@@ -19,6 +18,9 @@ namespace ast {
 
                 // Bindings and init
                 // Note that 17's insert or assign is used to overwrite variables with the same name if they are refined in a block scope
+                // Don't handle types with multiple keywords (for now)
+                assert(!declarationSpecifiers_->GetTypeSpecifiers().empty() && "Declaration must have a type specifier");
+                TypeSpecifier typeSpecifier = declarationSpecifiers_->GetTypeSpecifiers().front();
                 if (initDeclarator->HasInitializer()) {
                     if (initDeclarator->IsPointer()) {
                         // Probably a unary & address of (this obtains an address)
@@ -32,7 +34,7 @@ namespace ast {
 
                         stream << "sw " << destReg << "," << var.offset << "(s0)" << std::endl;
                     } else {
-                        switch (typeSpecifier_) {
+                        switch (typeSpecifier) {
                             case TypeSpecifier::INT: {
                                 // Generates initializer/assignment code
                                 initDeclarator->EmitRISC(stream, context, destReg);
@@ -40,7 +42,7 @@ namespace ast {
                                 Variable var = context.CurrentFrame().bindings.InsertOrOverwrite(identifier, Variable{
                                         .size = size,
                                         .reg = destReg,
-                                        .type = typeSpecifier_
+                                        .type = typeSpecifier
                                 });
 
                                 stream << "sw " << destReg << "," << var.offset << "(s0)" << std::endl;
@@ -63,7 +65,7 @@ namespace ast {
                         context.CurrentFrame().bindings.InsertOrOverwrite(identifier, Variable{
                                 .size = size,
                                 .reg = Register::zero,
-                                .type = typeSpecifier_
+                                .type = typeSpecifier
                         });
                     }
                 }
@@ -74,7 +76,7 @@ namespace ast {
     }
 
     void Declaration::Print(std::ostream &stream) const {
-        stream << typeSpecifier_; // This is overloaded to provide a string representation
+        declarationSpecifiers_->Print(stream);
         initDeclaratorList_->Print(stream);
     }
 

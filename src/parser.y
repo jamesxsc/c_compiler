@@ -43,6 +43,8 @@
   InitDeclaratorList* init_declarator_list;
   Initializer*        initializer;
   ParameterList* parameter_list;
+  DeclarationSpecifiers* declaration_specifiers;
+  StorageClassSpecifier storage_class_specifier;
   Declaration* declaration;
   DeclarationList* declaration_list;
   Statement* statement;
@@ -92,6 +94,8 @@
 %nterm <init_declarator_list> init_declarator_list
 %nterm <initializer> initializer
 %nterm <declaration> declaration
+%nterm <declaration_specifiers> declaration_specifiers
+%nterm <storage_class_specifier> storage_class_specifier
 %nterm <parameter_declaration> parameter_declaration
 
 // Expression hierarchy
@@ -115,15 +119,10 @@
 %nterm <argument_expression_list> argument_expression_list
 %nterm <expression> expression
 
-%type <string> storage_class_specifier
-
 %type <number_int> INT_CONSTANT STRING_LITERAL
 %type <number_float> FLOAT_CONSTANT
 %type <string> IDENTIFIER
-// Cx these two; removed from lists above
 %type <type_specifier> type_specifier
-// TODO: Make a better type for this (only needed for advanced features)
-%type <type_specifier> declaration_specifiers
 
 
 %start ROOT
@@ -152,7 +151,7 @@ function_definition
 	    auto * decl = dynamic_cast<FunctionDeclarator*>($2);
 	    assert(decl != nullptr && "Expected a function declarator in function_definition");
 	    $3->SetFunction();
-		$$ = new FunctionDefinition($1, FunctionDeclaratorPtr(decl), CompoundStatementPtr($3));
+		$$ = new FunctionDefinition(DeclarationSpecifiersPtr($1), FunctionDeclaratorPtr(decl), CompoundStatementPtr($3));
 	}
 	| declarator declaration_list compound_statement
 	| declarator compound_statement {
@@ -170,7 +169,8 @@ primary_expression
 	}
     | FLOAT_CONSTANT
 	| STRING_LITERAL
-	| '(' expression ')'
+	// TODO expression recursion
+	| '(' expression ')' { std::cerr << "Need to implement expression recursion in primary_expression" << std::endl; exit(1); }
 	;
 
 // Function call; the extra class here seems the neatest way to do this rather than bloat PostfixExpression
@@ -317,14 +317,14 @@ constant_expression
 
 declaration
 	: declaration_specifiers ';' { std::cerr << "Need to implement declaration specifiers only declaration" << std::endl; exit(1); }
-	| declaration_specifiers init_declarator_list ';' { $$ = new Declaration($1, InitDeclaratorListPtr($2)); }
+	| declaration_specifiers init_declarator_list ';' { $$ = new Declaration(DeclarationSpecifiersPtr($1), InitDeclaratorListPtr($2)); }
 	;
 
 declaration_specifiers
-	: storage_class_specifier
-	| storage_class_specifier declaration_specifiers
-	| type_specifier { $$ = $1; }
-	| type_specifier declaration_specifiers
+	: storage_class_specifier { $$ = new DeclarationSpecifiers($1); }
+	| storage_class_specifier declaration_specifiers { $2->SetStorageClassSpecifier($1); $$ = $2; }
+	| type_specifier { $$ = new DeclarationSpecifiers($1); }
+	| type_specifier declaration_specifiers { $2->AddTypeSpecifier($1); $$ = $2; }
 	;
 
 init_declarator_list
@@ -338,11 +338,11 @@ init_declarator
 	;
 
 storage_class_specifier
-	: TYPEDEF
+	: TYPEDEF { $$ = StorageClassSpecifier::Typedef; }
 	| EXTERN { std::cerr << "The extern keyword is not supported" << std::endl; exit(1); }
 	| STATIC { std::cerr << "The static keyword is not supported" << std::endl; exit(1); }
-	| AUTO
-	| REGISTER
+	| AUTO { $$ = StorageClassSpecifier::Auto; }
+	| REGISTER { $$ = StorageClassSpecifier::Register; }
 	;
 
 type_specifier
@@ -448,7 +448,7 @@ parameter_list
 	;
 
 parameter_declaration
-	: declaration_specifiers declarator { $$ = new ParameterDeclaration($1, DeclaratorPtr($2)); }
+	: declaration_specifiers declarator { $$ = new ParameterDeclaration(DeclarationSpecifiersPtr($1), DeclaratorPtr($2)); }
 	| declaration_specifiers abstract_declarator
 	| declaration_specifiers
 	;

@@ -1,4 +1,5 @@
 #include <sstream>
+#include <cassert>
 #include "ast_function_definition.hpp"
 #include "ast_type_specifier.hpp"
 
@@ -11,6 +12,8 @@ namespace ast {
         stream << ".align 2" << std::endl;
         // .globl directive is handled by declarator
         declarator_->EmitLabelRISC(stream);
+
+        // todo add function to context here and use internal GetType to get the return type
 
         // Push a new frame onto the stack
         int frameSize = 512; // bytes // fixed until we get time to perform analysis of how large the frame needs to be
@@ -29,12 +32,12 @@ namespace ast {
         stream << "addi sp, sp, -" << frameSize << std::endl;
         stream << "sw ra, " << frameSize - 4 << "(sp)" << std::endl;
 
-
         // Save used persistent registers s0-s11
-        // TODO make this not waste space for unused ones
-        for (int i = 0; i < 12; i++) {
-            if (context.CurrentFrame().usedPersistentRegisters.test(i)) {
-                stream << "sw s" << i << ", " << frameSize - 8 - i * 4 << "(sp)" << std::endl;
+        int storedCount = 0;
+        for (int r = 0; r < 12; r++) {
+            if (context.CurrentFrame().usedPersistentRegisters.test(r)) {
+                stream << "sw s" << r << ", " << frameSize - 8 - storedCount * 4 << "(sp)" << std::endl;
+                storedCount++;
             }
         }
 
@@ -49,7 +52,7 @@ namespace ast {
     }
 
     void FunctionDefinition::Print(std::ostream &stream) const {
-        stream << declaration_specifiers_ << " ";
+        declaration_specifiers_->Print(stream);
 
         declarator_->Print(stream);
 
@@ -60,7 +63,9 @@ namespace ast {
 
 
     TypeSpecifier FunctionDefinition::GetType(Context &) const {
-        return declaration_specifiers_; // TODO cx and probably remove this member func from declarator
+        // Only support types with a single keyword for now
+        assert(!declaration_specifiers_->GetTypeSpecifiers().empty() && "Function definition must have a type specifier");
+        return declaration_specifiers_->GetTypeSpecifiers().front();
     }
 
 }

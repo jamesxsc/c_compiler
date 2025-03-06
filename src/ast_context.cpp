@@ -20,7 +20,7 @@ namespace ast {
         }
         assert(variable.offset > -size_ && "Bindings exceed allocated stack frame size");
         VariablePtr ptr = std::make_shared<Variable>(variable);
-        bindingsMap_.emplace(identifier, ptr.get());
+        bindingsMap_.emplace(identifier, ptr);
         bindings_.push_back(std::move(ptr));
         return *bindings_.back();
     }
@@ -129,10 +129,21 @@ namespace ast {
         stack_.push_back(stack_.back()); // Makes a copy
     }
 
+    void Context::InsertFunction(const std::string &identifier, Function &&function) {
+        functions_.emplace(identifier, function);
+    }
+
+    const Function &Context::GetFunction(const std::string &identifier) const {
+        auto it = functions_.find(identifier);
+        assert(it != functions_.end() && "Function not found in context");
+        return it->second;
+    }
+
     std::string Context::MakeLabel(const std::string &prefix) {
         std::string label{prefix};
         label.push_back('_');
         label.append(std::to_string(labelId_++));
         return label;
     }
+
 } // namespace ast

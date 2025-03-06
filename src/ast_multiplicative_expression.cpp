@@ -25,8 +25,10 @@ namespace ast {
                 stream << "div " << destReg << "," << leftReg << "," << rightReg << std::endl;
                 break;
             case MultiplicativeOperator::Modulo:
-                // todo signed vs unsigned?
-                stream << "rem " << destReg << "," << leftReg << "," << rightReg << std::endl;
+                if (IsSigned(left_->GetType(context)) && IsSigned(right_->GetType(context)))
+                    stream << "rem " << destReg << "," << leftReg << "," << rightReg << std::endl;
+                else
+                    stream << "remu " << destReg << "," << leftReg << "," << rightReg << std::endl;
                 break;
             case MultiplicativeOperator::UnaryPromote: // Should never reach here
                 break;

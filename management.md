@@ -42,6 +42,7 @@
 * ~~Short-circuiting logic tst - James~~
 * ~~Selection and iteration statements - if-else/while etc. - Eliott~~
 * ~~Multiple functions in a translation unit/ file - James~~
+* Break/switch/continue
 * Cerr outputs for all unsupported features
 * Prepare code for other types/ variable sizes
 * Global variables

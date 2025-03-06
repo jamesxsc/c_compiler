@@ -32,10 +32,4 @@ namespace ast {
         stream << ")";
     }
 
-
-
-    TypeSpecifier FunctionDeclarator::GetType(Context& context) const {
-        return TypeSpecifier::INT; // todo fix this
-    }
-
 }

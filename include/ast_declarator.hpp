@@ -25,7 +25,6 @@ namespace ast {
 
         void Direct();
 
-        TypeSpecifier GetType(Context &context) const;
     };
 
     using DeclaratorPtr = std::unique_ptr<const Declarator>;

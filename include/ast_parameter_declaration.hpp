@@ -3,21 +3,21 @@
 #include "ast_node.hpp"
 #include "ast_type_specifier.hpp"
 #include "ast_declarator.hpp"
+#include "ast_declaration_specifiers.hpp"
 
 namespace ast {
 
     class ParameterDeclaration : public Node
     {
     public:
-        // TODO identifier type and possibilities
-        ParameterDeclaration(TypeSpecifier type, DeclaratorPtr identifier) : type_(type), identifier_(std::move(identifier)) {};
+        ParameterDeclaration(DeclarationSpecifiersPtr declarationSpecifiers, DeclaratorPtr identifier) : declarationSpecifiers_(std::move(declarationSpecifiers)), identifier_(std::move(identifier)) {};
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
         void Print(std::ostream &stream) const override;
         [[nodiscard]] const std::string &GetIdentifier() const;
         TypeSpecifier GetType(Context &context) const;
     private:
-        TypeSpecifier type_;
+        DeclarationSpecifiersPtr declarationSpecifiers_;
         DeclaratorPtr identifier_;
     };
 

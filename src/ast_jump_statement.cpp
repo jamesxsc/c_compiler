@@ -14,10 +14,11 @@ namespace ast {
         stream << "lw ra," << frameSize - 4 << "(sp)" << std::endl;
 
         // Restore used persistent registers
-        // reverse order since we use s0. this can be fixed once above is addressed
-        for (int i = 11; i >= 0; i--) {
-            if (context.CurrentFrame().usedPersistentRegisters.test(i)) {
-                stream << "lw s" << i << ", " << frameSize - 8 - i * 4 << "(sp)" << std::endl;
+        int storedCount = 0;
+        for (int r = 0; r < 12; r++) {
+            if (context.CurrentFrame().usedPersistentRegisters.test(r)) {
+                stream << "lw s" << r << ", " << frameSize - 8 - storedCount * 4 << "(sp)" << std::endl;
+                storedCount++;
             }
         }
 

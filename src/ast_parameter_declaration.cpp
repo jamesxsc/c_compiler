@@ -1,3 +1,4 @@
+#include <cassert>
 #include "ast_parameter_declaration.hpp"
 #include "ast_type_specifier.hpp"
 
@@ -7,7 +8,8 @@ namespace ast {
     }
 
     void ParameterDeclaration::Print(std::ostream &stream) const {
-        stream << type_ << " " << identifier_->GetIdentifier();
+        declarationSpecifiers_->Print(stream);
+        stream << identifier_->GetIdentifier();
     }
 
     const std::string &ParameterDeclaration::GetIdentifier() const {
@@ -15,7 +17,8 @@ namespace ast {
     }
 
     TypeSpecifier ParameterDeclaration::GetType(Context&) const {
-        return type_;
+        assert(!declarationSpecifiers_->GetTypeSpecifiers().empty() && "Parameter declaration must have type specifier");
+        return declarationSpecifiers_->GetTypeSpecifiers().front();
     }
 
 } // namespace ast
