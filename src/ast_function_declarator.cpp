@@ -32,4 +32,13 @@ namespace ast {
         stream << ")";
     }
 
+    bool FunctionDeclarator::IsFunction() const {
+        return true;
+    }
+
+    Function FunctionDeclarator::BuildFunction(TypeSpecifier returnType) const {
+        // TODO implement builder
+        return {};
+    }
+
 }

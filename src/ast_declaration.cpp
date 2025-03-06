@@ -6,9 +6,10 @@ namespace ast {
     void Declaration::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         for (const auto &initDeclarator: *initDeclaratorList_) {
             if (initDeclarator->IsFunction()) {
-                // Handle forward declarations
-                // todo function store
-            } else { // Handle variable declarations
+                // Store forward declarations
+                context.InsertFunction(initDeclarator->GetIdentifier(), initDeclarator->BuildFunction(GetType(context)));
+            } else {
+                // Handle variable declarations
                 // Stack work is done here
                 // TODO need to handle different sizes (inferred from type)
                 int size = 4;
@@ -78,6 +79,11 @@ namespace ast {
     void Declaration::Print(std::ostream &stream) const {
         declarationSpecifiers_->Print(stream);
         initDeclaratorList_->Print(stream);
+    }
+
+    TypeSpecifier Declaration::GetType(Context &context) const {
+        assert(!declarationSpecifiers_->GetTypeSpecifiers().empty() && "Declaration must have a type specifier");
+        return declarationSpecifiers_->GetTypeSpecifiers().front();
     }
 
 }

@@ -4,6 +4,7 @@ namespace ast {
 
     void FunctionCallExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         if (arguments_ != nullptr) {
+            // todo cx what we need to use from function context here
             arguments_->EmitRISC(stream, context, destReg);
         }
         stream << "call " << function_->GetIdentifier() << std::endl;
@@ -20,7 +21,8 @@ namespace ast {
     }
 
     TypeSpecifier FunctionCallExpression::GetType(Context &context) const {
-        return TypeSpecifier::INT; // TODO store function types in context and use here
+        Function function = context.GetFunction(function_->GetIdentifier());
+        return function.returnType;
     }
 
     bool FunctionCallExpression::ContainsFunctionCall() const {

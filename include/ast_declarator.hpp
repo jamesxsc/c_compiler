@@ -19,6 +19,10 @@ namespace ast {
 
         [[nodiscard]] virtual bool IsPointer() const;
 
+        [[nodiscard]] virtual bool IsFunction() const;
+
+        [[nodiscard]] virtual Function BuildFunction(TypeSpecifier returnType) const;
+
         [[nodiscard]] bool IsDirect() const;
 
         void Indirect();

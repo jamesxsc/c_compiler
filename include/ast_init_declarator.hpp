@@ -16,6 +16,7 @@ namespace ast {
         [[nodiscard]] const std::string& GetIdentifier() const;
         [[nodiscard]] bool HasInitializer() const;
         [[nodiscard]] bool IsPointer() const;
+        [[nodiscard]] Function BuildFunction(TypeSpecifier returnType) const; // Pass down to declarator
 
         bool IsFunction() const;
     private:

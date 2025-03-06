@@ -13,7 +13,8 @@ namespace ast {
         // .globl directive is handled by declarator
         declarator_->EmitLabelRISC(stream);
 
-        // todo add function to context here and use internal GetType to get the return type
+        // Store function return type and parameter sizes in context
+        context.InsertFunction(declarator_->GetIdentifier(), declarator_->BuildFunction(GetType(context)));
 
         // Push a new frame onto the stack
         int frameSize = 512; // bytes // fixed until we get time to perform analysis of how large the frame needs to be

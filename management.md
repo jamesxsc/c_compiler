@@ -11,6 +11,8 @@
 - Testing example.c successfully
 
 ## Planning
+
+[//]: # (TODO Separate out the design notes/choices at some point)
 - It was felt that in order to make an effective plan, it was necessary to work with the codebase for a while to understand it.
 - (Stupidly?) decided to try and get mul working first which involved implementing functions, and several layers of the expression AST.
 - However, this revealed numerous design decisions that were required that helped the planning process greatly.
@@ -29,6 +31,7 @@
   - Option 3: Copy register context state through function calls - won't work for recursion
 - We'll see how we go but probably accept some program size inefficiencies such as still having a jump after a return statement in a control block.
 - Floats and pointers before structs.
+- Storing functions in context - storage logic abstracted in function declarator. Type provided to build function when called by function definition or declaration since exact type grammar differs.
 
 # Milestones (Draft)
 

@@ -27,11 +27,15 @@ namespace ast {
     }
 
     bool InitDeclarator::IsFunction() const {
-        return dynamic_cast<const FunctionDeclarator*>(declarator_.get()) != nullptr;
+        return declarator_->IsFunction();
     }
 
     bool InitDeclarator::IsPointer() const {
         return declarator_->IsPointer();
+    }
+
+    Function InitDeclarator::BuildFunction(TypeSpecifier returnType) const {
+        return declarator_->BuildFunction(returnType);
     }
 
 }

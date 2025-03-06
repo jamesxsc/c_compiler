@@ -31,6 +31,10 @@ namespace ast {
 
         void Print(std::ostream &stream) const override;
 
+        [[nodiscard]] bool IsFunction() const override;
+
+        [[nodiscard]] Function BuildFunction(TypeSpecifier returnType) const override;
+
         void EmitLabelRISC(std::ostream &stream) const;
     };
 

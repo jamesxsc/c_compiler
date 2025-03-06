@@ -34,4 +34,13 @@ namespace ast {
         return false;
     }
 
+    bool Declarator::IsFunction() const {
+        return false;
+    }
+
+    Function Declarator::BuildFunction(TypeSpecifier returnType) const {
+        std::cerr << "Error: Declarator is not a function" << std::endl;
+        exit(1);
+    }
+
 }

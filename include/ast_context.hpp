@@ -21,6 +21,7 @@ namespace ast {
     struct Function {
         std::vector<int> parameterSizes;
         int totalSize;
+        TypeSpecifier returnType;
     };
 
     // I prefer this, but it may be possible to ditch the deque and just store a counter
