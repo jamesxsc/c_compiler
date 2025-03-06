@@ -163,14 +163,14 @@ function_definition
 primary_expression
 	: IDENTIFIER {
 	    $$ = new Identifier(*$1);
+	    delete $1;
 	}
 	| INT_CONSTANT {
 		$$ = new IntConstant($1);
 	}
     | FLOAT_CONSTANT
 	| STRING_LITERAL
-	// TODO expression recursion
-	| '(' expression ')' { std::cerr << "Need to implement expression recursion in primary_expression" << std::endl; exit(1); }
+	| '(' expression ')' { $$ = new ParenthesisedExpression(ExpressionPtr($2)); }
 	;
 
 // Function call; the extra class here seems the neatest way to do this rather than bloat PostfixExpression
@@ -418,6 +418,7 @@ declarator
 direct_declarator
 	: IDENTIFIER {
 		$$ = new Declarator(*$1, true);
+		delete $1;
 	}
 	| '(' declarator ')' {
 	    $$ = $2;

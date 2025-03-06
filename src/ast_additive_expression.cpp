@@ -50,6 +50,7 @@ namespace ast {
 
 
     TypeSpecifier AdditiveExpression::GetType(Context &context) const {
+        // todo technically should be l or r e.g. for float, need some ordering/ranking of types and propagate elsewhere
         return right_->GetType(context);
     }
 
