@@ -4,61 +4,39 @@
 
 namespace ast {
 
-    void MultiplicativeExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const
-    {
-        switch (op_) {
-            case MultiplicativeOperator::Multiply: {
-                Register leftReg = context.AllocateTemporary();
-                left_->EmitRISC(stream, context, leftReg);
-
-                Register rightReg = context.AllocateTemporary();
-                right_->EmitRISC(stream, context, rightReg);
-
-                stream << "mul " << destReg << "," << leftReg << "," << rightReg << std::endl;
-
-                context.FreeTemporary(leftReg);
-                context.FreeTemporary(rightReg);
-                break;
-            }
-
-            case MultiplicativeOperator::Divide: {
-                Register leftReg = context.AllocateTemporary();
-                left_->EmitRISC(stream, context, leftReg);
-
-                Register rightReg = context.AllocateTemporary();
-                right_->EmitRISC(stream, context, rightReg);
-
-                stream << "div " << destReg << "," << leftReg << "," << rightReg << std::endl;
-
-                context.FreeTemporary(leftReg);
-                context.FreeTemporary(rightReg);
-                break;
-            }
-
-            case MultiplicativeOperator::Modulo: {
-                Register leftReg = context.AllocateTemporary();
-                left_->EmitRISC(stream, context, leftReg);
-
-                Register rightReg = context.AllocateTemporary();
-                right_->EmitRISC(stream, context, rightReg);
-
-                // Signed remainder. For unsigned, use 'remu'.
-                stream << "rem " << destReg << "," << leftReg << "," << rightReg << std::endl;
-
-                context.FreeTemporary(leftReg);
-                context.FreeTemporary(rightReg);
-                break;
-            }
-
-            case MultiplicativeOperator::UnaryPromote: {
-                right_->EmitRISC(stream, context, destReg);
-                break;
-            }
+    void MultiplicativeExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
+        if (op_ == MultiplicativeOperator::UnaryPromote) {
+            right_->EmitRISC(stream, context, destReg);
+            return;
         }
+
+        // Common for all ops
+        bool leftStored = right_->ContainsFunctionCall();
+        Register leftReg = leftStored ? context.AllocatePersistent() : context.AllocateTemporary();
+        left_->EmitRISC(stream, context, leftReg);
+        Register rightReg = context.AllocateTemporary();
+        right_->EmitRISC(stream, context, rightReg);
+
+        switch (op_) {
+            case MultiplicativeOperator::Multiply:
+                stream << "mul " << destReg << "," << leftReg << "," << rightReg << std::endl;
+                break;
+            case MultiplicativeOperator::Divide:
+                stream << "div " << destReg << "," << leftReg << "," << rightReg << std::endl;
+                break;
+            case MultiplicativeOperator::Modulo:
+                // todo signed vs unsigned?
+                stream << "rem " << destReg << "," << leftReg << "," << rightReg << std::endl;
+                break;
+            case MultiplicativeOperator::UnaryPromote: // Should never reach here
+                break;
+        }
+
+        leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg);
+        context.FreeTemporary(rightReg);
     }
 
-    void MultiplicativeExpression::Print(std::ostream &stream) const
-    {
+    void MultiplicativeExpression::Print(std::ostream &stream) const {
         if (left_ != nullptr) {
             left_->Print(stream);
         }
@@ -79,8 +57,7 @@ namespace ast {
     }
 
 
-
-    TypeSpecifier MultiplicativeExpression::GetType(Context& context) const {
+    TypeSpecifier MultiplicativeExpression::GetType(Context &context) const {
         return right_->GetType(context);
     }
 

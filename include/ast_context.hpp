@@ -48,6 +48,8 @@ namespace ast {
     public:
         Context() : temporaries_(0) {}
 
+        ~Context();
+
         Register AllocateTemporary();
 
         Register AllocatePersistent();

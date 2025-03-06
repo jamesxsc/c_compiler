@@ -29,7 +29,7 @@ namespace ast {
                 // Can only assign to lvalue so this call should succeed
                 Variable lhsVariable = context.CurrentFrame().bindings.Get(unary_->GetIdentifier());
                 if (unary_->GetType(context) == TypeSpecifier::POINTER) {
-                    // Pointer, load the address (LHS equivalent of UnaryOperator::Derference)
+                    // Pointer, load the address (LHS equivalent of UnaryOperator::Dereference)
                     Register addrReg = context.AllocateTemporary();
                     stream << "lw " << addrReg << "," << lhsVariable.offset << "(s0)" << std::endl;
                     stream << "sw " << lhsReg << ",0(" << addrReg << ")" << std::endl;

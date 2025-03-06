@@ -4,56 +4,37 @@
 namespace ast {
 
     void RelationalExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
+        if (op_ == RelationalOperator::ShiftPromote) {
+            right_->EmitRISC(stream, context, destReg);
+            return;
+        }
+
+        bool leftStored = right_->ContainsFunctionCall();
+        Register leftReg = leftStored ? context.AllocatePersistent() : context.AllocateTemporary();
+        left_->EmitRISC(stream, context, leftReg);
+        Register rightReg = context.AllocateTemporary();
+        right_->EmitRISC(stream, context, rightReg);
         switch (op_) {
-            case RelationalOperator::LessThan: {
-                Register leftReg = context.AllocateTemporary();
-                left_->EmitRISC(stream, context, leftReg);
-                Register rightReg = context.AllocateTemporary();
-                right_->EmitRISC(stream, context, rightReg);
-                stream << "slt " << destReg << "," << leftReg << "," << rightReg << std::endl;
-                context.FreeTemporary(leftReg);
-                context.FreeTemporary(rightReg);
+            case RelationalOperator::LessThan:
+               stream << "slt " << destReg << "," << leftReg << "," << rightReg << std::endl;
                 break;
-            }
-            case RelationalOperator::GreaterThan: {
-                Register leftReg = context.AllocateTemporary();
-                left_->EmitRISC(stream, context, leftReg);
-                Register rightReg = context.AllocateTemporary();
-                right_->EmitRISC(stream, context, rightReg);
+            case RelationalOperator::GreaterThan:
                 stream << "sgt " << destReg << "," << leftReg << "," << rightReg << std::endl;
-                context.FreeTemporary(leftReg);
-                context.FreeTemporary(rightReg);
                 break;
-            }
-            case RelationalOperator::LessThanOrEqual: {
-                Register leftReg = context.AllocateTemporary();
-                left_->EmitRISC(stream, context, leftReg);
-                Register rightReg = context.AllocateTemporary();
-                right_->EmitRISC(stream, context, rightReg);
+            case RelationalOperator::LessThanOrEqual:
                 stream << "sgt " << destReg << "," << leftReg << "," << rightReg << std::endl;
                 stream << "seqz " << destReg << "," << destReg << std::endl;
                 stream << "andi " << destReg << "," << destReg << ",0xff" << std::endl;
-                context.FreeTemporary(leftReg);
-                context.FreeTemporary(rightReg);
                 break;
-            }
-            case RelationalOperator::GreaterThanOrEqual: {
-                Register leftReg = context.AllocateTemporary();
-                left_->EmitRISC(stream, context, leftReg);
-                Register rightReg = context.AllocateTemporary();
-                right_->EmitRISC(stream, context, rightReg);
+            case RelationalOperator::GreaterThanOrEqual:
                 stream << "sle " << destReg << "," << leftReg << "," << rightReg << std::endl;
                 stream << "seqz " << destReg << "," << destReg << std::endl;
                 stream << "andi " << destReg << "," << destReg << ",0xff" << std::endl;
-                context.FreeTemporary(leftReg);
-                context.FreeTemporary(rightReg);
                 break;
-            }
-            case RelationalOperator::ShiftPromote: {
-                right_->EmitRISC(stream, context, destReg);
+            case RelationalOperator::ShiftPromote: // Should never reach here
                 break;
-            }
         }
+        leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg);
     }
 
     void RelationalExpression::Print(std::ostream &stream) const {

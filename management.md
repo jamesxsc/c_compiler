@@ -24,6 +24,8 @@
 - Deciding when to use a persistent register:
   - Option 1: Persist in the callee all temporary registers - disbanded because it is super slow
   - Option 2: Detect clobbering e.g. right hand evaluation contains a function call - this is the current approach
+    - Future improvements (if we had time after finishing other core features)
+      - Optimising order of evaluation
   - Option 3: Copy register context state through function calls - won't work for recursion
 - We'll see how we go but probably accept some program size inefficiencies such as still having a jump after a return statement in a control block.
 - Floats and pointers before structs.

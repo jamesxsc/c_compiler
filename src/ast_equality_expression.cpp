@@ -4,42 +4,32 @@
 namespace ast {
 
     void EqualityExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-        switch (op_) {
-            case EqualityOperator::Equality: {
-                // Register alloc temp vs. stored
-                // todo storage of used persistent registers
-                // EXAMPLE for equality expression: cx if right clobbers left (makes a call)
-                // todo propogate everywhere if it works, cx every branch where clobbering is possible
+        if (op_ == EqualityOperator::RelationalPromote) {
+            right_->EmitRISC(stream, context, destReg);
+            return;
+        }
 
-                bool leftStored = right_->ContainsFunctionCall();
-                Register leftReg = leftStored ? context.AllocatePersistent() : context.AllocateTemporary();
-                left_->EmitRISC(stream, context, leftReg);
-                Register rightReg = context.AllocateTemporary();
-                right_->EmitRISC(stream, context, rightReg);
+        bool leftStored = right_->ContainsFunctionCall();
+        Register leftReg = leftStored ? context.AllocatePersistent() : context.AllocateTemporary();
+        left_->EmitRISC(stream, context, leftReg);
+        Register rightReg = context.AllocateTemporary();
+        right_->EmitRISC(stream, context, rightReg);
+        switch (op_) {
+            case EqualityOperator::Equality:
                 stream << "sub " << destReg << "," << leftReg << "," << rightReg << std::endl;
                 stream << "seqz " << destReg << "," << destReg << std::endl;
                 stream << "andi " << destReg << "," << destReg << ",0xff" << std::endl;
-                leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg);
-                context.FreeTemporary(rightReg);
                 break;
-            }
-            case EqualityOperator::Inequality: {
-                Register leftReg = context.AllocateTemporary();
-                left_->EmitRISC(stream, context, leftReg);
-                Register rightReg = context.AllocateTemporary();
-                right_->EmitRISC(stream, context, rightReg);
+            case EqualityOperator::Inequality:
                 stream << "sub " << destReg << "," << leftReg << "," << rightReg << std::endl;
                 stream << "snez " << destReg << "," << destReg << std::endl;
                 stream << "andi " << destReg << "," << destReg << ",0xff" << std::endl;
-                context.FreeTemporary(leftReg);
-                context.FreeTemporary(rightReg);
                 break;
-            }
-            case EqualityOperator::RelationalPromote: {
-                right_->EmitRISC(stream, context, destReg);
+            case EqualityOperator::RelationalPromote: // Should never reach here
                 break;
-            }
         }
+        leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg);
+        context.FreeTemporary(rightReg);
     }
 
     void EqualityExpression::Print(std::ostream &stream) const {

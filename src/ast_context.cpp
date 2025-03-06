@@ -34,7 +34,11 @@ namespace ast {
         return Insert(identifier, variable);
     }
 
+    static int temporaries = 0;
+
+    // todo should these be reset between funcs?
     Register Context::AllocateTemporary() {
+        ++temporaries;
         for (size_t i = 0; i < temporaries_.size(); i++) {
             if (!temporaries_.test(i)) {
                 temporaries_.set(i);
@@ -49,7 +53,14 @@ namespace ast {
         assert(index != -1 && "Attempted to free a non-temporary register");
         if (!temporaries_.test(index))
             std::cerr << "Warning: freeing already free temporary" << std::endl;
+        --temporaries;
         temporaries_.reset(index);
+    }
+
+    Context::~Context() {
+        if (temporaries != 0) {
+            std::cerr << "Warning: " << temporaries << " temporary registers were not freed" << std::endl;
+        }
     }
 
     Register Context::AllocatePersistent() {

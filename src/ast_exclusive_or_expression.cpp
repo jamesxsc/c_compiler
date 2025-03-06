@@ -7,12 +7,13 @@ namespace ast {
         if (left_ == nullptr) { // Promotion from and expression
             right_->EmitRISC(stream, context, destReg);
         } else {
-            Register leftReg = context.AllocateTemporary();
+            bool leftStored = right_->ContainsFunctionCall();
+            Register leftReg = leftStored ? context.AllocatePersistent() : context.AllocateTemporary();
             left_->EmitRISC(stream, context, leftReg);
             Register rightReg = context.AllocateTemporary();
             right_->EmitRISC(stream, context, rightReg);
             stream << "xor " << destReg << "," << leftReg << "," << rightReg << std::endl;
-            context.FreeTemporary(leftReg);
+            leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg);
             context.FreeTemporary(rightReg);
         }
     }

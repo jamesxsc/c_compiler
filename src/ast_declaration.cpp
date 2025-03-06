@@ -67,6 +67,8 @@ namespace ast {
                         });
                     }
                 }
+
+                context.FreeTemporary(destReg);
             }
         }
     }
