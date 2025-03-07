@@ -507,7 +507,7 @@ statement
 	;
 
 labeled_statement
-	: IDENTIFIER ':' statement { $$ = new LabeledStatement(*$1, StatementPtr($3)); delete $1; }
+	: IDENTIFIER ':' statement { $$ = new LabeledStatement(StatementPtr($3), *$1); delete $1; }
 	| CASE constant_expression ':' statement { $$ = new LabeledStatement(StatementPtr($4), ConstantExpressionPtr($2)); }
 	| DEFAULT ':' statement  { $$ = new LabeledStatement(StatementPtr($3)); }
 	;
