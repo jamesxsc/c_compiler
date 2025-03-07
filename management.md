@@ -46,6 +46,8 @@
 * ~~Selection and iteration statements - if-else/while etc. - Eliott~~
 * ~~Multiple functions in a translation unit/ file - James~~
 * Break/switch/continue
+* Tests for break, switch, continue
+* Tests for unary/postfix operators (pointers done)
 * Cerr outputs for all unsupported features
 * Prepare code for other types/ variable sizes
 * Global variables

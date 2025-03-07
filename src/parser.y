@@ -33,6 +33,7 @@
   LogicalAndExpression* logical_and_expression;
   LogicalOrExpression* logical_or_expression;
   ConditionalExpression* conditional_expression;
+  ConstantExpression* constant_expression;
   AssignmentExpression* assignment_expression; 
   AssignmentOperator assignment_operator;
   ArgumentExpressionList* argument_expression_list;
@@ -51,6 +52,7 @@
   StatementList* statement_list;
   CompoundStatement* compound_statement;
   ExpressionStatement* expression_statement;
+  LabeledStatement* labeled_statement;
   int          	number_int;
   double       	number_float;
   std::string* 	string;
@@ -72,15 +74,15 @@
 %type <node_list> translation_unit
 %type <node> external_declaration function_definition
 %type <expression_base> primary_expression
-%type <expression_base> constant_expression
 %type <node> initializer_list
 %type <node> struct_specifier struct_declaration_list struct_declaration specifier_qualifier_list struct_declarator_list
 %type <node> struct_declarator enum_specifier enumerator_list enumerator pointer
-%type <node> identifier_list type_name abstract_declarator direct_abstract_declarator labeled_statement
+%type <node> identifier_list type_name abstract_declarator direct_abstract_declarator
 %type <node> jump_statement
 
 // Statement types
 %nterm <statement> statement
+%nterm <labeled_statement> labeled_statement
 %nterm <statement_list> statement_list
 %nterm <compound_statement> compound_statement
 %nterm <expression_statement> expression_statement
@@ -114,6 +116,7 @@
 %nterm <logical_and_expression> logical_and_expression
 %nterm <logical_or_expression> logical_or_expression
 %nterm <conditional_expression> conditional_expression
+%nterm <constant_expression> constant_expression
 %nterm <assignment_expression> assignment_expression
 %nterm <assignment_operator> assignment_operator
 %nterm <argument_expression_list> argument_expression_list
@@ -312,7 +315,7 @@ expression
 	;
 
 constant_expression
-	: conditional_expression
+	: conditional_expression { $$ = new ConstantExpression(ConditionalExpressionPtr($1)); }
 	;
 
 declaration
@@ -495,7 +498,7 @@ initializer_list
 
 // Do these need to be cast to StatementPtrs or are derived ptrs ok?
 statement
-	: labeled_statement
+	: labeled_statement { $$ = $1; }
 	| compound_statement { $$ = $1; }
 	| expression_statement { $$ = $1; }
 	| selection_statement { $$ = $1; }
@@ -504,9 +507,9 @@ statement
 	;
 
 labeled_statement
-	: IDENTIFIER ':' statement
-	| CASE constant_expression ':' statement
-	| DEFAULT ':' statement
+	: IDENTIFIER ':' statement { $$ = new LabeledStatement(*$1, StatementPtr($3)); delete $1; }
+	| CASE constant_expression ':' statement { $$ = new LabeledStatement(StatementPtr($4), ConstantExpressionPtr($2)); }
+	| DEFAULT ':' statement  { $$ = new LabeledStatement(StatementPtr($3)); }
 	;
 
 // This looks counterintuitive but in C90 declarations must all be at the start of a block

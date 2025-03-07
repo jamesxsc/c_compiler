@@ -20,11 +20,10 @@ namespace ast {
                 break;
             }
             case ShiftOperator::Right: {
-                if (IsSigned(left_->GetType(context))) {
+                if (IsSigned(left_->GetType(context)))
                     stream << "sra " << destReg << "," << leftReg << "," << rightReg << std::endl;
-                } else {
+                else
                     stream << "srl " << destReg << "," << leftReg << "," << rightReg << std::endl;
-                }
                 break;
             }
             case ShiftOperator::AdditivePromote: // Should never reach here
