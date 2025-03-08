@@ -9,8 +9,16 @@ namespace ast {
 
         if (declarations_)
             declarations_->EmitRISC(stream, context, destReg);
-        if (statements_)
+
+        if (statements_) {
+            statements_->SetInSwitchScope();
+
             statements_->EmitRISC(stream, context, destReg);
+
+            // todo propogate to control blocks? + the setinscope
+            LabelCasePairVector childPairs = statements_->GetSwitchLabelCasePairs();
+            switchLabelCasePairs_.insert(std::end(switchLabelCasePairs_), std::begin(childPairs), std::end(childPairs));
+        }
 
         if (!isFunction_) {
             context.PopScope(stream);

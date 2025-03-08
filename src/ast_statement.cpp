@@ -6,12 +6,11 @@ namespace ast {
         return false;
     }
 
-    void Statement::SetInSwitchScope() {
+    void Statement::SetInSwitchScope() const {
         inSwitchScope_ = true;
     }
 
-    const std::vector<std::pair<std::string, std::reference_wrapper<const ConstantExpression>>> &
-    Statement::GetSwitchLabelCasePairs() const {
+    const LabelCasePairVector &Statement::GetSwitchLabelCasePairs() const {
         return switchLabelCasePairs_;
     }
 

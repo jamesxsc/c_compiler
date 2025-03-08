@@ -21,6 +21,6 @@ namespace ast {
     private:
         ConditionalExpressionPtr expression_;
     };
-    using ConstantExpressionPtr = std::unique_ptr<const ConstantExpression>;
+    using ConstantExpressionPtr = std::shared_ptr<const ConstantExpression>;
 
 }

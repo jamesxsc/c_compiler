@@ -23,6 +23,10 @@ namespace ast {
 
         [[nodiscard]] std::vector<StatementPtr>::const_iterator end() const;
 
+        [[nodiscard]] LabelCasePairVector GetSwitchLabelCasePairs() const;
+
+        void SetInSwitchScope() const;
+
     private:
         std::vector<StatementPtr> statements_;
     };

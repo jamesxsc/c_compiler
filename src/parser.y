@@ -53,6 +53,7 @@
   CompoundStatement* compound_statement;
   ExpressionStatement* expression_statement;
   LabeledStatement* labeled_statement;
+  JumpStatement* jump_statement;
   int          	number_int;
   double       	number_float;
   std::string* 	string;
@@ -78,7 +79,6 @@
 %type <node> struct_specifier struct_declaration_list struct_declaration specifier_qualifier_list struct_declarator_list
 %type <node> struct_declarator enum_specifier enumerator_list enumerator pointer
 %type <node> identifier_list type_name abstract_declarator direct_abstract_declarator
-%type <node> jump_statement
 
 // Statement types
 %nterm <statement> statement
@@ -86,6 +86,7 @@
 %nterm <statement_list> statement_list
 %nterm <compound_statement> compound_statement
 %nterm <expression_statement> expression_statement
+%nterm <jump_statement> jump_statement
 %nterm <statement> selection_statement iteration_statement
 
 %nterm <declaration_list> declaration_list
@@ -503,7 +504,7 @@ statement
 	| expression_statement { $$ = $1; }
 	| selection_statement { $$ = $1; }
 	| iteration_statement { $$ = $1; }
-	| jump_statement
+	| jump_statement { $$ = $1; }
 	;
 
 labeled_statement
@@ -551,13 +552,9 @@ iteration_statement
 jump_statement
     : GOTO IDENTIFIER ';' { std::cerr << "goto keyword is unsupported" << std::endl; exit(1); }
 	| CONTINUE ';'
-	| BREAK ';'
-	| RETURN ';' {
-		$$ = new ReturnStatement(nullptr);
-	}
-	| RETURN expression ';' {
-		$$ = new ReturnStatement(ExpressionPtr($2));
-	}
+	| BREAK ';' { $$ = new BreakStatement(); }
+	| RETURN ';' { $$ = new ReturnStatement(nullptr); }
+	| RETURN expression ';' { $$ = new ReturnStatement(ExpressionPtr($2)); }
 	;
 
 %%

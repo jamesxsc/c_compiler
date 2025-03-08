@@ -3,8 +3,17 @@
 namespace ast {
 
     void LabeledStatement::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-        // Labelling is handled in SwitchStatement
+        if (inSwitchScope_) {
+            std::string label = context.MakeLabel(".CASE");
+            std::pair<std::string, ConstantExpressionPtr> pair = std::pair(label, case_);
+            switchLabelCasePairs_.push_back(pair);
+
+            stream << label << ":" << std::endl;
+        } // Otherwise ignore a labelled statement
         statement_->EmitRISC(stream, context, destReg);
+
+        LabelCasePairVector childPairs = statement_->GetSwitchLabelCasePairs();
+        switchLabelCasePairs_.insert(std::end(switchLabelCasePairs_), std::begin(childPairs), std::end(childPairs));
     }
 
     void LabeledStatement::Print(std::ostream &stream) const {

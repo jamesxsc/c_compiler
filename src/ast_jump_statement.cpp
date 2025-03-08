@@ -1,3 +1,4 @@
+#include <cassert>
 #include "ast_jump_statement.hpp"
 #include "ast_type_specifier.hpp"
 
@@ -39,4 +40,14 @@ namespace ast {
     TypeSpecifier ReturnStatement::GetType(Context &context) const {
         return expression_->GetType(context);
     }
+
+    void BreakStatement::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
+        assert(context.CurrentFrame().breakLabel && "Break statement outside of loop or switch");
+        stream << "j " << *context.CurrentFrame().breakLabel << std::endl;
+    }
+
+    void BreakStatement::Print(std::ostream &stream) const {
+        stream << "break;" << std::endl;
+    }
+
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sstream>
+#include <vector>
 
 #include "ast_node.hpp"
 #include "ast_constant_expression.hpp"
@@ -8,6 +9,7 @@
 namespace ast {
 
     // Serves as base abstract class and type for top-level 'statement'
+    using LabelCasePairVector = std::vector<std::pair<std::string, ConstantExpressionPtr>>;
     class Statement : public Node {
     public:
         virtual ~Statement() = default;
@@ -18,14 +20,15 @@ namespace ast {
 
         [[nodiscard]] virtual bool IsCase() const;
 
-        void SetInSwitchScope();
+        void SetInSwitchScope() const;
 
-        [[nodiscard]] const std::vector<std::pair<std::string, std::reference_wrapper<const ConstantExpression>>> & GetSwitchLabelCasePairs() const;
+        [[nodiscard]] const LabelCasePairVector & GetSwitchLabelCasePairs() const;
 
-    private:
-        bool inSwitchScope_ = false;
-        // Pair of label and ConstantExpressionPtr ref
-        std::vector<std::pair<std::string, std::reference_wrapper<const ConstantExpression>>> switchLabelCasePairs_;
+    protected:
+        mutable bool inSwitchScope_ = false;
+        // Pair of label and ConstantExpressionPtr (shared for this purpose)
+        // Note that this is populated by EmitRISC
+        mutable LabelCasePairVector switchLabelCasePairs_;
     };
 
     // Not const - has to be mutable

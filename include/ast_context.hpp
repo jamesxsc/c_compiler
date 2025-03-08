@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <memory>
 #include <deque>
+#include <optional>
 #include "register.hpp"
 #include "ast_type_specifier.hpp"
 
@@ -47,6 +48,10 @@ namespace ast {
         int size;
         Bindings bindings;
         std::bitset<12> usedPersistentRegisters{1}; // s0 is always used
+        // todo consider a return label to aovid multiple return instruction sequences
+        std::optional<std::string> breakLabel{std::nullopt};
+        // todo include these in for while etc.
+        std::optional<std::string> continueLabel{std::nullopt};
     };
 
     class Context {

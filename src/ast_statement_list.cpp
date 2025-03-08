@@ -30,4 +30,19 @@ namespace ast {
         return statements_.end();
     }
 
+    LabelCasePairVector StatementList::GetSwitchLabelCasePairs() const {
+        LabelCasePairVector pairs;
+        for (const auto& statement : statements_) {
+            auto childPairs = statement->GetSwitchLabelCasePairs();
+            pairs.insert(std::end(pairs), std::begin(childPairs), std::end(childPairs));
+        }
+        return pairs;
+    }
+
+    void StatementList::SetInSwitchScope() const {
+        for (const auto& statement : statements_) {
+            statement->SetInSwitchScope();
+        }
+    }
+
 } // namespace ast
