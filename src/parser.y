@@ -417,7 +417,6 @@ declarator
 	| direct_declarator { $$ = $1; $$->Indirect(); }
 	;
 
-// TODO this is complicated and may need more work
 // Most of the recursion here is unsupported in the C std hence we don't have a list of `ParameterList`s etc.
 direct_declarator
 	: IDENTIFIER {
@@ -551,7 +550,7 @@ iteration_statement
 
 jump_statement
     : GOTO IDENTIFIER ';' { std::cerr << "goto keyword is unsupported" << std::endl; exit(1); }
-	| CONTINUE ';'
+	| CONTINUE ';' { $$ = new ContinueStatement(); }
 	| BREAK ';' { $$ = new BreakStatement(); }
 	| RETURN ';' { $$ = new ReturnStatement(nullptr); }
 	| RETURN expression ';' { $$ = new ReturnStatement(ExpressionPtr($2)); }

@@ -6,13 +6,8 @@ namespace ast {
         initDeclarators_.push_back(std::move(first));
     }
 
-    // TODO is this ever called? probably redundant as we loop through them in declaration
     void InitDeclaratorList::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-        if (!initDeclarators_.empty()) {
-            for (const auto& initDeclarator: initDeclarators_) {
-                initDeclarator->EmitRISC(stream, context, destReg);
-            }
-        }
+        // These are handled in declaration
     }
 
     void InitDeclaratorList::Print(std::ostream &stream) const {

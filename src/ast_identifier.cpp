@@ -5,7 +5,6 @@
 namespace ast {
 
     void Identifier::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-        // TODO There can be some optimisation if it's already in a reg. but needs some thinking - can we free the source reg?
         int offset = context.CurrentFrame().bindings.Get(identifier_).offset;
 
         stream << "lw " << destReg << "," << offset << "(s0)" << std::endl;

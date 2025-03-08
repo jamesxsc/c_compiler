@@ -18,10 +18,8 @@ namespace ast {
         // todo i dont like how we don't always call unary emit risc (minor issue)
 
         Register right = context.AllocateTemporary();
-        assignment_->EmitRISC(stream, context, right);
+        assignment_->EmitRISC(stream, context, right); // Order is impl. defined; execute right first (same as GCC)
         if (op_ != AssignmentOperator::Assign) {
-            // todo is it a problem swapping order? (shouldn't be)
-            // validate: what is x += x++?
             bool leftStored = assignment_->ContainsFunctionCall();
             Register left = leftStored ? context.AllocatePersistent() : context.AllocateTemporary();
             unary_->EmitRISC(stream, context, left);

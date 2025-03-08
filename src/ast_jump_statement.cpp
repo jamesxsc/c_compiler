@@ -50,4 +50,12 @@ namespace ast {
         stream << "break;" << std::endl;
     }
 
+    void ContinueStatement::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
+        assert(context.CurrentFrame().continueLabel && "Continue statement outside of loop");
+        stream << "j " << *context.CurrentFrame().continueLabel << std::endl;
+    }
+
+    void ContinueStatement::Print(std::ostream &stream) const {
+        stream << "continue;" << std::endl;
+    }
 }

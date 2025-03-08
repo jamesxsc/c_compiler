@@ -50,7 +50,6 @@ namespace ast {
         std::bitset<12> usedPersistentRegisters{1}; // s0 is always used
         // todo consider a return label to aovid multiple return instruction sequences
         std::optional<std::string> breakLabel{std::nullopt};
-        // todo include these in for while etc.
         std::optional<std::string> continueLabel{std::nullopt};
     };
 

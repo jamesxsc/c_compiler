@@ -36,7 +36,7 @@ namespace ast {
 
     static int temporaries = 0;
 
-    // todo should these be reset between funcs?
+    // We don't free temporaries automatically between functions - we assume there are no leaked register allocs
     Register Context::AllocateTemporary() {
         ++temporaries;
         for (size_t i = 0; i < temporaries_.size(); i++) {

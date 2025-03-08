@@ -15,6 +15,8 @@ namespace ast {
 
         std::string labelStart = context.MakeLabel("while_start");
         std::string labelEnd = context.MakeLabel("while_end");
+        context.CurrentFrame().breakLabel = labelEnd;
+        context.CurrentFrame().continueLabel = labelStart;
 
         // label_start:
         stream << labelStart << ":\n";
@@ -57,6 +59,9 @@ namespace ast {
 //==================== DoWhileStatement ====================//
     void DoWhileStatement::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         std::string labelStart = context.MakeLabel("do_while_start");
+        std::string labelEnd = context.MakeLabel("do_while_end");
+        context.CurrentFrame().breakLabel = labelEnd;
+        context.CurrentFrame().continueLabel = labelStart;
 
         stream << labelStart << ":\n";
 
@@ -72,6 +77,8 @@ namespace ast {
 
             context.FreeTemporary(condReg);
         }
+
+        stream << labelEnd << ":\n";
     }
 
     void DoWhileStatement::Print(std::ostream &stream) const {
@@ -90,6 +97,8 @@ namespace ast {
     void ForStatement::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         std::string labelStart = context.MakeLabel("for_start");
         std::string labelEnd = context.MakeLabel("for_end");
+        context.CurrentFrame().breakLabel = labelEnd;
+        context.CurrentFrame().continueLabel = labelStart;
 
         if (initStmt_) {
             initStmt_->EmitRISC(stream, context, destReg);

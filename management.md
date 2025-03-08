@@ -48,6 +48,7 @@
 * Break/switch/continue
 * Tests for break, switch, continue
 * Tests for unary/postfix operators (pointers done)
+* Tests for null statements
 * Cerr outputs for all unsupported features
 * Prepare code for other types/ variable sizes
 * Global variables
