@@ -18,6 +18,8 @@ namespace ast {
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
         void Print(std::ostream &stream) const override;
         [[nodiscard]] bool ContainsFunctionCall() const override;
+        [[nodiscard]] std::string GetGlobalIdentifier() const override;
+        [[nodiscard]] int GetGlobalValue() const override;
     private:
         LogicalAndExpressionPtr left_;
         InclusiveOrExpressionPtr right_;

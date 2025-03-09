@@ -45,4 +45,13 @@ namespace ast {
         }
     }
 
+    // These are for constants which will never actually have a condition
+    std::string ConditionalExpression::GetGlobalIdentifier() const {
+        return left_->GetGlobalIdentifier();
+    }
+
+    int ConditionalExpression::GetGlobalValue() const {
+        return left_->GetGlobalValue();
+    }
+
 }

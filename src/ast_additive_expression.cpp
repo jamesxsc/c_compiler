@@ -62,4 +62,12 @@ namespace ast {
         }
     }
 
+    std::string AdditiveExpression::GetGlobalIdentifier() const {
+        return right_->GetGlobalIdentifier();
+    }
+
+    int AdditiveExpression::GetGlobalValue() const {
+        return right_->GetGlobalValue();
+    }
+
 } // namespace ast

@@ -33,7 +33,7 @@ namespace ast {
 
         [[nodiscard]] bool IsFunction() const override;
 
-        [[nodiscard]] Function BuildFunction(TypeSpecifier returnType) const override;
+        [[nodiscard]] Function BuildFunction(TypeSpecifier returnType, Context &context) const override;
 
         void EmitLabelRISC(std::ostream &stream) const;
     };

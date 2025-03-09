@@ -71,4 +71,12 @@ namespace ast {
         }
     }
 
+    std::string RelationalExpression::GetGlobalIdentifier() const {
+        return right_->GetGlobalIdentifier();
+    }
+
+    int RelationalExpression::GetGlobalValue() const {
+        return right_->GetGlobalValue();
+    }
+
 }

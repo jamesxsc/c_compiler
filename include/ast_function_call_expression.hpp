@@ -22,6 +22,10 @@ namespace ast {
 
         TypeSpecifier GetType(Context &context) const override;
 
+        [[nodiscard]] int GetGlobalValue() const override;
+
+        [[nodiscard]] std::string GetGlobalIdentifier() const override;
+
     private:
         PostfixExpressionPtr function_;
         ArgumentExpressionListPtr arguments_; // Can be null

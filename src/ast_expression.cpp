@@ -25,4 +25,12 @@ namespace ast {
     bool Expression::ContainsFunctionCall() const {
         return (first_ != nullptr && first_->ContainsFunctionCall()) || assignment_->ContainsFunctionCall();
     }
+
+    std::string Expression::GetGlobalIdentifier() const {
+        return assignment_->GetGlobalIdentifier();
+    }
+
+    int Expression::GetGlobalValue() const {
+        return assignment_->GetGlobalValue();
+    }
 }

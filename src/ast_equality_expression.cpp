@@ -65,4 +65,13 @@ namespace ast {
         }
     }
 
+    // These are for constants which will always simply be a RelationalPromote
+    std::string EqualityExpression::GetGlobalIdentifier() const {
+        return right_->GetGlobalIdentifier();
+    }
+
+    int EqualityExpression::GetGlobalValue() const {
+        return right_->GetGlobalValue();
+    }
+
 }

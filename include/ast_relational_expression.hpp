@@ -33,6 +33,10 @@ namespace ast {
 
         [[nodiscard]] bool ContainsFunctionCall() const override;
 
+        [[nodiscard]] std::string GetGlobalIdentifier() const override;
+
+        [[nodiscard]] int GetGlobalValue() const override;
+
     private:
         RelationalExpressionPtr left_;
         ShiftExpressionPtr right_;

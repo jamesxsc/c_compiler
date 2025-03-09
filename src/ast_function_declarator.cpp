@@ -36,9 +36,27 @@ namespace ast {
         return true;
     }
 
-    Function FunctionDeclarator::BuildFunction(TypeSpecifier returnType) const {
-        // TODO implement builder
-        return {};
+    Function FunctionDeclarator::BuildFunction(TypeSpecifier returnType, Context &context) const {
+        if (!parameterList_) {
+            return {
+                    .parameterSizes = {},
+                    .totalSize = 0,
+                    .returnType = returnType,
+            };
+        }
+
+        std::vector<int> parameterSizes;
+        int totalSize = 0;
+        for (const auto &param: *parameterList_) {
+            int size = GetTypeSize(param->GetType(context));
+            parameterSizes.push_back(size);
+            totalSize += size;
+        }
+        return {
+                .parameterSizes = parameterSizes,
+                .totalSize = totalSize,
+                .returnType = returnType,
+        };
     }
 
 }

@@ -34,8 +34,16 @@ namespace ast {
         return declarator_->IsPointer();
     }
 
-    Function InitDeclarator::BuildFunction(TypeSpecifier returnType) const {
-        return declarator_->BuildFunction(returnType);
+    Function InitDeclarator::BuildFunction(TypeSpecifier returnType, Context &context) const {
+        return declarator_->BuildFunction(returnType, context);
+    }
+
+    std::string InitDeclarator::GetGlobalInitializerIdentifier() const {
+        return initializer_->GetGlobalIdentifier();
+    }
+
+    int InitDeclarator::GetGlobalInitializerValue() const {
+        return initializer_->GetGlobalValue();
     }
 
 }

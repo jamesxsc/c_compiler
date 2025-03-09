@@ -43,5 +43,14 @@ namespace ast {
     bool LogicalAndExpression::ContainsFunctionCall() const {
         return (left_ != nullptr && left_->ContainsFunctionCall()) || right_->ContainsFunctionCall();
     }
+
+    std::string LogicalAndExpression::GetGlobalIdentifier() const {
+        return right_->GetGlobalIdentifier();
+    }
+
+    int LogicalAndExpression::GetGlobalValue() const {
+        return right_->GetGlobalValue();
+    }
+
 }
 

@@ -33,4 +33,13 @@ namespace ast {
     bool AndExpression::ContainsFunctionCall() const {
         return (left_ != nullptr && left_->ContainsFunctionCall()) || right_->ContainsFunctionCall();
     }
+
+    std::string AndExpression::GetGlobalIdentifier() const {
+        return right_->GetGlobalIdentifier();
+    }
+
+    int AndExpression::GetGlobalValue() const {
+        return right_->GetGlobalValue();
+    }
+
 }

@@ -14,7 +14,7 @@ namespace ast {
         declarator_->EmitLabelRISC(stream);
 
         // Store function return type and parameter sizes in context
-        context.InsertFunction(declarator_->GetIdentifier(), declarator_->BuildFunction(GetType(context)));
+        context.InsertFunction(declarator_->GetIdentifier(), declarator_->BuildFunction(GetType(context), context));
 
         // Push a new frame onto the stack
         int frameSize = 512; // bytes // fixed until we get time to perform analysis of how large the frame needs to be

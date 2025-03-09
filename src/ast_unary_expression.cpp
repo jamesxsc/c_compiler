@@ -9,42 +9,58 @@ namespace ast {
             case UnaryOperator::PostfixPromote:
                 postfixChild_->EmitRISC(stream, context, destReg);
                 break;
-            case UnaryOperator::PrefixIncrement: {
-                Variable var = context.CurrentFrame().bindings.Get(unaryChild_->GetIdentifier());
-                Register reg = context.AllocateTemporary();
-                stream << "lw " << reg << "," << var.offset << "(s0)" << std::endl;
-                stream << "addi " << reg << "," << reg << ",1" << std::endl;
-                stream << "sw " << reg << "," << var.offset << "(s0)" << std::endl;
-                context.FreeTemporary(reg);
-                // Store the incremented value in the destination register
-                unaryChild_->EmitRISC(stream, context, destReg);
-                break;
-            }
+            case UnaryOperator::PrefixIncrement:
             case UnaryOperator::PrefixDecrement: {
-                Variable var = context.CurrentFrame().bindings.Get(unaryChild_->GetIdentifier());
-                Register reg = context.AllocateTemporary();
-                stream << "lw " << reg << "," << var.offset << "(s0)" << std::endl;
-                stream << "addi " << reg << "," << reg << ",-1" << std::endl;
-                stream << "sw " << reg << "," << var.offset << "(s0)" << std::endl;
-                context.FreeTemporary(reg);
-                // Store the decremented value in the destination register
-                unaryChild_->EmitRISC(stream, context, destReg);
+                // To an extent this assumes child unary is an lvalue
+                std::string identifier = unaryChild_->GetIdentifier();
+                if (context.IsGlobal(identifier)) {
+                    Register tempReg = context.AllocateTemporary();
+                    stream << "lui " << destReg << ",%hi(" << identifier << ")" << std::endl;
+                    stream << "lw " << destReg << ",%lo(" << identifier << ")(" << destReg << ")" << std::endl;
+                    stream << "addi " << tempReg << "," << destReg << ","
+                           << (op_ == UnaryOperator::PrefixIncrement ? "1" : "-1") << std::endl;
+                    stream << "lui " << destReg << ",%hi(" << identifier << ")" << std::endl;
+                    stream << "sw " << tempReg << ",%lo(" << identifier << ")(" << destReg << ")" << std::endl;
+                    // Store the incremented/decremented value in the destination register
+                    unaryChild_->EmitRISC(stream, context, destReg);
+                } else {
+                    Variable var = context.CurrentFrame().bindings.Get(identifier);
+                    stream << "lw " << destReg << "," << var.offset << "(s0)" << std::endl;
+                    stream << "addi " << destReg << "," << destReg << ","
+                           << (op_ == UnaryOperator::PrefixIncrement ? "1" : "-1") << std::endl;
+                    stream << "sw " << destReg << "," << var.offset << "(s0)" << std::endl;
+                    // Store the incremented/decremented value in the destination register
+                    unaryChild_->EmitRISC(stream, context, destReg);
+                }
                 break;
             }
                 // Below all multiplicative child expression
             case UnaryOperator::AddressOf: {
-                // Variable is of non-pointer type - get offset + frame pointer
-                Variable atAddress = context.CurrentFrame().bindings.Get(multiplicativeChild_->GetIdentifier());
-                stream << "addi " << destReg << ",s0," << atAddress.offset << std::endl;
+                std::string identifier = multiplicativeChild_->GetIdentifier();
+                if (context.IsGlobal(identifier)) {
+                    stream << "lui " << destReg << ",%hi(" << identifier << ")" << std::endl;
+                    stream << "addi " << destReg << "," << destReg << ",%lo(" << identifier << ")" << std::endl;
+                } else {
+                    Variable atAddress = context.CurrentFrame().bindings.Get(identifier);
+                    stream << "addi " << destReg << ",s0," << atAddress.offset << std::endl;
+                }
                 break;
             }
             case UnaryOperator::Dereference: {
-                // Variable is a pointer - get value at address in variable
-                // This should only be called for RHS
-                Variable ptr = context.CurrentFrame().bindings.Get(multiplicativeChild_->GetIdentifier());
-                // Reuse destReg rather than waste a temporary
-                stream << "lw " << destReg << "," << ptr.offset << "(s0)" << std::endl;
-                stream << "lw " << destReg << ",0(" << destReg << ")" << std::endl;
+                std::string identifier = multiplicativeChild_->GetIdentifier();
+                // todo maybe the first load should be delegated to child
+                if (context.IsGlobal(identifier)) {
+                    stream << "lui " << destReg << ",%hi(" << identifier << ")" << std::endl;
+                    stream << "lw " << destReg << ",%lo(" << identifier << ")(" << destReg << ")" << std::endl;
+                    stream << "lw " << destReg << ",0(" << destReg << ")" << std::endl;
+                } else {
+                    // Variable is a pointer - get value at address in variable
+                    // This should only be called for RHS
+                    Variable ptr = context.CurrentFrame().bindings.Get(identifier);
+                    // Reuse destReg rather than waste a temporary
+                    stream << "lw " << destReg << "," << ptr.offset << "(s0)" << std::endl;
+                    stream << "lw " << destReg << ",0(" << destReg << ")" << std::endl;
+                }
                 break;
             }
             case UnaryOperator::Plus:
@@ -164,6 +180,26 @@ namespace ast {
         }
         std::cerr << "Invalid unary operator" << std::endl;
         exit(1);
+    }
+
+    // These are where it gets complicated because for pointers we need the variable being &'d (can't be *'d or anything else)
+    int UnaryExpression::GetGlobalValue() const {
+        if (op_ == UnaryOperator::PostfixPromote) {
+            return postfixChild_->GetGlobalValue();
+        } else {
+            throw std::runtime_error("UnaryExpression::GetGlobalValue() called on a non constant");
+        }
+    }
+
+    std::string UnaryExpression::GetGlobalIdentifier() const {
+        // For &x both branches will be called
+        if (op_ == UnaryOperator::AddressOf) {
+            return multiplicativeChild_->GetGlobalIdentifier();
+        } else if (op_ == UnaryOperator::PostfixPromote) {
+            return postfixChild_->GetGlobalIdentifier();
+        } else {
+            throw std::runtime_error("UnaryExpression::GetGlobalIdentifier() called on a non &'d global");
+        }
     }
 
 } // namespace ast

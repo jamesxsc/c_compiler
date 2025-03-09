@@ -145,7 +145,7 @@ translation_unit
 
 external_declaration
 	: function_definition { $$ = $1; }
-	| declaration { $$ = $1; }
+	| declaration { $$ = new ExternalDeclaration(DeclarationPtr($1)); }
 	;
 
 function_definition

@@ -45,4 +45,12 @@ namespace ast {
         return (left_ != nullptr && left_->ContainsFunctionCall()) || right_->ContainsFunctionCall();
     }
 
+    std::string LogicalOrExpression::GetGlobalIdentifier() const {
+        return right_->GetGlobalIdentifier();
+    }
+
+    int LogicalOrExpression::GetGlobalValue() const {
+        return right_->GetGlobalValue();
+    }
+
 }

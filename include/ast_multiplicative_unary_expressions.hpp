@@ -45,7 +45,8 @@ namespace ast {
         // This should only be called in a context where we know it is an lvalue (identifier)
         [[nodiscard]] std::string GetIdentifier() const;
         TypeSpecifier GetType(Context &context) const override;
-
+        [[nodiscard]] int GetGlobalValue() const override;
+        [[nodiscard]] std::string GetGlobalIdentifier() const override;
     private:
         // Only one of these will ever be non-null depending on the operator (see parser)
         PostfixExpressionPtr postfixChild_ = nullptr;
@@ -66,6 +67,8 @@ namespace ast {
         void Print(std::ostream &stream) const override;
         [[nodiscard]] std::string GetIdentifier() const;
         [[nodiscard]] bool ContainsFunctionCall() const override;
+        [[nodiscard]] int GetGlobalValue() const override;
+        [[nodiscard]] std::string GetGlobalIdentifier() const override;
     private:
         MultiplicativeExpressionPtr left_;
         UnaryExpressionPtr right_;

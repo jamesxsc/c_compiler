@@ -12,6 +12,8 @@ namespace ast {
 
     bool IsSigned(TypeSpecifier type);
 
+    int GetTypeSize(TypeSpecifier type);
+
     // Existing operator<< for printing out the TypeSpecifier:
     template<typename LogStream>
     LogStream &operator<<(LogStream &ls, const TypeSpecifier &type) {

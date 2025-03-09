@@ -19,4 +19,12 @@ namespace ast {
     TypeSpecifier ParenthesisedExpression::GetType(Context &context) const {
         return expression_->GetType(context);
     }
+
+    int ParenthesisedExpression::GetGlobalValue() const {
+        return expression_->GetGlobalValue();
+    }
+
+    std::string ParenthesisedExpression::GetGlobalIdentifier() const {
+        return expression_->GetGlobalIdentifier();
+    }
 }

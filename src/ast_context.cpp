@@ -11,6 +11,7 @@ namespace ast {
         return *it->second;
     }
 
+
     const Variable &Bindings::Insert(const std::string &identifier, Variable variable) {
         assert(bindingsMap_.find(identifier) == bindingsMap_.end() && "Variable already exists in bindings");
         if (bindings_.empty()) {
@@ -23,6 +24,10 @@ namespace ast {
         bindingsMap_.emplace(identifier, ptr);
         bindings_.push_back(std::move(ptr));
         return *bindings_.back();
+    }
+
+    bool Bindings::Contains(const std::string &identifier) const {
+        return bindingsMap_.find(identifier) != bindingsMap_.end();
     }
 
     const Variable &Bindings::InsertOrOverwrite(const std::string &identifier, ast::Variable variable) {
@@ -144,6 +149,18 @@ namespace ast {
         label.push_back('_');
         label.append(std::to_string(labelId_++));
         return label;
+    }
+
+    // todo make it const if we can be bothered to get a const frame
+    bool Context::IsGlobal(const std::string &identifier) {
+        if (!(globals_.find(identifier) != globals_.end())) return false;
+
+        // Shadowing check
+        return !(!stack_.empty() && CurrentFrame().bindings.Contains(identifier));
+    }
+
+    void Context::InsertGlobal(const std::string &identifier, TypeSpecifier type) {
+        globals_.emplace(identifier, type);
     }
 
 } // namespace ast

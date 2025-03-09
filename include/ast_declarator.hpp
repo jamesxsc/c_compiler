@@ -10,18 +10,20 @@ namespace ast {
         bool isDirect_;
 
     public:
-        explicit Declarator(std::string identifier, bool isDirect) : identifier_(std::move(identifier)), isDirect_(isDirect) {};
+        explicit Declarator(std::string identifier, bool isDirect) : identifier_(std::move(identifier)),
+                                                                     isDirect_(isDirect) {};
+
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
 
         void Print(std::ostream &stream) const override;
 
-        [[nodiscard]] const std::string& GetIdentifier() const;
+        [[nodiscard]] const std::string &GetIdentifier() const;
 
         [[nodiscard]] virtual bool IsPointer() const;
 
         [[nodiscard]] virtual bool IsFunction() const;
 
-        [[nodiscard]] virtual Function BuildFunction(TypeSpecifier returnType) const;
+        [[nodiscard]] virtual Function BuildFunction(TypeSpecifier returnType, Context &context) const;
 
         [[nodiscard]] bool IsDirect() const;
 

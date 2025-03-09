@@ -30,6 +30,10 @@ namespace ast {
 
         [[nodiscard]] bool ContainsFunctionCall() const override;
 
+        [[nodiscard]] std::string GetGlobalIdentifier() const override;
+
+        [[nodiscard]] int GetGlobalValue() const override;
+
     private:
         AdditiveExpressionPtr left_;
         MultiplicativeExpressionPtr right_;

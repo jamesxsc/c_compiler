@@ -62,4 +62,12 @@ namespace ast {
         }
     }
 
+    std::string ShiftExpression::GetGlobalIdentifier() const {
+        return right_->GetGlobalIdentifier();
+    }
+
+    int ShiftExpression::GetGlobalValue() const {
+        return right_->GetGlobalValue();
+    }
+
 }

@@ -34,4 +34,13 @@ namespace ast {
     bool InclusiveOrExpression::ContainsFunctionCall() const {
         return (left_ != nullptr && left_->ContainsFunctionCall()) || right_->ContainsFunctionCall();
     }
+
+    std::string InclusiveOrExpression::GetGlobalIdentifier() const {
+        return right_->GetGlobalIdentifier();
+    }
+
+    int InclusiveOrExpression::GetGlobalValue() const {
+        return right_->GetGlobalValue();
+    }
+
 }

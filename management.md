@@ -45,14 +45,15 @@
 * ~~Short-circuiting logic tst - James~~
 * ~~Selection and iteration statements - if-else/while etc. - Eliott~~
 * ~~Multiple functions in a translation unit/ file - James~~
-* Break/switch/continue
+* ~~Break/switch/continue - James~~
+* ~~Stack frame structure - how is size determined exactly - see related comments~~
 * Tests for break, switch, continue
 * Tests for unary/postfix operators (pointers done)
 * Tests for null statements
 * Cerr outputs for all unsupported features
 * Prepare code for other types/ variable sizes
 * Global variables
-* Stack frame structure - how is size determined exactly - see related comments
+* Function calls with many arguments and test
 * Arrays local or global
 * Register spilling
 * Void type/functions
@@ -62,7 +63,7 @@
 * Enum
 * Ternary operator
 * Sizeof
-* Pointers
+* Pointer arithmetic - loads of places this needs to be added
 
 
 Needs more who did what and collaboration stuff and timelines

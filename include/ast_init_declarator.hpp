@@ -16,9 +16,10 @@ namespace ast {
         [[nodiscard]] const std::string& GetIdentifier() const;
         [[nodiscard]] bool HasInitializer() const;
         [[nodiscard]] bool IsPointer() const;
-        [[nodiscard]] Function BuildFunction(TypeSpecifier returnType) const; // Pass down to declarator
-
-        bool IsFunction() const;
+        [[nodiscard]] Function BuildFunction(TypeSpecifier returnType, Context &context) const; // Pass down to declarator
+        [[nodiscard]] bool IsFunction() const;
+        [[nodiscard]] std::string GetGlobalInitializerIdentifier() const;
+        [[nodiscard]] int GetGlobalInitializerValue() const;
     private:
         DeclaratorPtr declarator_;
         InitializerPtr initializer_;

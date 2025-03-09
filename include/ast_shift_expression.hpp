@@ -26,6 +26,10 @@ namespace ast {
 
         [[nodiscard]] bool ContainsFunctionCall() const override;
 
+        [[nodiscard]] std::string GetGlobalIdentifier() const override;
+
+        [[nodiscard]] int GetGlobalValue() const override;
+
     private:
         ShiftExpressionPtr left_;
         AdditiveExpressionPtr right_;

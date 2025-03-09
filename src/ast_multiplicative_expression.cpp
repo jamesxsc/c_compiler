@@ -75,4 +75,14 @@ namespace ast {
         assert(left_ == nullptr && "MultiplicativeExpression::GetIdentifier() called on an rvalue expression");
         return right_->GetIdentifier();
     }
+
+    // These are constants which will always simply be a UnaryPromote
+    int MultiplicativeExpression::GetGlobalValue() const {
+        return right_->GetGlobalValue();
+    }
+
+    std::string MultiplicativeExpression::GetGlobalIdentifier() const {
+        return right_->GetGlobalIdentifier();
+    }
+
 }

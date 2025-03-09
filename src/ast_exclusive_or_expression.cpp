@@ -36,4 +36,12 @@ namespace ast {
         return (left_ != nullptr && left_->ContainsFunctionCall()) || right_->ContainsFunctionCall();
     }
 
+    std::string ExclusiveOrExpression::GetGlobalIdentifier() const {
+        return right_->GetGlobalIdentifier();
+    }
+
+    int ExclusiveOrExpression::GetGlobalValue() const {
+        return right_->GetGlobalValue();
+    }
+
 }

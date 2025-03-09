@@ -7,19 +7,22 @@
 
 namespace ast {
 
+    class Declaration;
+    using DeclarationPtr = std::unique_ptr<Declaration>;
     class Declaration : public Node {
     public:
         Declaration(DeclarationSpecifiersPtr declarationSpecifiers, InitDeclaratorListPtr initDeclaratorList) :
             declarationSpecifiers_(std::move(declarationSpecifiers)), initDeclaratorList_(std::move(initDeclaratorList)) {}
 
+        explicit Declaration(DeclarationPtr other): declarationSpecifiers_(std::move(other->declarationSpecifiers_)), initDeclaratorList_(std::move(other->initDeclaratorList_)) {}
+
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
         void Print(std::ostream &stream) const override;
         TypeSpecifier GetType(Context &context) const;
-    private:
+
+    protected:
         DeclarationSpecifiersPtr declarationSpecifiers_;
         InitDeclaratorListPtr initDeclaratorList_;
     };
-
-    using DeclarationPtr = std::unique_ptr<const Declaration>;
 
 }

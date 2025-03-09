@@ -27,6 +27,7 @@
 #include "ast_expression.hpp"
 #include "ast_expression_base.hpp"
 #include "ast_expression_statement.hpp"
+#include "ast_external_declaration.hpp"
 #include "ast_function_call_expression.hpp"
 #include "ast_function_definition.hpp"
 #include "ast_identifier.hpp"

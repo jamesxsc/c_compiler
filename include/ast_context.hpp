@@ -15,8 +15,9 @@ namespace ast {
     struct Variable {
         int offset{0};
         int size;
-        Register reg{Register::zero}; // probably avoid use
+        Register reg{Register::zero}; // todo probably avoid use
         TypeSpecifier type;
+        bool global{false};
     };
     using VariablePtr = std::shared_ptr<const Variable>;
     struct Function {
@@ -31,6 +32,8 @@ namespace ast {
         Bindings(int size, int start) : size_(size), start_(start) {};
 
         const Variable &Get(const std::string &identifier) const;
+
+        bool Contains(const std::string &identifier) const;
 
         const Variable &Insert(const std::string &identifier, Variable variable);
 
@@ -67,7 +70,7 @@ namespace ast {
 
         void FreePersistent(Register reg);
 
-        StackFrame &CurrentFrame();
+        StackFrame & CurrentFrame();
 
         void PushFrame(StackFrame &&frame);
 
@@ -83,14 +86,19 @@ namespace ast {
 
         std::string MakeLabel(const std::string &prefix);
 
+        [[nodiscard]] bool IsGlobal(const std::string &identifier);
+
+        void InsertGlobal(const std::string &identifier, TypeSpecifier type);
+
     private:
         std::bitset<7> temporaries_; // using t0... notation for contiguous numbering
         std::bitset<12> persistent_; // using s0... notation for contiguous numbering
 
         std::vector<StackFrame> stack_;
+        std::unordered_map<std::string, TypeSpecifier> globals_;
         std::unordered_map<std::string, Function> functions_;
 
-        int labelId_{};
+        int labelId_{}; // Instance counter for unique labels
     };
 
 } // namespace ast

@@ -24,6 +24,10 @@ namespace ast {
         [[nodiscard]] bool ContainsFunctionCall() const override;
 
         [[nodiscard]] const std::string &GetIdentifier() const;
+
+        [[nodiscard]] std::string GetGlobalIdentifier() const override;
+
+        [[nodiscard]] int GetGlobalValue() const override;
     };
 
 } // namespace ast

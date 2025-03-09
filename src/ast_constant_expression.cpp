@@ -17,4 +17,12 @@ namespace ast {
     TypeSpecifier ConstantExpression::GetType(Context &context) const {
         return expression_->GetType(context);
     }
+
+    int ConstantExpression::GetGlobalValue() const {
+        return expression_->GetGlobalValue();
+    }
+
+    std::string ConstantExpression::GetGlobalIdentifier() const {
+        return expression_->GetGlobalIdentifier();
+    }
 }

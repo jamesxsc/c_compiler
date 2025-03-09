@@ -12,4 +12,12 @@ namespace ast {
             expression_->Print(stream);
     }
 
+    std::string Initializer::GetGlobalIdentifier() const {
+        return expression_->GetGlobalIdentifier();
+    }
+
+    int Initializer::GetGlobalValue() const {
+        return expression_->GetGlobalValue();
+    }
+
 }

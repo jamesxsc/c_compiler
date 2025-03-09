@@ -21,6 +21,8 @@ namespace ast {
         assignment_->EmitRISC(stream, context, right); // Order is impl. defined; execute right first (same as GCC)
         if (op_ != AssignmentOperator::Assign) {
             bool leftStored = assignment_->ContainsFunctionCall();
+            // todo this is the wrong way round - left is evaluated after right
+            // however, will left ever include an fn call?
             Register left = leftStored ? context.AllocatePersistent() : context.AllocateTemporary();
             unary_->EmitRISC(stream, context, left);
             // It's not ideal to duplicate instructions from other classes but unique pointer makes this a pain
@@ -74,16 +76,23 @@ namespace ast {
             leftStored ? context.FreePersistent(left) : context.FreeTemporary(left);
         }
         // Common: store the result
-        // Can only assign to lvalue so this call should succeed
-        Variable lhsVariable = context.CurrentFrame().bindings.Get(unary_->GetIdentifier());
-        if (unary_->GetType(context) == TypeSpecifier::POINTER) {
-            // Pointer, load the address (LHS equivalent of UnaryOperator::Dereference)
-            Register addrReg = context.AllocateTemporary();
-            stream << "lw " << addrReg << "," << lhsVariable.offset << "(s0)" << std::endl;
-            stream << "sw " << right << ",0(" << addrReg << ")" << std::endl;
-            context.FreeTemporary(addrReg);
+        std::string identifier = unary_->GetIdentifier();
+        if (context.IsGlobal(identifier)) {
+            // Use destReg as a temporary
+            stream << "lui " << destReg << ",%hi(" << identifier << ")" << std::endl;
+            stream << "sw " << right << ",%lo(" << identifier << ")(" << destReg << ")" << std::endl;
         } else {
-            stream << "sw " << right << "," << lhsVariable.offset << "(s0)" << std::endl;
+            Variable lhsVariable = context.CurrentFrame().bindings.Get(
+                    identifier); // Can only assign to lvalue so this call should succeed
+            if (unary_->GetType(context) == TypeSpecifier::POINTER) {
+                // Pointer, load the address (LHS equivalent of UnaryOperator::Dereference)
+                Register addrReg = context.AllocateTemporary();
+                stream << "lw " << addrReg << "," << lhsVariable.offset << "(s0)" << std::endl;
+                stream << "sw " << right << ",0(" << addrReg << ")" << std::endl;
+                context.FreeTemporary(addrReg);
+            } else {
+                stream << "sw " << right << "," << lhsVariable.offset << "(s0)" << std::endl;
+            }
         }
         // All "return" the result in destReg
         stream << "mv " << destReg << "," << right << std::endl;
@@ -141,7 +150,11 @@ namespace ast {
             AssignmentOperator::ConditionalPromote), conditional_(std::move(conditional)), unary_(
             nullptr), assignment_(nullptr) {}
 
-    AssignmentExpression::AssignmentExpression(UnaryExpressionPtr unary, AssignmentOperator op, AssignmentExpressionPtr assignment) : op_(op), conditional_(nullptr), unary_(std::move(unary)), assignment_(std::move(assignment)) {}
+    AssignmentExpression::AssignmentExpression(UnaryExpressionPtr unary, AssignmentOperator op,
+                                               AssignmentExpressionPtr assignment) : op_(op), conditional_(nullptr),
+                                                                                     unary_(std::move(unary)),
+                                                                                     assignment_(
+                                                                                             std::move(assignment)) {}
 
 
     TypeSpecifier AssignmentExpression::GetType(Context &context) const {
@@ -158,6 +171,15 @@ namespace ast {
         } else {
             return unary_->ContainsFunctionCall() || assignment_->ContainsFunctionCall();
         }
+    }
+
+    // These are for constant expressions that will never be assignments
+    std::string AssignmentExpression::GetGlobalIdentifier() const {
+        return conditional_->GetGlobalIdentifier();
+    }
+
+    int AssignmentExpression::GetGlobalValue() const {
+        return conditional_->GetGlobalValue();
     }
 
 }
