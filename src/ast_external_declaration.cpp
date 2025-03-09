@@ -4,7 +4,7 @@ namespace ast {
 
     void ExternalDeclaration::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         for (const auto &initDeclarator: *initDeclaratorList_) {
-            // TODO handle globals. I think the declarations can be identified by there being an empty stack (no current frame)
+            // TODO delete my notes and put anything useful in management/readme
             // Could add a base stack frame, or a separate instance of Bindings
             // Then we need to update where they're accessed.
             // we're gonna have to search for all uses of bindings.Get
@@ -41,6 +41,11 @@ namespace ast {
                         case TypeSpecifier::POINTER:
                             // Simply .word (RHS identifier)
                             stream << ".word " << initDeclarator->GetGlobalInitializerIdentifier() << std::endl;
+                            break;
+                            // TODO float work here
+                        case TypeSpecifier::FLOAT:
+                            break;
+                        case TypeSpecifier::DOUBLE:
                             break;
                     }
                 } else {

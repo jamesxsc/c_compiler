@@ -14,6 +14,7 @@ namespace ast {
         left_->EmitRISC(stream, context, leftReg);
         Register rightReg = context.AllocateTemporary();
         right_->EmitRISC(stream, context, rightReg);
+        // todo are these different for float
         switch (op_) {
             case RelationalOperator::LessThan:
                stream << "slt " << destReg << "," << leftReg << "," << rightReg << std::endl;

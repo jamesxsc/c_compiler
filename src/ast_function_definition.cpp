@@ -30,20 +30,20 @@ namespace ast {
         }
 
         // Stack/frame pointer/return address setup
-        stream << "addi sp, sp, -" << frameSize << std::endl;
-        stream << "sw ra, " << frameSize - 4 << "(sp)" << std::endl;
+        stream << "addi sp,sp,-" << frameSize << std::endl;
+        stream << "sw ra," << frameSize - 4 << "(sp)" << std::endl;
 
         // Save used persistent registers s0-s11
         int storedCount = 0;
         for (int r = 0; r < 12; r++) {
             if (context.CurrentFrame().usedPersistentRegisters.test(r)) {
-                stream << "sw s" << r << ", " << frameSize - 8 - storedCount * 4 << "(sp)" << std::endl;
+                stream << "sw s" << r << "," << frameSize - 8 - storedCount * 4 << "(sp)" << std::endl;
                 storedCount++;
             }
         }
 
         // Set the frame pointer
-        stream << "addi s0, sp, " << frameSize << std::endl;
+        stream << "addi s0,sp," << frameSize << std::endl;
 
         // Now emit the parameters and function body
         stream << bodyStream.rdbuf();

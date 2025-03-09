@@ -31,7 +31,7 @@ namespace ast {
         mutable LabelCasePairVector switchLabelCasePairs_;
     };
 
-    // Not const - has to be mutable
+    // Not const - has to be mutable todo check since we made the members mutable
     using StatementPtr = std::unique_ptr<Statement>;
 
 } // namespace ast

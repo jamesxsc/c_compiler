@@ -6,7 +6,7 @@ namespace ast {
     }
 
     void PointerDeclarator::Print(std::ostream &stream) const {
-        stream << " *" << GetIdentifier();
+        stream << "*" << GetIdentifier();
     }
 
     bool PointerDeclarator::IsPointer() const {

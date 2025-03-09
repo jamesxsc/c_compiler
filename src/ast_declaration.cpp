@@ -45,6 +45,12 @@ namespace ast {
                         case TypeSpecifier::POINTER:
                             // probably will never happen? this is the pointed to type
                             break;
+                        case TypeSpecifier::FLOAT:
+                            // todo cx register work for float and double
+                            // and don't forget size being dynamic at top
+                            break;
+                        case TypeSpecifier::DOUBLE:
+                            break;
                     }
                 }
             } else {

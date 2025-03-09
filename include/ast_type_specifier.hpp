@@ -7,6 +7,8 @@ namespace ast {
 
     enum class TypeSpecifier {
         INT,
+        FLOAT,
+        DOUBLE,
         POINTER,
     };
 
@@ -14,13 +16,16 @@ namespace ast {
 
     int GetTypeSize(TypeSpecifier type);
 
-    // Existing operator<< for printing out the TypeSpecifier:
     template<typename LogStream>
     LogStream &operator<<(LogStream &ls, const TypeSpecifier &type) {
         const auto TypeToString = [&type] {
             switch (type) {
                 case TypeSpecifier::INT:
                     return "int";
+                case TypeSpecifier::FLOAT:
+                    return "float";
+                case TypeSpecifier::DOUBLE:
+                    return "double";
                 case TypeSpecifier::POINTER:
                     break;
             }

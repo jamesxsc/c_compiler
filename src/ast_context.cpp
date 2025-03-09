@@ -112,16 +112,6 @@ namespace ast {
 
         // todo do we need to store anything
         // and restore registers? unclear
-//        if (stack_.size() >= 2) {
-//            int topSize = CurrentFrame().size;
-//            int oldSize = stack_.end()[-2].size;
-//            stream << "addi sp,sp," << (topSize - oldSize) << std::endl;
-//        } else {
-//
-//            stream << "# PopScope: only one frame on stack, skipping sp restore\n";
-//        }
-//
-//        stack_.pop_back();
     }
 
     void Context::PopFrame() {

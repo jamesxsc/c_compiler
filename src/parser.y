@@ -169,10 +169,8 @@ primary_expression
 	    $$ = new Identifier(*$1);
 	    delete $1;
 	}
-	| INT_CONSTANT {
-		$$ = new IntConstant($1);
-	}
-    | FLOAT_CONSTANT
+	| INT_CONSTANT { $$ = new IntConstant($1); }
+    | FLOAT_CONSTANT { $$ = new FloatConstant($1); }
 	| STRING_LITERAL
 	| '(' expression ')' { $$ = new ParenthesisedExpression(ExpressionPtr($2)); }
 	;
@@ -355,8 +353,8 @@ type_specifier
 	| SHORT { std::cerr << "Short type is unsupported." << std::endl; exit(1); }
 	| INT { $$ = TypeSpecifier::INT; }
 	| LONG { std::cerr << "Long type is unsupported." << std::endl; exit(1); }
-	| FLOAT
-	| DOUBLE
+	| FLOAT { $$ = TypeSpecifier::FLOAT; }
+	| DOUBLE { $$ = TypeSpecifier::DOUBLE; }
 	| SIGNED
 	| UNSIGNED
     | struct_specifier
@@ -423,22 +421,15 @@ direct_declarator
 		$$ = new Declarator(*$1, true);
 		delete $1;
 	}
-	| '(' declarator ')' {
-	    $$ = $2;
-	    $$->Direct();
-	}
+	| '(' declarator ')' { $$ = $2; $$->Direct(); }
 	| direct_declarator '[' constant_expression ']'
 	| direct_declarator '[' ']'
-	| direct_declarator '(' parameter_list ')' {
-        $$ = new FunctionDeclarator(DeclaratorPtr($1), ParameterListPtr($3));
-	}
+	| direct_declarator '(' parameter_list ')' { $$ = new FunctionDeclarator(DeclaratorPtr($1), ParameterListPtr($3)); }
 	| direct_declarator '(' identifier_list ')' {
 	    std::cerr << "Need to support identifier_list in direct_declarator" << std::endl;
 	    exit(1);
 	}
-	| direct_declarator '(' ')' {
-		$$ = new FunctionDeclarator(DeclaratorPtr($1));
-	}
+	| direct_declarator '(' ')' { $$ = new FunctionDeclarator(DeclaratorPtr($1)); }
 	;
 
 pointer

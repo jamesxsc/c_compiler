@@ -21,16 +21,12 @@ namespace ast {
         assignment_->EmitRISC(stream, context, right); // Order is impl. defined; execute right first (same as GCC)
         if (op_ != AssignmentOperator::Assign) {
             bool leftStored = assignment_->ContainsFunctionCall();
-            // todo this is the wrong way round - left is evaluated after right
-            // however, will left ever include an fn call?
             Register left = leftStored ? context.AllocatePersistent() : context.AllocateTemporary();
             unary_->EmitRISC(stream, context, left);
             // It's not ideal to duplicate instructions from other classes but unique pointer makes this a pain
             // todo ensure changes are propagated as necessary
             // Maybe we create a RISC utils or something to actually emit RISC in both places
             // ugly.
-            // how about instantiate the correct thing in the parser?
-            // layers do make hard
             switch (op_) {
                 case AssignmentOperator::ConditionalPromote: // Should never happen
                 case AssignmentOperator::Assign: // Should never happen
