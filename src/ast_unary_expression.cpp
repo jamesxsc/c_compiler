@@ -5,6 +5,7 @@ namespace ast {
 
     // Lvalue asserts are in GetIdentifier impls
     void UnaryExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
+        // todo remove usage of destreg as a temp/ don't "return" to it if it is zero/unset
         switch (op_) {
             case UnaryOperator::PostfixPromote:
                 postfixChild_->EmitRISC(stream, context, destReg);
@@ -21,6 +22,7 @@ namespace ast {
                            << (op_ == UnaryOperator::PrefixIncrement ? "1" : "-1") << std::endl;
                     stream << "lui " << destReg << ",%hi(" << identifier << ")" << std::endl;
                     stream << "sw " << tempReg << ",%lo(" << identifier << ")(" << destReg << ")" << std::endl;
+                    context.FreeTemporary(tempReg);
                     // Store the incremented/decremented value in the destination register
                     unaryChild_->EmitRISC(stream, context, destReg);
                 } else {

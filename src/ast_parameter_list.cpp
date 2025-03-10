@@ -9,15 +9,28 @@ namespace ast {
 
     void ParameterList::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         if (!parameters_.empty()) {
-            int idx = 0;
-            for (const auto& param: parameters_) {
+            int iidx = 0, fidx = 0;
+            for (const auto &param: parameters_) {
+                TypeSpecifier type = param->GetType(context);
                 Variable var = context.CurrentFrame().bindings.Insert(param->GetIdentifier(), Variable{
-                        .size = 4,
+                        .size = GetTypeSize(type),
                         .reg = Register::zero,
-                        .type = param->GetType(context)
+                        .type = type
                 });
-                stream << "sw a" << idx << ", " << var.offset << "(s0)" << std::endl;
-                ++idx;
+                switch (type) {
+                    case TypeSpecifier::FLOAT:
+                    case TypeSpecifier::DOUBLE:
+                        // TODO: ABI: 8-byte alignment?
+                        stream << (type == TypeSpecifier::FLOAT ? "fsw " : "fsd ")
+                               << "fa" << fidx << "," << var.offset << "(s0)" << std::endl;
+                        ++fidx;
+                        break;
+                    case TypeSpecifier::POINTER:
+                    case TypeSpecifier::INT:
+                        stream << "sw a" << iidx << "," << var.offset << "(s0)" << std::endl;
+                        ++iidx;
+                        break;
+                }
             }
         }
     }

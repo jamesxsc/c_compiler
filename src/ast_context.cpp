@@ -198,4 +198,10 @@ namespace ast {
         stream << deferredRISC_.rdbuf();
     }
 
+    TypeSpecifier Context::GetGlobalType(const std::string &identifier) const {
+        auto it = globals_.find(identifier);
+        assert(it != globals_.end() && "Global variable not found in context");
+        return it->second;
+    }
+
 } // namespace ast

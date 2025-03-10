@@ -32,6 +32,7 @@ namespace ast {
         Register tempIntReg = context.AllocateTemporary();
         stream << "lui " << tempIntReg << ",%hi(" << memoryLabel << ")" << std::endl;
         stream << "flw " << destReg << ",%lo(" << memoryLabel << ")(" << tempIntReg << ")" << std::endl;
+        context.FreeTemporary(tempIntReg);
 
         // Defer memory to the end
         context.DeferredRISC() << memoryLabel << ":" << std::endl;

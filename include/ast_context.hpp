@@ -92,6 +92,8 @@ namespace ast {
 
         void InsertGlobal(const std::string &identifier, TypeSpecifier type);
 
+        TypeSpecifier GetGlobalType(const std::string &identifier) const;
+
         std::ostream &DeferredRISC();
 
         void EmitDeferredRISC(std::ostream &stream);

@@ -4,7 +4,7 @@ namespace ast {
 
     void FunctionCallExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         if (arguments_ != nullptr) {
-            // todo cx what we need to use from function context here
+            // todo cx what we need to use from function context here and fix mv below
             arguments_->EmitRISC(stream, context, destReg);
         }
         stream << "call " << function_->GetIdentifier() << std::endl;

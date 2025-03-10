@@ -42,7 +42,7 @@ namespace ast {
                             // Simply .word (RHS identifier)
                             stream << ".word " << initDeclarator->GetGlobalInitializerIdentifier() << std::endl;
                             break;
-                            // TODO float work here
+                            // TODO float work here, note double should be given two words or can we use .float? is there a .double
                         case TypeSpecifier::FLOAT:
                             break;
                         case TypeSpecifier::DOUBLE:

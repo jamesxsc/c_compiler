@@ -50,6 +50,9 @@
 * Tests for break, switch, continue
 * Tests for unary/postfix operators (pointers done)
 * Tests for null statements
+* Tests for global floats doubles and pointers if there aren't already any
+* Float/double unary and postfix operators
+* Float int double conversion pain
 * Cerr outputs for all unsupported features
 * Prepare code for other types/ variable sizes
 * Global variables

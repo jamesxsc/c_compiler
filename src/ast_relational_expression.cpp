@@ -36,6 +36,7 @@ namespace ast {
                 break;
         }
         leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg);
+        context.FreeTemporary(rightReg);
     }
 
     void RelationalExpression::Print(std::ostream &stream) const {

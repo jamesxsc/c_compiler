@@ -17,16 +17,20 @@ namespace ast {
         // this is for int
         // todo i dont like how we don't always call unary emit risc (minor issue)
 
-        Register right = context.AllocateTemporary();
+        TypeSpecifier type = GetType(context); // Should be LHS I think
+        bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
+        Register right = context.AllocateTemporary(useFloat);
+        // todo check it makes sense to use a temporary etc, this seems funny
         assignment_->EmitRISC(stream, context, right); // Order is impl. defined; execute right first (same as GCC)
         if (op_ != AssignmentOperator::Assign) {
+            // todo propagate float double logic in this block
             bool leftStored = assignment_->ContainsFunctionCall();
-            Register left = leftStored ? context.AllocatePersistent() : context.AllocateTemporary();
+            Register left = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(useFloat);
             unary_->EmitRISC(stream, context, left);
             // It's not ideal to duplicate instructions from other classes but unique pointer makes this a pain
             // todo ensure changes are propagated as necessary
             // Maybe we create a RISC utils or something to actually emit RISC in both places
-            // ugly.
+            // ugly but tempting
             switch (op_) {
                 case AssignmentOperator::ConditionalPromote: // Should never happen
                 case AssignmentOperator::Assign: // Should never happen
@@ -72,27 +76,51 @@ namespace ast {
             leftStored ? context.FreePersistent(left) : context.FreeTemporary(left);
         }
         // Common: store the result
-        // todo alter for f/d - switch rather than cx for ptr
         std::string identifier = unary_->GetIdentifier();
         if (context.IsGlobal(identifier)) {
-            // Use destReg as a temporary
-            stream << "lui " << destReg << ",%hi(" << identifier << ")" << std::endl;
-            stream << "sw " << right << ",%lo(" << identifier << ")(" << destReg << ")" << std::endl;
+            switch (type) {
+                case TypeSpecifier::FLOAT:
+                case TypeSpecifier::DOUBLE: {
+                    Register tempReg = context.AllocateTemporary();
+                    stream << "lui " << tempReg << ",%hi(" << identifier << ")" << std::endl;
+                    stream << (type == TypeSpecifier::FLOAT ? "fsw " : "fsd ") << right << ",%lo(" << identifier << ")("
+                           << tempReg << ")" << std::endl;
+                    context.FreeTemporary(tempReg);
+                    break;
+                }
+                case TypeSpecifier::POINTER:
+                    // todo pointer is different
+                case TypeSpecifier::INT: {
+                    Register tempReg = context.AllocateTemporary();
+                    stream << "lui " << tempReg << ",%hi(" << identifier << ")" << std::endl;
+                    stream << "sw " << right << ",%lo(" << identifier << ")(" << tempReg << ")" << std::endl;
+                    break;
+                }
+            }
         } else {
             Variable lhsVariable = context.CurrentFrame().bindings.Get(
                     identifier); // Can only assign to lvalue so this call should succeed
-            if (unary_->GetType(context) == TypeSpecifier::POINTER) {
-                // Pointer, load the address (LHS equivalent of UnaryOperator::Dereference)
-                Register addrReg = context.AllocateTemporary();
-                stream << "lw " << addrReg << "," << lhsVariable.offset << "(s0)" << std::endl;
-                stream << "sw " << right << ",0(" << addrReg << ")" << std::endl;
-                context.FreeTemporary(addrReg);
-            } else {
-                stream << "sw " << right << "," << lhsVariable.offset << "(s0)" << std::endl;
+            switch (type) {
+                case TypeSpecifier::FLOAT:
+                case TypeSpecifier::DOUBLE:
+                    stream << (type == TypeSpecifier::FLOAT ? "fsw " : "fsd ") << right << "," << lhsVariable.offset << "(s0)" << std::endl;
+                    break;
+                case TypeSpecifier::INT:
+                    stream << "sw " << right << "," << lhsVariable.offset << "(s0)" << std::endl;
+                    break;
+                case TypeSpecifier::POINTER:
+                    // Pointer, load the address (LHS equivalent of UnaryOperator::Dereference)
+                    Register addrReg = context.AllocateTemporary();
+                    stream << "lw " << addrReg << "," << lhsVariable.offset << "(s0)" << std::endl;
+                    stream << "sw " << right << ",0(" << addrReg << ")" << std::endl;
+                    context.FreeTemporary(addrReg);
+                    break;
             }
         }
-        // All "return" the result in destReg
-        stream << "mv " << destReg << "," << right << std::endl;
+        // All "return" the result in destReg (if it's used)
+        if (destReg != Register::zero) {
+            stream << "mv " << destReg << "," << right << std::endl;
+        }
         context.FreeTemporary(right);
     }
 

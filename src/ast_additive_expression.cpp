@@ -10,19 +10,29 @@ namespace ast {
             return;
         }
 
+        TypeSpecifier type = GetType(context);
         bool leftStored = right_->ContainsFunctionCall();
-        Register leftReg = leftStored ? context.AllocatePersistent() : context.AllocateTemporary();
+        bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
+        Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(useFloat);
         left_->EmitRISC(stream, context, leftReg);
-        Register rightReg = context.AllocateTemporary();
+        Register rightReg = context.AllocateTemporary(useFloat);
         right_->EmitRISC(stream, context, rightReg);
-        switch (op_) {
-            case AdditiveOperator::Add:
-                stream << "add " << destReg << "," << leftReg << "," << rightReg << std::endl;
+        switch (type) {
+            case TypeSpecifier::FLOAT:
+                stream <<
+                       (op_ == AdditiveOperator::Add ? "fadd.s " : "fsub.s ")
+                       << destReg << "," << leftReg << "," << rightReg << std::endl;
                 break;
-            case AdditiveOperator::Subtract:
-                stream << "sub " << destReg << "," << leftReg << "," << rightReg << std::endl;
+            case TypeSpecifier::DOUBLE:
+                stream <<
+                       (op_ == AdditiveOperator::Add ? "fadd.d " : "fsub.d ")
+                       << destReg << "," << leftReg << "," << rightReg << std::endl;
                 break;
-            case AdditiveOperator::MultiplicativePromote: // Should never reach here
+            case TypeSpecifier::POINTER:
+            case TypeSpecifier::INT:
+                stream <<
+                       (op_ == AdditiveOperator::Add ? "add " : "sub ")
+                       << destReg << "," << leftReg << "," << rightReg << std::endl;
                 break;
         }
         leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg);

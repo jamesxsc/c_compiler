@@ -16,7 +16,8 @@ namespace ast {
                 if (context.IsGlobal(identifier)) {
                     // Note this is slightly different from GCC because I want to delegate to child
                     // Store the incremented/decremented value in the destination register
-                    child_->EmitRISC(stream, context, destReg);
+                    if (destReg != Register::zero)
+                        child_->EmitRISC(stream, context, destReg);
                     Register tempReg = context.AllocateTemporary();
                     Register tempReg2 = context.AllocateTemporary();
                     stream << "lui " << tempReg2 << ",%hi(" << identifier << ")" << std::endl;
@@ -30,10 +31,11 @@ namespace ast {
                 } else {
                     Variable variable = context.CurrentFrame().bindings.Get(GetIdentifier());
                     // Store the pre-inc/dec value in the destination register
-                    child_->EmitRISC(stream, context, destReg);
+                    if (destReg != Register::zero)
+                        child_->EmitRISC(stream, context, destReg);
                     Register tempReg = context.AllocateTemporary();
-                    stream << "lw " << destReg << "," << variable.offset << "(s0)" << std::endl;
-                    stream << "addi " << tempReg << "," << destReg << ","
+                    stream << "lw " << tempReg << "," << variable.offset << "(s0)" << std::endl;
+                    stream << "addi " << tempReg << "," << tempReg << ","
                            << (op_ == PostfixOperator::PostfixIncrement ? 1 : -1) << std::endl;
                     stream << "sw " << tempReg << "," << variable.offset << "(s0)" << std::endl;
                     context.FreeTemporary(tempReg);
@@ -75,7 +77,7 @@ namespace ast {
             case PostfixOperator::PostfixIncrement:
             case PostfixOperator::PostfixDecrement: {
                 // Child is a postfix expression
-                return dynamic_cast<const PostfixExpression*>(child_.get())->GetIdentifier();
+                return dynamic_cast<const PostfixExpression *>(child_.get())->GetIdentifier();
             }
         }
 
