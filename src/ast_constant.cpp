@@ -27,10 +27,15 @@ namespace ast {
         return TypeSpecifier::INT;
     }
 
-    void FloatConstant::EmitRISC(std::ostream &stream, Context &, Register destReg) const {
-        // todo check this logic
-        int bits = *reinterpret_cast<const int *>(&value_);
-        stream << "li " << destReg << "," << bits << std::endl;
+    void FloatConstant::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
+        std::string memoryLabel = context.MakeLabel(".LC");
+        Register tempIntReg = context.AllocateTemporary();
+        stream << "lui " << tempIntReg << ",%hi(" << memoryLabel << ")" << std::endl;
+        stream << "flw " << destReg << ",%lo(" << memoryLabel << ")(" << tempIntReg << ")" << std::endl;
+
+        // Defer memory to the end
+        context.DeferredRISC() << memoryLabel << ":" << std::endl;
+        context.DeferredRISC() << ".float " << value_ << std::endl; // todo should we convert to decimal?
     }
 
     void FloatConstant::Print(std::ostream &stream) const {

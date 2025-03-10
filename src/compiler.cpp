@@ -74,5 +74,8 @@ void Compile(const NodePtr& root, const std::string& compile_output_path)
     std::ofstream output(compile_output_path, std::ios::trunc);
     root->EmitRISC(output, ctx, ast::Register::ra);
 
+    // Just memory for float constants atm
+    ctx.EmitDeferredRISC(output);
+
     std::cout << "Compiled to: " << compile_output_path << std::endl;
 }

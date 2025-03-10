@@ -42,24 +42,41 @@ namespace ast {
     static int temporaries = 0;
 
     // We don't free temporaries automatically between functions - we assume there are no leaked register allocs
-    Register Context::AllocateTemporary() {
+    Register Context::AllocateTemporary(bool forFloat) {
         ++temporaries;
-        for (size_t i = 0; i < temporaries_.size(); i++) {
-            if (!temporaries_.test(i)) {
-                temporaries_.set(i);
-                return temporaryAtIndex(static_cast<int>(i));
+        if (forFloat) {
+            for (size_t i = 0; i < floatTemporaries_.size(); i++) {
+                if (!floatTemporaries_.test(i)) {
+                    floatTemporaries_.set(i);
+                    return FloatTemporaryAtIndex(static_cast<int>(i));
+                }
+            }
+        } else {
+            for (size_t i = 0; i < integerTemporaries_.size(); i++) {
+                if (!integerTemporaries_.test(i)) {
+                    integerTemporaries_.set(i);
+                    return IntegerTemporaryAtIndex(static_cast<int>(i));
+                }
             }
         }
         throw std::runtime_error("Out of temporaries");
     }
 
     void Context::FreeTemporary(Register reg) {
-        int index = indexOfTemporary(reg);
-        assert(index != -1 && "Attempted to free a non-temporary register");
-        if (!temporaries_.test(index))
-            std::cerr << "Warning: freeing already free temporary" << std::endl;
+        if (IsFloatRegister(reg)) {
+            int index = IndexOfFloatTemporary(reg);
+            assert(index != -1 && "Attempted to free a non-temporary register");
+            if (!floatTemporaries_.test(index))
+                std::cerr << "Warning: freeing already free temporary" << std::endl;
+            floatTemporaries_.reset(index);
+        } else {
+            int index = IndexOfIntegerTemporary(reg);
+            assert(index != -1 && "Attempted to free a non-temporary register");
+            if (!integerTemporaries_.test(index))
+                std::cerr << "Warning: freeing already free temporary" << std::endl;
+            integerTemporaries_.reset(index);
+        }
         --temporaries;
-        temporaries_.reset(index);
     }
 
     Context::~Context() {
@@ -68,27 +85,47 @@ namespace ast {
         }
     }
 
-    Register Context::AllocatePersistent() {
+    Register Context::AllocatePersistent(bool forFloat) {
         // todo dont always use the same register or we will be bashing s0 s1 etc
-        // Start at 1 to avoid s0 - frame pointer
-        for (size_t i = 1; i < persistent_.size(); i++) {
-            if (!persistent_.test(i)) {
-                persistent_.set(i);
-                if (!stack_.empty())
-                    stack_.back().usedPersistentRegisters.set(
-                            i); // Note that it needs to be saved by the current function
-                return persistentAtIndex(static_cast<int>(i));
+        if (forFloat) {
+            for (size_t i = 0; i < floatPersistent_.size(); i++) {
+                if (!floatPersistent_.test(i)) {
+                    floatPersistent_.set(i);
+                    if (!stack_.empty())
+                        stack_.back().usedFloatPersistentRegisters.set(
+                                i); // Note that it needs to be saved by the current function
+                    return FloatPersistentAtIndex(static_cast<int>(i));
+                }
+            }
+        } else {
+            // Start at 1 to avoid s0 - frame pointer
+            for (size_t i = 1; i < integerPersistent_.size(); i++) {
+                if (!integerPersistent_.test(i)) {
+                    integerPersistent_.set(i);
+                    if (!stack_.empty())
+                        stack_.back().usedIntegerPersistentRegisters.set(
+                                i); // Note that it needs to be saved by the current function
+                    return IntegerPersistentAtIndex(static_cast<int>(i));
+                }
             }
         }
         throw std::runtime_error("Out of persistent registers");
     }
 
     void Context::FreePersistent(Register reg) {
-        int index = indexOfPersistent(reg);
-        assert(index != -1 && "Attempted to free a non-persistent register");
-        if (!persistent_.test(index))
-            std::cerr << "Warning: freeing already free persistent" << std::endl;
-        persistent_.reset(index);
+        if (IsFloatRegister(reg)) {
+            int index = IndexOfFloatPersistent(reg);
+            assert(index != -1 && "Attempted to free a non-persistent register");
+            if (!floatPersistent_.test(index))
+                std::cerr << "Warning: freeing already free persistent" << std::endl;
+            floatPersistent_.reset(index);
+        } else {
+            int index = IndexOfIntegerPersistent(reg);
+            assert(index != -1 && "Attempted to free a non-persistent register");
+            if (!integerPersistent_.test(index))
+                std::cerr << "Warning: freeing already free persistent" << std::endl;
+            integerPersistent_.reset(index);
+        }
     }
 
     StackFrame &Context::CurrentFrame() {
@@ -106,7 +143,7 @@ namespace ast {
         assert(stack_.size() >= 2 && "Attempted to pop scope from empty stack");
 
         // Any persistent registers used in the scope need to be saved back to the function root frame
-        stack_.end()[-2].usedPersistentRegisters |= CurrentFrame().usedPersistentRegisters;
+        stack_.end()[-2].usedIntegerPersistentRegisters |= CurrentFrame().usedIntegerPersistentRegisters;
 
         stack_.pop_back();
 
@@ -151,6 +188,14 @@ namespace ast {
 
     void Context::InsertGlobal(const std::string &identifier, TypeSpecifier type) {
         globals_.emplace(identifier, type);
+    }
+
+    std::ostream &Context::DeferredRISC() {
+        return deferredRISC_;
+    }
+
+    void Context::EmitDeferredRISC(std::ostream &stream) {
+        stream << deferredRISC_.rdbuf();
     }
 
 } // namespace ast

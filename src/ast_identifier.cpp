@@ -7,6 +7,7 @@ namespace ast {
     void Identifier::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         if (context.IsGlobal(identifier_)) {
             // todo check if this is right for floats/doubles/structs/arrays etc etc & propagate to to other usages
+            // both cases differ
             stream << "lui " << destReg << ",%hi(" << identifier_ << ")" << std::endl;
             stream << "lw " << destReg << ",%lo(" << identifier_ << ")(" << destReg << ")" << std::endl;
         } else {

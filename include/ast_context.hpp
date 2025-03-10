@@ -3,6 +3,7 @@
 #include <bitset>
 #include <vector>
 #include <string>
+#include <sstream>
 #include <unordered_map>
 #include <memory>
 #include <deque>
@@ -50,7 +51,8 @@ namespace ast {
     struct StackFrame {
         int size;
         Bindings bindings;
-        std::bitset<12> usedPersistentRegisters{1}; // s0 is always used
+        std::bitset<12> usedIntegerPersistentRegisters{1}; // s0 is always used
+        std::bitset<12> usedFloatPersistentRegisters{};
         // todo consider a return label to aovid multiple return instruction sequences
         std::optional<std::string> breakLabel{std::nullopt};
         std::optional<std::string> continueLabel{std::nullopt};
@@ -58,19 +60,19 @@ namespace ast {
 
     class Context {
     public:
-        Context() : temporaries_(0) {}
+        Context() : integerTemporaries_(0), integerPersistent_(1), floatTemporaries_(0), floatPersistent_(0) {}
 
         ~Context();
 
-        Register AllocateTemporary();
+        Register AllocateTemporary(bool forFloat = false);
 
-        Register AllocatePersistent();
+        Register AllocatePersistent(bool forFloat = false);
 
         void FreeTemporary(Register reg);
 
         void FreePersistent(Register reg);
 
-        StackFrame & CurrentFrame();
+        StackFrame &CurrentFrame();
 
         void PushFrame(StackFrame &&frame);
 
@@ -90,13 +92,21 @@ namespace ast {
 
         void InsertGlobal(const std::string &identifier, TypeSpecifier type);
 
+        std::ostream &DeferredRISC();
+
+        void EmitDeferredRISC(std::ostream &stream);
+
     private:
-        std::bitset<7> temporaries_; // using t0... notation for contiguous numbering
-        std::bitset<12> persistent_; // using s0... notation for contiguous numbering
+        std::bitset<7> integerTemporaries_; // using t0... notation for contiguous numbering
+        std::bitset<12> integerPersistent_; // using s0... notation for contiguous numbering
+        std::bitset<12> floatTemporaries_; // ft0 ...
+        std::bitset<12> floatPersistent_; // fs0 ...
 
         std::vector<StackFrame> stack_;
         std::unordered_map<std::string, TypeSpecifier> globals_;
         std::unordered_map<std::string, Function> functions_;
+
+        std::stringstream deferredRISC_{};
 
         int labelId_{}; // Instance counter for unique labels
     };

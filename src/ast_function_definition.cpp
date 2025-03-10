@@ -36,9 +36,16 @@ namespace ast {
         // Save used persistent registers s0-s11
         int storedCount = 0;
         for (int r = 0; r < 12; r++) {
-            if (context.CurrentFrame().usedPersistentRegisters.test(r)) {
+            if (context.CurrentFrame().usedIntegerPersistentRegisters.test(r)) {
                 stream << "sw s" << r << "," << frameSize - 8 - storedCount * 4 << "(sp)" << std::endl;
                 storedCount++;
+            }
+        }
+        storedCount++; // Make space for 64 bit reg
+        for (int r = 0; r < 8; r++) {
+            if (context.CurrentFrame().usedFloatPersistentRegisters.test(r)) {
+                stream << "fsw fs" << r << "," << frameSize - 8 - storedCount * 4 << "(sp)" << std::endl;
+                storedCount += 2; // Float registers are 64 bit
             }
         }
 

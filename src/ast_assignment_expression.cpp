@@ -72,6 +72,7 @@ namespace ast {
             leftStored ? context.FreePersistent(left) : context.FreeTemporary(left);
         }
         // Common: store the result
+        // todo alter for f/d - switch rather than cx for ptr
         std::string identifier = unary_->GetIdentifier();
         if (context.IsGlobal(identifier)) {
             // Use destReg as a temporary
