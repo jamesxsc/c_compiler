@@ -37,6 +37,7 @@ namespace ast {
         // Defer memory to the end
         context.DeferredRISC() << memoryLabel << ":" << std::endl;
         context.DeferredRISC() << ".float " << value_ << std::endl; // todo should we convert to decimal?
+        // todo double constants?
     }
 
     void FloatConstant::Print(std::ostream &stream) const {

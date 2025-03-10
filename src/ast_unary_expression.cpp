@@ -82,6 +82,12 @@ namespace ast {
                 stream << "seqz " << destReg << "," << destReg << std::endl;
                 stream << "andi " << destReg << "," << destReg << ",0xff" << std::endl;
                 break;
+            case UnaryOperator::SizeofUnary:
+                stream << "li " << destReg << "," << GetTypeSize(unaryChild_->GetType(context)) << std::endl;
+                break;
+            case UnaryOperator::SizeofType:
+                stream << "li " << destReg << "," << GetTypeSize(typeNameChild_->GetType(context)) << std::endl;
+                break;
         }
     }
 
@@ -122,6 +128,16 @@ namespace ast {
                 stream << "!";
                 multiplicativeChild_->Print(stream);
                 break;
+            case UnaryOperator::SizeofUnary:
+                stream << "sizeof(";
+                unaryChild_->Print(stream);
+                stream << ")";
+                break;
+            case UnaryOperator::SizeofType:
+                stream << "sizeof(";
+                typeNameChild_->Print(stream);
+                stream << ")";
+                break;
         }
     }
 
@@ -132,6 +148,8 @@ namespace ast {
                 return postfixChild_->GetIdentifier();
             case UnaryOperator::PrefixIncrement:
             case UnaryOperator::PrefixDecrement:
+            case UnaryOperator::SizeofUnary:
+            case UnaryOperator::SizeofType:
                 return unaryChild_->GetIdentifier();
             case UnaryOperator::Dereference: // This can be called on lhs or rhs of assignment, should work the same in both
             case UnaryOperator::AddressOf:
@@ -160,6 +178,9 @@ namespace ast {
             case UnaryOperator::BitwiseNot:
             case UnaryOperator::LogicalNot:
                 return multiplicativeChild_->GetType(context);
+            case UnaryOperator::SizeofUnary:
+            case UnaryOperator::SizeofType:
+                return TypeSpecifier::INT; // todo size_t or unsigned?
         }
         std::cerr << "Invalid unary operator" << std::endl;
         exit(1);
@@ -179,6 +200,9 @@ namespace ast {
             case UnaryOperator::BitwiseNot:
             case UnaryOperator::LogicalNot:
                 return multiplicativeChild_->ContainsFunctionCall();
+            case UnaryOperator::SizeofUnary:
+            case UnaryOperator::SizeofType:
+                return false;
         }
         std::cerr << "Invalid unary operator" << std::endl;
         exit(1);

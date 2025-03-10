@@ -2,6 +2,7 @@
 
 #include "ast_expression_base.hpp"
 #include "ast_postfix_expression.hpp"
+#include "ast_type_name.hpp"
 
 // TODO if we can split into separate files, but its a pain because of the circular includes
 namespace ast {
@@ -20,9 +21,8 @@ namespace ast {
         PostfixPromote,
         PrefixIncrement,
         PrefixDecrement,
-//        SizeofUnary,
-//        SizeofType, // todo impl sizeof
-
+        SizeofUnary,
+        SizeofType,
         AddressOf,
         Dereference,
         Plus,
@@ -37,6 +37,7 @@ namespace ast {
     {
     public:
         explicit UnaryExpression(PostfixExpressionPtr child) : postfixChild_(std::move(child)), op_(UnaryOperator::PostfixPromote) {};
+        explicit UnaryExpression(TypeNamePtr child) : typeNameChild_(std::move(child)), op_(UnaryOperator::SizeofType) {};
         UnaryExpression(UnaryExpressionPtr child, UnaryOperator op) : unaryChild_(std::move(child)), op_(op) {};
         UnaryExpression(MultiplicativeExpressionPtr child, UnaryOperator op) : multiplicativeChild_(std::move(child)), op_(op) {};
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
@@ -52,6 +53,7 @@ namespace ast {
         PostfixExpressionPtr postfixChild_ = nullptr;
         UnaryExpressionPtr unaryChild_ = nullptr;
         MultiplicativeExpressionPtr multiplicativeChild_ = nullptr;
+        TypeNamePtr typeNameChild_ = nullptr;
         UnaryOperator op_;
     };
 

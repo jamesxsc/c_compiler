@@ -54,6 +54,8 @@
   ExpressionStatement* expression_statement;
   LabeledStatement* labeled_statement;
   JumpStatement* jump_statement;
+  SpecifierQualifierList* specifier_qualifier_list;
+  TypeName* type_name;
   int          	number_int;
   double       	number_float;
   std::string* 	string;
@@ -76,9 +78,9 @@
 %type <node> external_declaration function_definition
 %type <expression_base> primary_expression
 %type <node> initializer_list
-%type <node> struct_specifier struct_declaration_list struct_declaration specifier_qualifier_list struct_declarator_list
+%type <node> struct_specifier struct_declaration_list struct_declaration struct_declarator_list
 %type <node> struct_declarator enum_specifier enumerator_list enumerator pointer
-%type <node> identifier_list type_name abstract_declarator direct_abstract_declarator
+%type <node> identifier_list abstract_declarator direct_abstract_declarator
 
 // Statement types
 %nterm <statement> statement
@@ -122,6 +124,9 @@
 %nterm <assignment_operator> assignment_operator
 %nterm <argument_expression_list> argument_expression_list
 %nterm <expression> expression
+
+%nterm <specifier_qualifier_list> specifier_qualifier_list
+%nterm <type_name> type_name
 
 %type <number_int> INT_CONSTANT STRING_LITERAL
 %type <number_float> FLOAT_CONSTANT
@@ -202,8 +207,8 @@ unary_expression
 	| DEC_OP unary_expression { $$ = new UnaryExpression(UnaryExpressionPtr($2), UnaryOperator::PrefixDecrement); }
 //	| unary_operator cast_expression // Casts are not required to be implemented
 	| unary_operator multiplicative_expression { $$ = new UnaryExpression(MultiplicativeExpressionPtr($2), $1); }
-	| SIZEOF unary_expression
-	| SIZEOF '(' type_name ')'
+	| SIZEOF unary_expression { $$ = new UnaryExpression(UnaryExpressionPtr($2), UnaryOperator::SizeofUnary); }
+	| SIZEOF '(' type_name ')' { $$ = new UnaryExpression(TypeNamePtr($3)); }
 	;
 
 unary_operator
@@ -378,8 +383,8 @@ struct_declaration
 	;
 
 specifier_qualifier_list
-	: type_specifier specifier_qualifier_list
-	| type_specifier
+	: type_specifier specifier_qualifier_list { $$ = $2; $2->AddTypeSpecifier($1); }
+	| type_specifier { $$ = new SpecifierQualifierList($1); }
 	;
 
 struct_declarator_list
@@ -454,8 +459,8 @@ identifier_list
 	;
 
 type_name
-	: specifier_qualifier_list
-	| specifier_qualifier_list abstract_declarator
+	: specifier_qualifier_list { $$ = new TypeName(SpecifierQualifierListPtr($1)); }
+	| specifier_qualifier_list abstract_declarator { std::cerr << "Abstract declarators need to be implemented (for type names)." << std::endl; exit(1); }
 	;
 
 abstract_declarator
