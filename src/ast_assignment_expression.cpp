@@ -80,6 +80,9 @@ namespace ast {
         // hmmm so we can store array as a different type or a large set of types with a funny identifier in our bindings/globals
         // and somehow detect it here. or how else can we implement GetIdentifier to work. cx s
         if (context.IsGlobal(identifier)) {
+            // todo array case here
+            // i think this is the best place?
+
             switch (type) {
                 case TypeSpecifier::FLOAT:
                 case TypeSpecifier::DOUBLE: {

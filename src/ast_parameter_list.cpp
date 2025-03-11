@@ -17,6 +17,7 @@ namespace ast {
                         .reg = Register::zero,
                         .type = type
                 });
+                // todo array case here
                 switch (type) {
                     case TypeSpecifier::FLOAT:
                     case TypeSpecifier::DOUBLE:

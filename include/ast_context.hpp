@@ -19,18 +19,23 @@ namespace ast {
         Register reg{Register::zero}; // todo probably avoid use
         TypeSpecifier type;
         bool global{false};
+        bool array{false};
     };
 
-    // Hmmmm, need to think about slicing here. But we have to be able to copy - wait no - we already use shared ptr
+    // missing rust/swift enums, would make typespecifier much more fun
+    // Hmmmm, need to think about slicing here. But we have to be able to copy - wait no - we already use shared ptr NICE
     // this might work - where does instantiation go - parameter list, declaration, what is delegated risc-wise to declarator? i.e. what do we need in arraydeclarator
-    // ok starting to come together, initdeclarator/declarator/arraydeclarator need methods for array like IsFunction IsPointer
+    // ok starting to come together, initdeclarator/declarator/arraydeclarator need methods for array like IsFunction IsPointer DONE
     // parameter list (arrays as function parameters) will be a bitch
-    // acessing should be easy-ish. we find this by the array identifier
-    // is it an array? ok we need to get the offset of the elem - member function?
-    struct Array : Variable {
+    // acessing should be easy-ish. we find this struct by the array identifier
+    // is it an array? ok we need to get the offset of the elem - member function? DONE
+    // need an IsArray accessible from assignment - like IsGlobal DONE note you have to .bindings so is nonconst on stackframe
+    // also this type cant be stored in the current bindings map - sol required for this
+    struct Array : public Variable {
         Array(TypeSpecifier elementType, int length) :
-                Variable({.size = GetTypeSize(elementType) * length, .type = elementType}), length(length) {}
-
+                Variable({.size = GetTypeSize(elementType) * length, .type = elementType, .array = true}),
+                length(length) {}
+        int ElementOffset(int index);
         int length;
     };
 
@@ -54,6 +59,8 @@ namespace ast {
 
         // This is for in a scope - removes old and reallocated because may be a different type/size
         const Variable &InsertOrOverwrite(const std::string &identifier, Variable variable);
+
+        bool IsArray(const std::string &identifier) const;
 
     private:
         int size_;

@@ -5,12 +5,15 @@
 
 namespace ast {
 
+    int Array::ElementOffset(int index) {
+        return offset + index * GetTypeSize(type);
+    }
+
     const Variable &Bindings::Get(const std::string &identifier) const {
         auto it = bindingsMap_.find(identifier);
         assert(it != bindingsMap_.end() && "Variable not found in bindings");
         return *it->second;
     }
-
 
     const Variable &Bindings::Insert(const std::string &identifier, Variable variable) {
         assert(bindingsMap_.find(identifier) == bindingsMap_.end() && "Variable already exists in bindings");
@@ -37,6 +40,12 @@ namespace ast {
             bindingsMap_.erase(it);
         }
         return Insert(identifier, variable);
+    }
+
+    bool Bindings::IsArray(const std::string &identifier) const {
+        auto it = bindingsMap_.find(identifier);
+        assert(it != bindingsMap_.end() && "Variable not found in bindings");
+        return it->second->array;
     }
 
     static int temporaries = 0;
@@ -203,5 +212,4 @@ namespace ast {
         assert(it != globals_.end() && "Global variable not found in context");
         return it->second;
     }
-
 } // namespace ast

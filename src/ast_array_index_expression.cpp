@@ -22,7 +22,7 @@ namespace ast {
     }
 
     std::string ArrayIndexExpression::GetGlobalIdentifier() const {
-        throw std::runtime_error("ArrayIndexExpression::GetGlobalIdentifier() called on an array index expression");
+        return array_->GetGlobalIdentifier();
     }
 
     int ArrayIndexExpression::GetGlobalValue() const {

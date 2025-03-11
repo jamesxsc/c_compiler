@@ -17,45 +17,33 @@ namespace ast {
             // Don't handle types with multiple keywords (for now)
             assert(!declarationSpecifiers_->GetTypeSpecifiers().empty() && "Declaration must have a type specifier");
             if (initDeclarator->HasInitializer()) {
-                if (initDeclarator->IsPointer()) {
-                    // Probably a unary & address of (this obtains an address)
-                    initDeclarator->EmitRISC(stream, context, destReg);
+                // todo array case here
+                // Generates initializer/assignment code
+                initDeclarator->EmitRISC(stream, context, destReg);
 
-                    Variable var = context.CurrentFrame().bindings.InsertOrOverwrite(identifier, Variable{
-                            .size = size,
-                            .reg = destReg,
-                            .type = TypeSpecifier::POINTER
-                    });
-
-                    stream << "sw " << destReg << "," << var.offset << "(s0)" << std::endl;
-                } else {
-                    // Generates initializer/assignment code
-                    initDeclarator->EmitRISC(stream, context, destReg);
-
-                    Variable var = context.CurrentFrame().bindings.InsertOrOverwrite(identifier, Variable{
-                            .size = size,
-                            .reg = destReg,
-                            .type = type
-                    });
-                    switch (type) {
-                        // todo would you like some typechecking asserts sir?
-                        case TypeSpecifier::INT:
-                            stream << "sw " << destReg << "," << var.offset << "(s0)" << std::endl;
-                            break;
-                        case TypeSpecifier::POINTER:
-                            // probably will never happen? this is the pointed to type
-                            break;
-                        case TypeSpecifier::FLOAT:
-                            stream << "fsw " << destReg << "," << var.offset << "(s0)" << std::endl;
-                            break;
-                        case TypeSpecifier::DOUBLE:
-                            stream << "fsd " << destReg << "," << var.offset << "(s0)" << std::endl;
-                            break;
-                        case TypeSpecifier::CHAR:
-                            // todo check char store in godbolt
-                            stream << "sb " << destReg << "," << var.offset << "(s0)" << std::endl;
-                            break;
-                    }
+                Variable var = context.CurrentFrame().bindings.InsertOrOverwrite(identifier, Variable{
+                        .size = size,
+                        .reg = destReg,
+                        .type = initDeclarator->IsPointer() ? TypeSpecifier::POINTER : type
+                });
+                switch (type) {
+                    // todo would you like some typechecking asserts sir?
+                    case TypeSpecifier::INT:
+                        stream << "sw " << destReg << "," << var.offset << "(s0)" << std::endl;
+                        break;
+                    case TypeSpecifier::POINTER:
+                        stream << "sw " << destReg << "," << var.offset << "(s0)" << std::endl;
+                        break;
+                    case TypeSpecifier::FLOAT:
+                        stream << "fsw " << destReg << "," << var.offset << "(s0)" << std::endl;
+                        break;
+                    case TypeSpecifier::DOUBLE:
+                        stream << "fsd " << destReg << "," << var.offset << "(s0)" << std::endl;
+                        break;
+                    case TypeSpecifier::CHAR:
+                        // todo check char store in godbolt
+                        stream << "sb " << destReg << "," << var.offset << "(s0)" << std::endl;
+                        break;
                 }
             } else {
                 // Allocated, but not initialized
@@ -65,7 +53,8 @@ namespace ast {
                             .reg = Register::zero,
                             .type = TypeSpecifier::POINTER
                     });
-                } else {
+                } // todo array case here
+                else {
                     context.CurrentFrame().bindings.InsertOrOverwrite(identifier, Variable{
                             .size = size,
                             .reg = Register::zero,

@@ -14,4 +14,8 @@ namespace ast {
         stream << "]";
     }
 
+    bool ArrayDeclarator::IsArray() const {
+        return true;
+    }
+
 }

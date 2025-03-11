@@ -33,6 +33,7 @@ namespace ast {
                 stream << ".size " << identifier << "," << GetTypeSize(type) << std::endl;
                 stream << identifier << ":" << std::endl;
                 if (initDeclarator->HasInitializer()) {
+                    // todo array case here
                     switch (type) {
                         case TypeSpecifier::INT:
                             // Can only be a constant (can't be assigned to another global for example)
@@ -52,6 +53,7 @@ namespace ast {
                             break;
                     }
                 } else {
+                    // todo array case here (if it differs) - it almost definitely will
                     stream << ".zero " << GetTypeSize(GetType(context)) << std::endl;
                 }
             }

@@ -23,6 +23,8 @@ namespace ast {
 
         [[nodiscard]] virtual bool IsFunction() const;
 
+        [[nodiscard]] virtual bool IsArray() const;
+
         [[nodiscard]] virtual Function BuildFunction(TypeSpecifier returnType, Context &context) const;
 
         [[nodiscard]] bool IsDirect() const;

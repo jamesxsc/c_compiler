@@ -18,6 +18,8 @@ namespace ast {
 
         void Print(std::ostream &stream) const override;
 
+        [[nodiscard]] bool IsArray() const override;
+
     private:
         ConstantExpressionPtr size_;
     };

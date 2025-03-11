@@ -38,6 +38,10 @@ namespace ast {
         return declarator_->BuildFunction(returnType, context);
     }
 
+    bool InitDeclarator::IsArray() const {
+        return declarator_->IsArray();
+    }
+
     std::string InitDeclarator::GetGlobalInitializerIdentifier() const {
         return initializer_->GetGlobalIdentifier();
     }
