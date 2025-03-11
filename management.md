@@ -57,9 +57,8 @@
 * ~~Floats Eliott & James~~ Mar 10
 * ~~Char type - James~~ Mar 11
 * Char constant (override same methods as int but accept char or int in constructor; needs work in lexer also)
-* Float int double conversion pain
+* Float int double char conversion pain
 * Cerr outputs for all unsupported features
-* Prepare code for other types/ variable sizes
 * ~~Global variables - James~~ Mar 9
 * Function calls with many arguments and test
 * Arrays local or global

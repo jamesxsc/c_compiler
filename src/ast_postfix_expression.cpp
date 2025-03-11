@@ -8,6 +8,7 @@ namespace ast {
         switch (op_) {
             case PostfixOperator::PrimaryPromote:
             case PostfixOperator::FunctionCallPromote:
+            case PostfixOperator::ArrayIndexPromote:
                 child_->EmitRISC(stream, context, destReg);
                 break;
             case PostfixOperator::PostfixIncrement:
@@ -48,6 +49,7 @@ namespace ast {
         switch (op_) {
             case PostfixOperator::PrimaryPromote:
             case PostfixOperator::FunctionCallPromote:
+            case PostfixOperator::ArrayIndexPromote:
                 child_->Print(stream);
                 break;
             case PostfixOperator::PostfixIncrement:
@@ -66,7 +68,7 @@ namespace ast {
     }
 
     std::string PostfixExpression::GetIdentifier() const {
-        // todo handle array[constexpr]/identifier.member case
+        // todo handle array/identifier.member case complicated - cant just get from bindings
 
         switch (op_) {
             case PostfixOperator::PrimaryPromote:
@@ -79,6 +81,9 @@ namespace ast {
                 // Child is a postfix expression
                 return dynamic_cast<const PostfixExpression *>(child_.get())->GetIdentifier();
             }
+            case PostfixOperator::ArrayIndexPromote:
+                throw std::runtime_error("Array index identifier required");
+                break;
         }
 
         Identifier identifier = dynamic_cast<const Identifier &>(*child_);

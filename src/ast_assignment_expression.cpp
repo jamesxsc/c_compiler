@@ -77,6 +77,8 @@ namespace ast {
         }
         // Common: store the result
         std::string identifier = unary_->GetIdentifier();
+        // hmmm so we can store array as a different type or a large set of types with a funny identifier in our bindings/globals
+        // and somehow detect it here. or how else can we implement GetIdentifier to work. cx s
         if (context.IsGlobal(identifier)) {
             switch (type) {
                 case TypeSpecifier::FLOAT:

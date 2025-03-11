@@ -17,7 +17,7 @@ namespace ast {
         // These are for global variables where we need a shortcut to initialize them
         // Calling these methods assume that the programmer is good
         virtual std::string GetGlobalIdentifier() const = 0;
-        virtual int GetGlobalValue() const = 0;
+        virtual int GetGlobalValue() const = 0; // Used for integral types
     };
 
     using ExpressionBasePtr = std::unique_ptr<const ExpressionBase>;

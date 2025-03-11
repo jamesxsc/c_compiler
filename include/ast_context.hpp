@@ -20,6 +20,20 @@ namespace ast {
         TypeSpecifier type;
         bool global{false};
     };
+
+    // Hmmmm, need to think about slicing here. But we have to be able to copy - wait no - we already use shared ptr
+    // this might work - where does instantiation go - parameter list, declaration, what is delegated risc-wise to declarator? i.e. what do we need in arraydeclarator
+    // ok starting to come together, initdeclarator/declarator/arraydeclarator need methods for array like IsFunction IsPointer
+    // parameter list (arrays as function parameters) will be a bitch
+    // acessing should be easy-ish. we find this by the array identifier
+    // is it an array? ok we need to get the offset of the elem - member function?
+    struct Array : Variable {
+        Array(TypeSpecifier elementType, int length) :
+                Variable({.size = GetTypeSize(elementType) * length, .type = elementType}), length(length) {}
+
+        int length;
+    };
+
     using VariablePtr = std::shared_ptr<const Variable>;
     struct Function {
         std::vector<int> parameterSizes;

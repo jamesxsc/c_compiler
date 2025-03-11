@@ -7,6 +7,8 @@
 #include "ast_additive_expression.hpp"
 #include "ast_and_expression.hpp"
 #include "ast_argument_expression_list.hpp"
+#include "ast_array_declarator.hpp"
+#include "ast_array_index_expression.hpp"
 #include "ast_assignment_expression.hpp"
 #include "ast_compound_statement.hpp"
 #include "ast_conditional_expression.hpp"

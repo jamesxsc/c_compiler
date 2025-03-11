@@ -12,6 +12,7 @@ namespace ast {
             bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
             destReg = context.AllocateTemporary(useFloat);
 
+            // todo check if using destreg is safe here (don't use zero as a temporary)
             // Bindings and init
             // Don't handle types with multiple keywords (for now)
             assert(!declarationSpecifiers_->GetTypeSpecifiers().empty() && "Declaration must have a type specifier");

@@ -31,6 +31,4 @@ namespace ast {
         ArgumentExpressionListPtr arguments_; // Can be null
     };
 
-    using FunctionCallExpressionPtr = std::unique_ptr<const FunctionCallExpression>;
-
 }

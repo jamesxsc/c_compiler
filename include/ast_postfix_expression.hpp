@@ -6,7 +6,7 @@ namespace ast {
 
     enum class PostfixOperator {
         PrimaryPromote,
-//        ArrayAccess,
+        ArrayIndexPromote,
         FunctionCallPromote,
 //        MemberAccess,
 //        PointerMemberAccess,

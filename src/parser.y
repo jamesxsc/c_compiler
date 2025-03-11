@@ -20,6 +20,7 @@
   ExpressionBase* expression_base;
   PostfixExpression* postfix_expression;
   FunctionCallExpression* function_call_expression;
+  ArrayIndexExpression* array_index_expression;
   UnaryExpression* unary_expression; 
   UnaryOperator unary_operator;
   MultiplicativeExpression* multiplicative_expression;
@@ -106,6 +107,7 @@
 // Expression hierarchy
 %nterm <postfix_expression> postfix_expression
 %nterm <function_call_expression> function_call_expression
+%nterm <array_index_expression> array_index_expression
 %nterm <unary_expression> unary_expression
 %nterm <unary_operator> unary_operator
 %nterm <multiplicative_expression> multiplicative_expression
@@ -176,20 +178,23 @@ primary_expression
 	}
 	| INT_CONSTANT { $$ = new IntConstant($1); }
     | FLOAT_CONSTANT { $$ = new FloatConstant($1); }
-    // todo do we need to add a char constant here?
 	| STRING_LITERAL
 	| '(' expression ')' { $$ = new ParenthesisedExpression(ExpressionPtr($2)); }
 	;
 
-// Function call; the extra class here seems the neatest way to do this rather than bloat PostfixExpression
+// Function call/array; the extra class here seems the neatest way to do this rather than bloat PostfixExpression
 function_call_expression
     : postfix_expression '(' argument_expression_list ')' { $$ = new FunctionCallExpression(PostfixExpressionPtr($1), ArgumentExpressionListPtr($3)); }
 	| postfix_expression '(' ')' { $$ = new FunctionCallExpression(PostfixExpressionPtr($1)); }
     ;
 
+array_index_expression
+    : postfix_expression '[' expression ']' { $$ = new ArrayIndexExpression(PostfixExpressionPtr($1), ExpressionPtr($3)); }
+    ;
+
 postfix_expression
 	: primary_expression { $$ = new PostfixExpression(ExpressionBasePtr($1), PostfixOperator::PrimaryPromote); }
-	| postfix_expression '[' expression ']'
+    | array_index_expression { $$ = new PostfixExpression(ExpressionBasePtr($1), PostfixOperator::ArrayIndexPromote); }
 	| function_call_expression { $$ = new PostfixExpression(ExpressionBasePtr($1), PostfixOperator::FunctionCallPromote); }
 	| postfix_expression '.' IDENTIFIER
 	| postfix_expression PTR_OP IDENTIFIER
@@ -428,8 +433,8 @@ direct_declarator
 		delete $1;
 	}
 	| '(' declarator ')' { $$ = $2; $$->Direct(); }
-	| direct_declarator '[' constant_expression ']'
-	| direct_declarator '[' ']'
+	| direct_declarator '[' constant_expression ']' { $$ = new ArrayDeclarator(DeclaratorPtr($1), ConstantExpressionPtr($3)); }
+	| direct_declarator '[' ']' { std::cerr << "Need to support empty array declarations?" << std::endl; exit(1); }
 	| direct_declarator '(' parameter_list ')' { $$ = new FunctionDeclarator(DeclaratorPtr($1), ParameterListPtr($3)); }
 	| direct_declarator '(' identifier_list ')' {
 	    std::cerr << "Need to support identifier_list in direct_declarator" << std::endl;
