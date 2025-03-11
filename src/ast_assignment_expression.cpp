@@ -96,6 +96,11 @@ namespace ast {
                     stream << "sw " << right << ",%lo(" << identifier << ")(" << tempReg << ")" << std::endl;
                     break;
                 }
+                case TypeSpecifier::CHAR:
+                    Register tempReg = context.AllocateTemporary();
+                    stream << "lui " << tempReg << ",%hi(" << identifier << ")" << std::endl;
+                    stream << "sb " << right << ",%lo(" << identifier << ")(" << tempReg << ")" << std::endl;
+                    break;
             }
         } else {
             Variable lhsVariable = context.CurrentFrame().bindings.Get(
@@ -107,6 +112,9 @@ namespace ast {
                     break;
                 case TypeSpecifier::INT:
                     stream << "sw " << right << "," << lhsVariable.offset << "(s0)" << std::endl;
+                    break;
+                case TypeSpecifier::CHAR:
+                    stream << "sb " << right << "," << lhsVariable.offset << "(s0)" << std::endl;
                     break;
                 case TypeSpecifier::POINTER:
                     // Pointer, load the address (LHS equivalent of UnaryOperator::Dereference)

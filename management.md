@@ -51,20 +51,23 @@
 * Tests for unary/postfix operators (pointers done)
 * Tests for null statements
 * Tests for global floats doubles and pointers if there aren't already any
+* Test for calling a function from our test with several arguments of different sizes e.g. char, float, int
+* Ternary operator
 * Float/double unary and postfix operators
+* ~~Floats Eliott & James~~ Mar 10
+* ~~Char type - James~~ Mar 11
+* Char constant (override same methods as int but accept char or int in constructor; needs work in lexer also)
 * Float int double conversion pain
 * Cerr outputs for all unsupported features
 * Prepare code for other types/ variable sizes
-* Global variables
+* ~~Global variables - James~~ Mar 9
 * Function calls with many arguments and test
 * Arrays local or global
 * Register spilling
 * Void type/functions
 * Assignment operators impl and testing
-* Floats
 * Structs
 * Enum
-* Ternary operator
 * Sizeof
 * Pointer arithmetic - loads of places this needs to be added
 

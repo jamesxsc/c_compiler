@@ -27,6 +27,10 @@ namespace ast {
                     stream << "lui " << destReg << ",%hi(" << identifier_ << ")" << std::endl;
                     stream << "lw " << destReg << ",%lo(" << identifier_ << ")(" << destReg << ")" << std::endl;
                     break;
+                case TypeSpecifier::CHAR:
+                    stream << "lui " << destReg << ",%hi(" << identifier_ << ")" << std::endl;
+                    stream << "lbu " << destReg << ",%lo(" << identifier_ << ")(" << destReg << ")" << std::endl;
+                    break;
             }
         } else {
             int offset = context.CurrentFrame().bindings.Get(identifier_).offset;
@@ -44,6 +48,9 @@ namespace ast {
                            "Identifier::EmitRISC attempting to load non-float into float register");
                     // todo cx abi - is this actually that bad?
                     stream << "lw " << destReg << "," << offset << "(s0)" << std::endl;
+                    break;
+                case TypeSpecifier::CHAR:
+                    stream << "lbu " << destReg << "," << offset << "(s0)" << std::endl;
                     break;
             }
         }

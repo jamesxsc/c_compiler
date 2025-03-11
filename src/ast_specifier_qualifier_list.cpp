@@ -18,7 +18,7 @@ namespace ast {
 
     TypeSpecifier SpecifierQualifierList::GetType(Context &context) const {
 
-        // TODO gettype logic - support multiple specifiers, can this be shared with declaration_specifiers somehow?
+        // TODO gettype logic - support multiple specifiers, can this be shared with declaration_specifiers somehow? structs and enums may change this so wait till then
         return specifiers_.front();
     }
 

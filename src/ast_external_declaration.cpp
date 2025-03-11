@@ -38,11 +38,14 @@ namespace ast {
                             // Can only be a constant (can't be assigned to another global for example)
                             stream << ".word " << initDeclarator->GetGlobalInitializerValue() << std::endl;
                             break;
+                        case TypeSpecifier::CHAR:
+                            stream << ".byte " << initDeclarator->GetGlobalInitializerValue() << std::endl;
+                            break;
                         case TypeSpecifier::POINTER:
                             // Simply .word (RHS identifier)
                             stream << ".word " << initDeclarator->GetGlobalInitializerIdentifier() << std::endl;
                             break;
-                            // TODO float work here, note double should be given two words or can we use .float? is there a .double
+                            // TODO float work here, note double should be given two words or can we use .float? is there a .double cx the other todo relating to this (constant)
                         case TypeSpecifier::FLOAT:
                             break;
                         case TypeSpecifier::DOUBLE:

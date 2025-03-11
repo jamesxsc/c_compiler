@@ -34,6 +34,11 @@ namespace ast {
                        (op_ == AdditiveOperator::Add ? "add " : "sub ")
                        << destReg << "," << leftReg << "," << rightReg << std::endl;
                 break;
+            case TypeSpecifier::CHAR:
+                stream <<
+                       (op_ == AdditiveOperator::Add ? "add " : "sub ")
+                       << destReg << "," << leftReg << "," << rightReg << std::endl;
+                break;
         }
         leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg);
         context.FreeTemporary(rightReg);

@@ -6,7 +6,7 @@ namespace ast {
 
     void ConditionalExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         // TODO implement
-        // Do we reuse some logic from if/else blocks?
+        // Can we reuse some logic from if/else blocks?
         // for now (temp) just emit the middle
         if (ternary_)
             std::cerr << ":ConditionalExpression::EmitRISC Temporary logic" << std::endl;

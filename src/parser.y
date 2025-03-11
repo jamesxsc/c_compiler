@@ -176,6 +176,7 @@ primary_expression
 	}
 	| INT_CONSTANT { $$ = new IntConstant($1); }
     | FLOAT_CONSTANT { $$ = new FloatConstant($1); }
+    // todo do we need to add a char constant here?
 	| STRING_LITERAL
 	| '(' expression ')' { $$ = new ParenthesisedExpression(ExpressionPtr($2)); }
 	;
@@ -354,7 +355,7 @@ storage_class_specifier
 
 type_specifier
 	: VOID
-	| CHAR
+	| CHAR { $$ = TypeSpecifier::CHAR; }
 	| SHORT { std::cerr << "Short type is unsupported." << std::endl; exit(1); }
 	| INT { $$ = TypeSpecifier::INT; }
 	| LONG { std::cerr << "Long type is unsupported." << std::endl; exit(1); }

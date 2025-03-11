@@ -30,6 +30,10 @@ namespace ast {
                         stream << "sw a" << iidx << "," << var.offset << "(s0)" << std::endl;
                         ++iidx;
                         break;
+                    case TypeSpecifier::CHAR:
+                        stream << "sb a" << iidx << "," << var.offset << "(s0)" << std::endl;
+                        ++iidx;
+                        break;
                 }
             }
         }

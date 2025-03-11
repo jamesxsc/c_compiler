@@ -50,6 +50,10 @@ namespace ast {
                         case TypeSpecifier::DOUBLE:
                             stream << "fsd " << destReg << "," << var.offset << "(s0)" << std::endl;
                             break;
+                        case TypeSpecifier::CHAR:
+                            // todo check char store in godbolt
+                            stream << "sb " << destReg << "," << var.offset << "(s0)" << std::endl;
+                            break;
                     }
                 }
             } else {

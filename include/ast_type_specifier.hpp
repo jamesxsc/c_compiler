@@ -7,6 +7,7 @@ namespace ast {
 
     enum class TypeSpecifier {
         INT,
+        CHAR,
         FLOAT,
         DOUBLE,
         POINTER,
@@ -22,6 +23,8 @@ namespace ast {
             switch (type) {
                 case TypeSpecifier::INT:
                     return "int";
+                case TypeSpecifier::CHAR:
+                    return "char";
                 case TypeSpecifier::FLOAT:
                     return "float";
                 case TypeSpecifier::DOUBLE:
