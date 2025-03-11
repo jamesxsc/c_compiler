@@ -1,6 +1,7 @@
 #include "ast_postfix_expression.hpp"
 #include "ast_identifier.hpp"
 #include "ast_type_specifier.hpp"
+#include "ast_array_index_expression.hpp"
 
 namespace ast {
 
@@ -68,8 +69,6 @@ namespace ast {
     }
 
     std::string PostfixExpression::GetIdentifier() const {
-        // todo handle array/identifier.member case complicated - cant just get from bindings
-
         switch (op_) {
             case PostfixOperator::PrimaryPromote:
             case PostfixOperator::FunctionCallPromote: {
@@ -82,8 +81,7 @@ namespace ast {
                 return dynamic_cast<const PostfixExpression *>(child_.get())->GetIdentifier();
             }
             case PostfixOperator::ArrayIndexPromote:
-                throw std::runtime_error("Array index identifier required");
-                break;
+                return dynamic_cast<const ArrayIndexExpression *>(child_.get())->GetIdentifier();
         }
 
         Identifier identifier = dynamic_cast<const Identifier &>(*child_);

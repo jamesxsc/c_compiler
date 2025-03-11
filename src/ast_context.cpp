@@ -15,7 +15,7 @@ namespace ast {
         return *it->second;
     }
 
-    const Variable &Bindings::Insert(const std::string &identifier, Variable variable) {
+    const Variable &Bindings::Insert(const std::string &identifier, Variable &&variable) {
         assert(bindingsMap_.find(identifier) == bindingsMap_.end() && "Variable already exists in bindings");
         if (bindings_.empty()) {
             variable.offset = start_;
@@ -33,13 +33,14 @@ namespace ast {
         return bindingsMap_.find(identifier) != bindingsMap_.end();
     }
 
-    const Variable &Bindings::InsertOrOverwrite(const std::string &identifier, ast::Variable variable) {
+    const Variable &Bindings::InsertOrOverwrite(const std::string &identifier, Variable &&variable) {
         auto it = bindingsMap_.find(identifier);
         if (it != bindingsMap_.end()) {
             // Don't remove from deque because it will allow that offset region to be overwritten
             bindingsMap_.erase(it);
         }
-        return Insert(identifier, variable);
+        // clang-tidy is wrong
+        return Insert(identifier, std::move(variable)); // NOLINT(*-move-const-arg)
     }
 
     bool Bindings::IsArray(const std::string &identifier) const {
@@ -187,16 +188,32 @@ namespace ast {
         return label;
     }
 
-    // todo make it const if we can be bothered to get a const frame
+    // todo make it const if we can be bothered to get a const frame and isarray
     bool Context::IsGlobal(const std::string &identifier) {
-        if (!(globals_.find(identifier) != globals_.end())) return false;
+        bool isGlobalArray = globalArrays_.find(identifier) != globalArrays_.end();
+        bool isGlobalVariable = globals_.find(identifier) != globals_.end();
+        if (!isGlobalArray && !isGlobalVariable) return false;
 
         // Shadowing check
         return !(!stack_.empty() && CurrentFrame().bindings.Contains(identifier));
     }
 
+    bool Context::IsArray(const std::string &identifier) {
+        // I like how we call is global first here, because it guarantees we are checking the correct one (shadowing)
+        if (IsGlobal(identifier)) {
+            return globalArrays_.find(identifier) != globalArrays_.end();
+        } else {
+            return CurrentFrame().bindings.IsArray(identifier);
+        }
+    }
+
     void Context::InsertGlobal(const std::string &identifier, TypeSpecifier type) {
         globals_.emplace(identifier, type);
+    }
+
+    void Context::InsertGlobalArray(const std::string &identifier, Array array) {
+        array.global = true;
+        globalArrays_.emplace(identifier, array);
     }
 
     std::ostream &Context::DeferredRISC() {
@@ -208,8 +225,14 @@ namespace ast {
     }
 
     TypeSpecifier Context::GetGlobalType(const std::string &identifier) const {
-        auto it = globals_.find(identifier);
-        assert(it != globals_.end() && "Global variable not found in context");
-        return it->second;
+        auto itVar = globals_.find(identifier);
+        if (itVar != globals_.end()) return itVar->second;
+        auto itArray = globalArrays_.find(identifier);
+        if (itArray != globalArrays_.end()) return itArray->second.type; // Gets element type
+        throw std::runtime_error("Context::GetGlobalType Global not found in context");
+    }
+
+    const Array &Context::GetGlobalArray(const std::string &identifier) const {
+        return globalArrays_.at(identifier);
     }
 } // namespace ast

@@ -15,7 +15,7 @@
 namespace ast {
     struct Variable {
         int offset{0};
-        int size;
+        int size; // Bytes
         Register reg{Register::zero}; // todo probably avoid use
         TypeSpecifier type;
         bool global{false};
@@ -31,6 +31,14 @@ namespace ast {
     // is it an array? ok we need to get the offset of the elem - member function? DONE
     // need an IsArray accessible from assignment - like IsGlobal DONE note you have to .bindings so is nonconst on stackframe
     // also this type cant be stored in the current bindings map - sol required for this
+    // just have a second container and add to is global - we need cxs for both global and array
+    // make each work for both case of the other - members on stackframe
+    // or do we std::variant it - no
+    // fuck now when we use array in globals it has base class bloat
+    // use global bool and todo assert it false in any methods involving an offset to avoid fuck ups
+    // we'll try a buildarray pattern in initdeclarator and declarator - but not 100% convinced its best
+    // but it is consistent with functiondeclarations - this is very nice
+    // next/still to do: assignment, arrayindexexpression
     struct Array : public Variable {
         Array(TypeSpecifier elementType, int length) :
                 Variable({.size = GetTypeSize(elementType) * length, .type = elementType, .array = true}),
@@ -40,6 +48,7 @@ namespace ast {
     };
 
     using VariablePtr = std::shared_ptr<const Variable>;
+
     struct Function {
         std::vector<int> parameterSizes;
         int totalSize;
@@ -55,10 +64,11 @@ namespace ast {
 
         bool Contains(const std::string &identifier) const;
 
-        const Variable &Insert(const std::string &identifier, Variable variable);
+        // Must pass as rvalue to avoid slicing Array type
+        const Variable &Insert(const std::string &identifier, Variable &&variable);
 
         // This is for in a scope - removes old and reallocated because may be a different type/size
-        const Variable &InsertOrOverwrite(const std::string &identifier, Variable variable);
+        const Variable &InsertOrOverwrite(const std::string &identifier, Variable &&variable);
 
         bool IsArray(const std::string &identifier) const;
 
@@ -74,7 +84,7 @@ namespace ast {
         Bindings bindings;
         std::bitset<12> usedIntegerPersistentRegisters{1}; // s0 is always used
         std::bitset<12> usedFloatPersistentRegisters{};
-        // todo consider a return label to aovid multiple return instruction sequences
+        // todo consider a return label to avoid multiple return instruction sequences
         std::optional<std::string> breakLabel{std::nullopt};
         std::optional<std::string> continueLabel{std::nullopt};
     };
@@ -111,9 +121,15 @@ namespace ast {
 
         [[nodiscard]] bool IsGlobal(const std::string &identifier);
 
+        [[nodiscard]] bool IsArray(const std::string &identifier);
+
         void InsertGlobal(const std::string &identifier, TypeSpecifier type);
 
+        void InsertGlobalArray(const std::string &identifier, Array array);
+
         TypeSpecifier GetGlobalType(const std::string &identifier) const;
+
+        const Array& GetGlobalArray(const std::string &identifier) const;
 
         std::ostream &DeferredRISC();
 
@@ -126,7 +142,9 @@ namespace ast {
         std::bitset<12> floatPersistent_; // fs0 ...
 
         std::vector<StackFrame> stack_;
+        // Globals are not stored on the stack so do not require the bindings class/ offsets
         std::unordered_map<std::string, TypeSpecifier> globals_;
+        std::unordered_map<std::string, Array> globalArrays_;
         std::unordered_map<std::string, Function> functions_;
 
         std::stringstream deferredRISC_{};

@@ -47,4 +47,9 @@ namespace ast {
         exit(1);
     }
 
+    Array Declarator::BuildArray(TypeSpecifier type, Context &context) const {
+        std::cerr << "Error: Declarator is not an array" << std::endl;
+        exit(1);
+    }
+
 }

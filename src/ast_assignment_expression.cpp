@@ -20,10 +20,10 @@ namespace ast {
         TypeSpecifier type = GetType(context); // Should be LHS I think
         bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
         Register right = context.AllocateTemporary(useFloat);
-        // todo check it makes sense to use a temporary etc, this seems funny
+        // todo check lr order
         assignment_->EmitRISC(stream, context, right); // Order is impl. defined; execute right first (same as GCC)
         if (op_ != AssignmentOperator::Assign) {
-            // todo propagate float double logic in this block
+            // todo propagate float double arrays etc logic in this block
             bool leftStored = assignment_->ContainsFunctionCall();
             Register left = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(useFloat);
             unary_->EmitRISC(stream, context, left);
@@ -79,55 +79,72 @@ namespace ast {
         std::string identifier = unary_->GetIdentifier();
         // hmmm so we can store array as a different type or a large set of types with a funny identifier in our bindings/globals
         // and somehow detect it here. or how else can we implement GetIdentifier to work. cx s
-        if (context.IsGlobal(identifier)) {
-            // todo array case here
-            // i think this is the best place?
+        if (context.IsArray(identifier)) {
+            if (context.IsGlobal(identifier)) {
+                Register addrReg = context.AllocateTemporary();
+                stream << "lui " << addrReg << ",%hi(" << identifier << ")" << std::endl;
+                stream << "addi " << addrReg << "," << addrReg << ",%lo(" << identifier << ")" << std::endl;
+                // todo ah shit we need the index
+            } else {
 
-            switch (type) {
-                case TypeSpecifier::FLOAT:
-                case TypeSpecifier::DOUBLE: {
-                    Register tempReg = context.AllocateTemporary();
-                    stream << "lui " << tempReg << ",%hi(" << identifier << ")" << std::endl;
-                    stream << (type == TypeSpecifier::FLOAT ? "fsw " : "fsd ") << right << ",%lo(" << identifier << ")("
-                           << tempReg << ")" << std::endl;
-                    context.FreeTemporary(tempReg);
-                    break;
-                }
-                case TypeSpecifier::POINTER:
-                    // todo pointer is different
-                case TypeSpecifier::INT: {
-                    Register tempReg = context.AllocateTemporary();
-                    stream << "lui " << tempReg << ",%hi(" << identifier << ")" << std::endl;
-                    stream << "sw " << right << ",%lo(" << identifier << ")(" << tempReg << ")" << std::endl;
-                    break;
-                }
-                case TypeSpecifier::CHAR:
-                    Register tempReg = context.AllocateTemporary();
-                    stream << "lui " << tempReg << ",%hi(" << identifier << ")" << std::endl;
-                    stream << "sb " << right << ",%lo(" << identifier << ")(" << tempReg << ")" << std::endl;
-                    break;
             }
         } else {
-            Variable lhsVariable = context.CurrentFrame().bindings.Get(
-                    identifier); // Can only assign to lvalue so this call should succeed
-            switch (type) {
-                case TypeSpecifier::FLOAT:
-                case TypeSpecifier::DOUBLE:
-                    stream << (type == TypeSpecifier::FLOAT ? "fsw " : "fsd ") << right << "," << lhsVariable.offset << "(s0)" << std::endl;
-                    break;
-                case TypeSpecifier::INT:
-                    stream << "sw " << right << "," << lhsVariable.offset << "(s0)" << std::endl;
-                    break;
-                case TypeSpecifier::CHAR:
-                    stream << "sb " << right << "," << lhsVariable.offset << "(s0)" << std::endl;
-                    break;
-                case TypeSpecifier::POINTER:
-                    // Pointer, load the address (LHS equivalent of UnaryOperator::Dereference)
-                    Register addrReg = context.AllocateTemporary();
-                    stream << "lw " << addrReg << "," << lhsVariable.offset << "(s0)" << std::endl;
-                    stream << "sw " << right << ",0(" << addrReg << ")" << std::endl;
-                    context.FreeTemporary(addrReg);
-                    break;
+            if (context.IsGlobal(identifier)) {
+                switch (type) {
+                    case TypeSpecifier::FLOAT:
+                    case TypeSpecifier::DOUBLE: {
+                        Register tempReg = context.AllocateTemporary();
+                        stream << "lui " << tempReg << ",%hi(" << identifier << ")" << std::endl;
+                        stream << (type == TypeSpecifier::FLOAT ? "fsw " : "fsd ") << right << ",%lo(" << identifier
+                               << ")("
+                               << tempReg << ")" << std::endl;
+                        context.FreeTemporary(tempReg);
+                        break;
+                    }
+                    case TypeSpecifier::POINTER: {
+                        Register tempReg = context.AllocateTemporary();
+                        stream << "lui " << tempReg << ",%hi(" << identifier << ")" << std::endl;
+                        stream << "sw " << right << ",%lo(" << identifier << ")(" << tempReg << ")" << std::endl;
+                        context.FreeTemporary(tempReg);
+                        break;
+                    }
+                    case TypeSpecifier::INT: {
+                        Register tempReg = context.AllocateTemporary();
+                        stream << "lui " << tempReg << ",%hi(" << identifier << ")" << std::endl;
+                        stream << "sw " << right << ",%lo(" << identifier << ")(" << tempReg << ")" << std::endl;
+                        context.FreeTemporary(tempReg);
+                        break;
+                    }
+                    case TypeSpecifier::CHAR:
+                        Register tempReg = context.AllocateTemporary();
+                        stream << "lui " << tempReg << ",%hi(" << identifier << ")" << std::endl;
+                        stream << "sb " << right << ",%lo(" << identifier << ")(" << tempReg << ")" << std::endl;
+                        context.FreeTemporary(tempReg);
+                        break;
+                }
+            } else {
+                Variable lhsVariable = context.CurrentFrame().bindings.Get(
+                        identifier); // Can only assign to lvalue so this call should succeed
+                switch (type) {
+                    case TypeSpecifier::FLOAT:
+                    case TypeSpecifier::DOUBLE:
+                        stream << (type == TypeSpecifier::FLOAT ? "fsw " : "fsd ") << right << "," << lhsVariable.offset
+                               << "(s0)" << std::endl;
+                        break;
+                    case TypeSpecifier::INT:
+                        stream << "sw " << right << "," << lhsVariable.offset << "(s0)" << std::endl;
+                        break;
+                    case TypeSpecifier::CHAR:
+                        stream << "sb " << right << "," << lhsVariable.offset << "(s0)" << std::endl;
+                        break;
+                    case TypeSpecifier::POINTER:
+                        // Pointer, load the address (LHS equivalent of UnaryOperator::Dereference)
+                        Register addrReg = context.AllocateTemporary();
+                        stream << "lw " << addrReg << "," << lhsVariable.offset << "(s0)" << std::endl;
+                        stream << "sw " << right << ",0(" << addrReg << ")" << std::endl;
+                        context.FreeTemporary(addrReg);
+                        break;
+                }
             }
         }
         // All "return" the result in destReg (if it's used)

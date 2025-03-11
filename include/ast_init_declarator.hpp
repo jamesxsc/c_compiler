@@ -17,6 +17,7 @@ namespace ast {
         [[nodiscard]] bool HasInitializer() const;
         [[nodiscard]] bool IsPointer() const;
         [[nodiscard]] Function BuildFunction(TypeSpecifier returnType, Context &context) const; // Pass down to declarator
+        [[nodiscard]] Array BuildArray(TypeSpecifier type, Context &context) const; // Pass down to declarator
         [[nodiscard]] bool IsFunction() const;
         [[nodiscard]] bool IsArray() const;
         [[nodiscard]] std::string GetGlobalInitializerIdentifier() const;

@@ -20,6 +20,8 @@ namespace ast {
 
         [[nodiscard]] bool IsArray() const override;
 
+        Array BuildArray(TypeSpecifier type, Context &context) const override;
+
     private:
         ConstantExpressionPtr size_;
     };
