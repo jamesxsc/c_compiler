@@ -78,7 +78,6 @@
 %type <node_list> translation_unit
 %type <node> external_declaration function_definition
 %type <expression_base> primary_expression
-%type <node> initializer_list
 %type <node> struct_specifier struct_declaration_list struct_declaration struct_declarator_list
 %type <node> struct_declarator enum_specifier enumerator_list enumerator pointer
 %type <node> identifier_list abstract_declarator direct_abstract_declarator
@@ -98,7 +97,7 @@
 %nterm <direct_declarator> direct_declarator declarator // Differentiated by a bool member
 %nterm <init_declarator> init_declarator
 %nterm <init_declarator_list> init_declarator_list
-%nterm <initializer> initializer
+%nterm <initializer> initializer initializer_list
 %nterm <declaration> declaration
 %nterm <declaration_specifiers> declaration_specifiers
 %nterm <storage_class_specifier> storage_class_specifier
@@ -489,13 +488,13 @@ direct_abstract_declarator
 
 initializer
 	: assignment_expression { $$ = new Initializer(AssignmentExpressionPtr($1)); }
-	| '{' initializer_list '}'
-	| '{' initializer_list ',' '}'
+	| '{' initializer_list '}' { $$ = $2; }
+	| '{' initializer_list ',' '}' { $$ = $2; }
 	;
 
 initializer_list
-	: initializer { $$ = $1; } // Temp
-	| initializer_list ',' initializer
+	: initializer { $$ = $1; } // This is different to other lists to avoid creating single element lists (so IsList is useful)
+	| initializer_list ',' initializer { if ($1->IsList()) { $1->AddInitializer(InitializerPtr($3)); $$ = $1; } else { $$ = new InitializerList(InitializerPtr($1), InitializerPtr($3)); } }
 	;
 
 // Do these need to be cast to StatementPtrs or are derived ptrs ok?

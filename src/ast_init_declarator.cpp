@@ -54,4 +54,8 @@ namespace ast {
         return initializer_->GetGlobalValue();
     }
 
+    const Initializer &InitDeclarator::GetInitializer() const {
+        return *initializer_;
+    }
+
 }

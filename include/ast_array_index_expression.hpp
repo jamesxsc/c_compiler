@@ -25,8 +25,10 @@ namespace ast {
 
         [[nodiscard]] std::string GetIdentifier() const;
 
-        ExpressionPtr index_; // todo move back to priv (temp)
+        [[nodiscard]] const Expression &GetIndexExpression() const;
+
     private:
+        ExpressionPtr index_;
         PostfixExpressionPtr array_;
     };
 

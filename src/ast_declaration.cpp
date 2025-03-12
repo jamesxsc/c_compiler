@@ -1,5 +1,6 @@
 #include <cassert>
 #include "ast_declaration.hpp"
+#include "ast_initializer_list.hpp"
 
 namespace ast {
 
@@ -19,9 +20,31 @@ namespace ast {
             assert(!declarationSpecifiers_->GetTypeSpecifiers().empty() && "Declaration must have a type specifier");
             if (initDeclarator->HasInitializer()) {
                 if (initDeclarator->IsArray()) {
-                    // todo array case here
-                    // wait until we have initializer list, I don't think you can assign to any other type of initializer,
-                    // will need a type enum or bool on initializer to check if it is an initializer list
+                    // This approach may have to change slightly for (nested) structs
+                    assert(initDeclarator->GetInitializer().IsList() && "Array initializer must be a list");
+                    Variable array = context.CurrentFrame().bindings.InsertOrOverwrite(identifier, initDeclarator->BuildArray(type, context));
+                    const auto &initializerList = static_cast<const InitializerList &>(initDeclarator->GetInitializer()); // NOLINT(*-pro-type-static-cast-downcast)
+                    int idx = 0;
+                    for (const auto & initializer : initializerList) {
+                        initializer->EmitRISC(stream, context, destReg);
+                        switch (type) {
+                            case TypeSpecifier::INT:
+                                stream << "sw " << destReg << "," << array.offset + idx * GetTypeSize(type) << "(s0)" << std::endl;
+                                break;
+                            case TypeSpecifier::FLOAT:
+                                stream << "fsw " << destReg << "," << array.offset + idx * GetTypeSize(type) << "(s0)" << std::endl;
+                                break;
+                            case TypeSpecifier::DOUBLE:
+                                stream << "fsd " << destReg << "," << array.offset + idx * GetTypeSize(type) << "(s0)" << std::endl;
+                                break;
+                            case TypeSpecifier::CHAR:
+                                stream << "sb " << destReg << "," << array.offset + idx * GetTypeSize(type) << "(s0)" << std::endl;
+                                break;
+                            case TypeSpecifier::POINTER:
+                                throw std::runtime_error("Array of pointers not supported");
+                        }
+                        idx++;
+                    }
                 } else {
                     // Generates initializer/assignment code
                     initDeclarator->EmitRISC(stream, context, destReg);
@@ -53,7 +76,7 @@ namespace ast {
             } else {
                 // Allocated (stack), but not initialized
                 if (initDeclarator->IsArray()) {
-                    context.CurrentFrame().bindings.Insert(identifier, initDeclarator->BuildArray(type, context));
+                    context.CurrentFrame().bindings.InsertOrOverwrite(identifier, initDeclarator->BuildArray(type, context));
                 } else {
                     context.CurrentFrame().bindings.InsertOrOverwrite(identifier, Variable{
                             .size = initDeclarator->IsPointer() ? 4 : size,

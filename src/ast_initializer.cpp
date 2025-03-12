@@ -20,4 +20,12 @@ namespace ast {
         return expression_->GetGlobalValue();
     }
 
+    bool Initializer::IsList() const {
+        return false;
+    }
+
+    void Initializer::AddInitializer(InitializerPtr initializer) {
+        throw std::runtime_error("Initializer::AddInitializer() called on a non-list initializer");
+    }
+
 }

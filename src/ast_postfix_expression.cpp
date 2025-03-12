@@ -103,7 +103,7 @@ namespace ast {
 
     const Expression& PostfixExpression::GetArrayIndexExpression() const {
         assert(op_ == PostfixOperator::ArrayIndexPromote && "PostfixExpression::GetArrayIndexExpression called on non-array");
-        return *dynamic_cast<const ArrayIndexExpression *>(child_.get())->index_;
+        return dynamic_cast<const ArrayIndexExpression *>(child_.get())->GetIndexExpression();
     }
 
 } // namespace ast

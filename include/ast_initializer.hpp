@@ -5,20 +5,29 @@
 #include "ast_expression.hpp"
 
 namespace ast {
-    class Initializer : public Node {
-        // TODO implement initializer list - possibly best to wait until structs
-    public:
-        explicit Initializer(AssignmentExpressionPtr expression): expression_(std::move(expression)) {}
 
-        void EmitRISC(std::ostream& stream, Context& context, Register destReg) const override;
-        void Print(std::ostream& stream) const override;
-
-        [[nodiscard]] std::string GetGlobalIdentifier() const;
-        [[nodiscard]] int GetGlobalValue() const;
-
-    private:
-        AssignmentExpressionPtr expression_;
-    };
+    class Initializer;
 
     using InitializerPtr = std::unique_ptr<const Initializer>;
+
+    class Initializer : public Node {
+    public:
+        explicit Initializer(AssignmentExpressionPtr expression) : expression_(std::move(expression)) {}
+
+        void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
+
+        void Print(std::ostream &stream) const override;
+
+        [[nodiscard]] std::string GetGlobalIdentifier() const;
+
+        [[nodiscard]] int GetGlobalValue() const;
+
+        [[nodiscard]] virtual bool IsList() const;
+
+        virtual void AddInitializer(InitializerPtr initializer);
+
+    private:
+        AssignmentExpressionPtr expression_; // Null for a list
+    };
+
 }

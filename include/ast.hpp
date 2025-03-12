@@ -37,6 +37,7 @@
 #include "ast_init_declarator.hpp"
 #include "ast_init_declarator_list.hpp"
 #include "ast_initializer.hpp"
+#include "ast_initializer_list.hpp"
 #include "ast_iteration_statement.hpp"
 #include "ast_jump_statement.hpp"
 #include "ast_labeled_statement.hpp"

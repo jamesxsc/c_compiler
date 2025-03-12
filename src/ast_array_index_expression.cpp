@@ -19,7 +19,7 @@ namespace ast {
                     stream << "slli " << indexReg << "," << indexReg << "," << logSize << std::endl;
                 Register addressTemp = useFloat ? context.AllocateTemporary() : destReg;
                 stream << "lui " << addressTemp << ", %hi(" << identifier << ")" << std::endl;
-                stream << "addi " << addressTemp << ",%lo(" << identifier << ")" << std::endl;
+                stream << "addi " << addressTemp << "," << addressTemp << ",%lo(" << identifier << ")" << std::endl;
                 stream << "add " << addressTemp << "," << addressTemp << "," << indexReg << std::endl;
                 context.FreeTemporary(indexReg);
                 switch (array.type) {
@@ -87,7 +87,7 @@ namespace ast {
                 stream << "slli " << indexReg << "," << indexReg << ",2" << std::endl;
                 Register addressTemp = useFloat ? context.AllocateTemporary() : destReg;
                 stream << "lui " << addressTemp << ", %hi(" << identifier << ")" << std::endl;
-                stream << "addi " << addressTemp << ",%lo(" << identifier << ")" << std::endl;
+                stream << "addi " << addressTemp << "," << addressTemp << ",%lo(" << identifier << ")" << std::endl;
                 stream << "add " << addressTemp << "," << addressTemp << "," << indexReg << std::endl;
                 stream << "lw " << destReg << ",0" << "(" << addressTemp << ")" << std::endl; // here ^
                 context.FreeTemporary(indexReg);
@@ -135,6 +135,10 @@ namespace ast {
 
     std::string ArrayIndexExpression::GetIdentifier() const {
         return array_->GetIdentifier();
+    }
+
+    const Expression &ArrayIndexExpression::GetIndexExpression() const {
+        return *index_;
     }
 
 }

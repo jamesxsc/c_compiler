@@ -22,6 +22,7 @@ namespace ast {
         bool array{false};
     };
 
+    // todo tidy my notes into md
     // missing rust/swift enums, would make typespecifier much more fun
     // Hmmmm, need to think about slicing here. But we have to be able to copy - wait no - we already use shared ptr NICE
     // this might work - where does instantiation go - parameter list, declaration, what is delegated risc-wise to declarator? i.e. what do we need in arraydeclarator

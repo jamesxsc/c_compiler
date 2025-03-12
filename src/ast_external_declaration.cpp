@@ -1,4 +1,6 @@
+#include <cassert>
 #include "ast_external_declaration.hpp"
+#include "ast_initializer_list.hpp"
 
 namespace ast {
 
@@ -31,7 +33,28 @@ namespace ast {
                 stream << ".data" << std::endl; // .sdata may be more appropriate (GCC)
                 if (initDeclarator->HasInitializer()) {
                     if (initDeclarator->IsArray()) {
-                        // todo waiting, see declaration
+                        assert(initDeclarator->GetInitializer().IsList() && "Array initializer must be a list");
+                        context.InsertGlobalArray(identifier, initDeclarator->BuildArray(type, context));
+                        const auto& initializerList = static_cast<const InitializerList&>(initDeclarator->GetInitializer()); // NOLINT(*-pro-type-static-cast-downcast)
+                        stream << ".size " << identifier << "," << context.GetGlobalArray(identifier).size << std::endl;
+                        stream << identifier << ":" << std::endl;
+                        for (const auto& initializer : initializerList) {
+                            switch (type) {
+                                case TypeSpecifier::INT:
+                                    stream << ".word " << initializer->GetGlobalValue() << std::endl;
+                                    break;
+                                case TypeSpecifier::CHAR:
+                                    stream << ".byte " << initializer->GetGlobalValue() << std::endl;
+                                    break;
+                                case TypeSpecifier::POINTER:
+                                    stream << ".word " << initializer->GetGlobalIdentifier() << std::endl;
+                                    break;
+                                case TypeSpecifier::FLOAT:
+                                    break;
+                                case TypeSpecifier::DOUBLE:
+                                    break;
+                            }
+                        }
                     } else {
                         context.InsertGlobal(identifier, type);
                         stream << ".size " << identifier << "," << GetTypeSize(type) << std::endl;
@@ -48,7 +71,7 @@ namespace ast {
                                 // Simply .word (RHS identifier)
                                 stream << ".word " << initDeclarator->GetGlobalInitializerIdentifier() << std::endl;
                                 break;
-                                // TODO float work here, note double should be given two words or can we use .float? is there a .double cx the other todo relating to this (constant)
+                                // TODO float work here and above, note double should be given two words or can we use .float? is there a .double cx the other todo relating to this (constant)
                             case TypeSpecifier::FLOAT:
                                 break;
                             case TypeSpecifier::DOUBLE:
