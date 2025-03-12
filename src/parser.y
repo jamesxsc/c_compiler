@@ -375,6 +375,7 @@ type_specifier
     | struct_specifier
 	| enum_specifier
 	| TYPE_NAME { $$ = typedefs.at(*$1); delete $1; } // todo think about a more complex TypeSpecifier class - may be necessary for structs
+	// we like case safety, but really need array, struct, enum and void
 	;
 
 struct_specifier

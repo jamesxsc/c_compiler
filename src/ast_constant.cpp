@@ -49,7 +49,7 @@ namespace ast {
     }
 
     int FloatConstant::GetGlobalValue() const {
-        // todo should this be assignable to a global int without a cast?
+        // We don't need to support implicit casting to int
         throw std::runtime_error("FloatConstant::GetGlobalValue() called on a float constant");
     }
 

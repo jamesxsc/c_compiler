@@ -13,7 +13,6 @@ namespace ast {
         IfStatement(ExpressionPtr condition, StatementPtr thenStmt, StatementPtr elseStmt = nullptr) : condition_(
                 std::move(condition)), thenStmt_(std::move(thenStmt)), elseStmt_(std::move(elseStmt)) {};
 
-        // Use a named destReg parameter
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
 
         void Print(std::ostream &stream) const override;

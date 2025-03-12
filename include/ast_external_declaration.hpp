@@ -6,7 +6,6 @@ namespace ast {
 
     // This class handles global/external function/variable declarations
     // NOT function definitions
-    // todo this will support array declarations
     class ExternalDeclaration : public Declaration {
     public:
         explicit ExternalDeclaration(DeclarationPtr declaration) : Declaration(std::move(declaration)) {}

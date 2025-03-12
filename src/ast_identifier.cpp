@@ -46,7 +46,6 @@ namespace ast {
                 case TypeSpecifier::INT:
                     assert(!IsFloatRegister(destReg) &&
                            "Identifier::EmitRISC attempting to load non-float into float register");
-                    // todo cx abi - is this actually that bad?
                     stream << "lw " << destReg << "," << offset << "(s0)" << std::endl;
                     break;
                 case TypeSpecifier::CHAR:

@@ -5,55 +5,36 @@ namespace ast {
 
 //==================== WhileStatement ====================//
     void WhileStatement::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-        // We'll do:
-        //   label_start:
-        //     condReg = condition
-        //     beq condReg, $zero, label_end
-        //     body
-        //     j label_start
-        //   label_end:
-
         std::string labelStart = context.MakeLabel("while_start");
         std::string labelEnd = context.MakeLabel("while_end");
         context.CurrentFrame().breakLabel = labelEnd;
         context.CurrentFrame().continueLabel = labelStart;
 
-        // label_start:
-        stream << labelStart << ":\n";
+        stream << labelStart << ":" << std::endl;
 
         // Evaluate condition
-        if (condition_) {
-            Register condReg = context.AllocateTemporary();
-            condition_->EmitRISC(stream, context, condReg);
+        Register condReg = context.AllocateTemporary();
+        condition_->EmitRISC(stream, context, condReg);
 
-            // If condReg == 0 => jump labelEnd
-            stream << "beq " << condReg << ", zero, " << labelEnd << "\n";
+        // If condReg == 0 => jump labelEnd
+        stream << "beq " << condReg << ", zero, " << labelEnd << std::endl;
+        context.FreeTemporary(condReg);
 
-            context.FreeTemporary(condReg);
-        }
-
-        // Emit body
-        if (body_) {
-            // Use the destReg parameter
-            body_->EmitRISC(stream, context, destReg);
-        }
+        // Never null
+        body_->EmitRISC(stream, context, destReg);
 
         // Jump back
-        stream << "j " << labelStart << "\n";
+        stream << "j " << labelStart << std::endl;
 
         // label_end:
-        stream << labelEnd << ":\n";
+        stream << labelEnd << ":" << std::endl;
     }
 
     void WhileStatement::Print(std::ostream &stream) const {
         stream << "while (";
-        if (condition_) {
-            condition_->Print(stream);
-        }
-        stream << ")\n";
-        if (body_) {
-            body_->Print(stream);
-        }
+        condition_->Print(stream);
+        stream << ") ";
+        body_->Print(stream);
     }
 
 //==================== DoWhileStatement ====================//
@@ -63,34 +44,25 @@ namespace ast {
         context.CurrentFrame().breakLabel = labelEnd;
         context.CurrentFrame().continueLabel = labelStart;
 
-        stream << labelStart << ":\n";
+        stream << labelStart << ":" << std::endl;
+        body_->EmitRISC(stream, context, destReg);
 
-        if (body_) {
-            body_->EmitRISC(stream, context, destReg);
-        }
+        Register condReg = context.AllocateTemporary();
+        condition_->EmitRISC(stream, context, condReg);
 
-        if (condition_) {
-            Register condReg = context.AllocateTemporary();
-            condition_->EmitRISC(stream, context, condReg);
+        stream << "bne " << condReg << ", zero, " << labelStart << std::endl;
 
-            stream << "bne " << condReg << ", zero, " << labelStart << "\n";
+        context.FreeTemporary(condReg);
 
-            context.FreeTemporary(condReg);
-        }
-
-        stream << labelEnd << ":\n";
+        stream << labelEnd << ":" << std::endl;
     }
 
     void DoWhileStatement::Print(std::ostream &stream) const {
-        stream << "do";
-        if (body_) {
-            body_->Print(stream);
-        }
-        if (condition_) {
-            stream << "while (";
-            condition_->Print(stream);
-            stream << ")";
-        }
+        stream << "do ";
+        body_->Print(stream);
+        stream << "while (";
+        condition_->Print(stream);
+        stream << ");" << std::endl;
     }
 
 //==================== ForStatement ====================//
@@ -100,23 +72,17 @@ namespace ast {
         context.CurrentFrame().breakLabel = labelEnd;
         context.CurrentFrame().continueLabel = labelStart;
 
-        if (initStmt_) {
-            initStmt_->EmitRISC(stream, context, destReg);
-        }
+        initStmt_->EmitRISC(stream, context, destReg);
 
-        stream << labelStart << ":\n";
+        stream << labelStart << ":" << std::endl;
 
-        if (condStmt_) {
-            Register condReg = context.AllocateTemporary();
-            condStmt_->EmitRISC(stream, context, condReg);
+        Register condReg = context.AllocateTemporary();
+        condStmt_->EmitRISC(stream, context, condReg);
 
-            stream << "beq " << condReg << ", zero, " << labelEnd << "\n";
-            context.FreeTemporary(condReg);
-        }
+        stream << "beq " << condReg << ", zero, " << labelEnd << std::endl;
+        context.FreeTemporary(condReg);
 
-        if (body_) {
-            body_->EmitRISC(stream, context, destReg);
-        }
+        body_->EmitRISC(stream, context, destReg);
 
         if (increment_) {
             Register incReg = context.AllocateTemporary();
@@ -124,26 +90,19 @@ namespace ast {
             context.FreeTemporary(incReg);
         }
 
-        stream << "j " << labelStart << "\n";
+        stream << "j " << labelStart << std::endl;
 
-        stream << labelEnd << ":\n";
+        stream << labelEnd << ":" << std::endl;
     }
 
     void ForStatement::Print(std::ostream &stream) const {
         stream << "for (";
-        if (initStmt_) {
-            initStmt_->Print(stream);
-        }
-        if (condStmt_) {
-            condStmt_->Print(stream);
-        }
-        if (increment_) {
+        initStmt_->Print(stream);
+        condStmt_->Print(stream);
+        if (increment_)
             increment_->Print(stream);
-        }
-        stream << ")\n";
-        if (body_) {
-            body_->Print(stream);
-        }
+        stream << ") ";
+        body_->Print(stream);
     }
 
 } // namespace ast

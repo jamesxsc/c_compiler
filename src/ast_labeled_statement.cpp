@@ -28,10 +28,7 @@ namespace ast {
             stream << "default: ";
         }
 
-        // todo if we need a null statement type or if nullptr is ok
-        if (statement_) {
-            statement_->Print(stream);
-        }
+        statement_->Print(stream);
     }
 
     bool LabeledStatement::IsCase() const {

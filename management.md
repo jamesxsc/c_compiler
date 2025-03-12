@@ -32,6 +32,17 @@
 - We'll see how we go but probably accept some program size inefficiencies such as still having a jump after a return statement in a control block.
 - Floats and pointers before structs.
 - Storing functions in context - storage logic abstracted in function declarator. Type provided to build function when called by function definition or declaration since exact type grammar differs.
+- Switch challenges:
+  - We need to recursively search for case labels and generate comparisons and jumps (since they can technically be inside while/if/{} etc). This was done with a member SetInSwitchScope() and GetSwitchLabelCasePairs()
+  - We also need to emit the RISC for the condition constant expressions at the start for comparisons. This was achieved by using shared pointers. It's not ideal but it's better than a map of reference_wrappers.
+- External/global variable and function (forward) declarations
+  - We need very different codegen for these compared to function definitions and local variables. The solution was to inherit Declaration in a new type ExternalDeclaration.
+  - These are also stored separately in the context since fields such as offset are not relevant.
+- Arrays
+  - Arrays were complicated because they create a lot of new cases to consider across the codebase e.g. global vs local, and switching on the underlying type for each case.
+  - We decided to subclass the Variable struct to Array to support arrays in the Bindings class. This was also used in a map for globals.
+  - Because the Array struct required information from different node types, we pass the type to a BuildArray virtual method on (Array)Declarator which is consistent with how we build and store Function structs. 
+  - Parameter list wasn't implemented with arrays initially because it's a bitch.
 
 # Milestones (Draft)
 
@@ -50,6 +61,7 @@
 * Tests for break, switch, continue
 * Tests for unary/postfix operators (pointers done)
 * Tests for null statements
+* Test for nested switch
 * Tests for global floats doubles and pointers if there aren't already any
 * Test for calling a function from our test with several arguments of different sizes e.g. char, float, int
 * Tests for global/local arrays of different types

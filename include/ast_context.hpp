@@ -22,24 +22,6 @@ namespace ast {
         bool array{false};
     };
 
-    // todo tidy my notes into md
-    // missing rust/swift enums, would make typespecifier much more fun
-    // Hmmmm, need to think about slicing here. But we have to be able to copy - wait no - we already use shared ptr NICE
-    // this might work - where does instantiation go - parameter list, declaration, what is delegated risc-wise to declarator? i.e. what do we need in arraydeclarator
-    // ok starting to come together, initdeclarator/declarator/arraydeclarator need methods for array like IsFunction IsPointer DONE
-    // parameter list (arrays as function parameters) will be a bitch
-    // acessing should be easy-ish. we find this struct by the array identifier
-    // is it an array? ok we need to get the offset of the elem - member function? DONE
-    // need an IsArray accessible from assignment - like IsGlobal DONE note you have to .bindings so is nonconst on stackframe
-    // also this type cant be stored in the current bindings map - sol required for this
-    // just have a second container and add to is global - we need cxs for both global and array
-    // make each work for both case of the other - members on stackframe
-    // or do we std::variant it - no
-    // fuck now when we use array in globals it has base class bloat
-    // use global bool and todo assert it false in any methods involving an offset to avoid fuck ups
-    // we'll try a buildarray pattern in initdeclarator and declarator - but not 100% convinced its best
-    // but it is consistent with functiondeclarations - this is very nice
-    // next/still to do: assignment, arrayindexexpression
     struct Array : public Variable {
         Array(TypeSpecifier elementType, int length) :
                 Variable({.size = GetTypeSize(elementType) * length, .type = elementType, .array = true}),

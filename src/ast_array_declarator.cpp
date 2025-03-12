@@ -2,9 +2,8 @@
 
 namespace ast {
 
-    // TODO implement stubs
     void ArrayDeclarator::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-
+        // Arrays are handled in declaration/external declaration
     }
 
     void ArrayDeclarator::Print(std::ostream &stream) const {

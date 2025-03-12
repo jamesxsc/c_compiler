@@ -16,9 +16,8 @@ namespace ast {
 
         context.FreeTemporary(condReg);
 
-        if (thenStmt_) {
-            thenStmt_->EmitRISC(stream, context, destReg);
-        }
+        // Never null
+        thenStmt_->EmitRISC(stream, context, destReg);
 
         if (elseStmt_) {
             stream << "j " << labelEnd << std::endl;
@@ -34,10 +33,8 @@ namespace ast {
     void IfStatement::Print(std::ostream &stream) const {
         stream << "if (";
         condition_->Print(stream);
-        stream << ")";
-        if (thenStmt_) {
-            thenStmt_->Print(stream);
-        }
+        stream << ") ";
+        thenStmt_->Print(stream);
         if (elseStmt_) {
             stream << "else ";
             elseStmt_->Print(stream);
@@ -45,33 +42,8 @@ namespace ast {
     }
 
 //==================== SwitchStatement ====================//
-// todo test for nested switch
     void SwitchStatement::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         if (body_) {
-            // todo delete my comments and put anything useful in the management/readme
-            // rambling
-            // hmmmm we need to impl this in all statement types technically
-            // but we need all of the jumps at the start...
-
-            // need to put children in switch scope
-            // but somehow need to pull pairs of integral values and labels, i think to here, or we need to distinguish between root switch scope and child switch scope
-
-            // how about a member on statement a vector of pairs and emit risc pushes to that member
-            // avoids cluttering context for a single feature
-
-            // then only have to buffer risc here
-
-            // how to store constexpr reference...
-            // reference wrapper carrying
-            // not really poss.
-            // im trying to avoid evaluating it at compile time
-
-            // now im thinking about the lifetime of the end and start jobs.
-            // we dont need to worry about unfolding nested... but inner scopes need to see outer eg if in for
-            // I think in stackframe makes most sense
-
-            // this might be better than I thought, I think the only statement impl that needs to change is labeled statement
-
             std::string endLabel = context.MakeLabel(".SWITCH_END");
             context.CurrentFrame().breakLabel = endLabel;
 
@@ -84,7 +56,7 @@ namespace ast {
             Register condReg = context.AllocateTemporary();
             condition_->EmitRISC(stream, context, condReg);
             std::string defaultLabel{endLabel};
-            for (auto &pair : body_->GetSwitchLabelCasePairs()) {
+            for (auto &pair: body_->GetSwitchLabelCasePairs()) {
                 if (pair.second == nullptr) {
                     defaultLabel = pair.first;
                     continue;

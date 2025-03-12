@@ -8,19 +8,6 @@ namespace ast {
         if (IsTypedef()) return;
 
         for (const auto &initDeclarator: *initDeclaratorList_) {
-            // TODO delete my notes and put anything useful in management/readme
-            // Could add a base stack frame, or a separate instance of Bindings
-            // Then we need to update where they're accessed.
-            // we're gonna have to search for all uses of bindings.Get
-            // InsertOrOverwrite is only used for declarations. IsGlobal needs to check its not shadowed if there is a frame on the stack
-            // IsGlobal done
-            // Identifier done, Postfix, Unary, Assignment
-            // Its widely used e.g. Unary operators. so create another function to obtain (if we don't guarantee a frame existing)
-            // I think find them in a single context function but return in struct an isglobal? since codegen is different - no because we don't even need to store offset etc.
-            // IsGlobal isn't pretty but might help
-            // the other option is push fw declarations and globals to translation unit and don't call this... tempting to avoid bloating it or have an external declaration type - preferred IMO since it doesn't make sense to only sometimes call Declaration::EmitRISC
-            // this works, then we still have to sort out accessing though
-
             // Handle forward declarations
             if (initDeclarator->IsFunction()) {
                 // Store forward declarations
