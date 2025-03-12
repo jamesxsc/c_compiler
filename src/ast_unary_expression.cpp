@@ -228,4 +228,10 @@ namespace ast {
         }
     }
 
+    const Expression& UnaryExpression::GetArrayIndexExpression() const {
+        return postfixChild_->GetArrayIndexExpression();
+    }
+
+    UnaryExpression::~UnaryExpression() = default;
+
 } // namespace ast

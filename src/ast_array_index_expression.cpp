@@ -53,7 +53,7 @@ namespace ast {
                 if (logSize != 0) // Save an instruction if it's a char array
                     stream << "slli " << indexReg << "," << indexReg << "," << logSize << std::endl;
                 Register addressTemp = useFloat ? context.AllocateTemporary() : destReg;
-                stream << "lw " << addressTemp << "," << variable.offset << "(s0)" << std::endl;
+                stream << "addi " << addressTemp << ",s0," << variable.offset << std::endl;
                 stream << "add " << addressTemp << "," << addressTemp << "," << indexReg << std::endl;
                 context.FreeTemporary(indexReg);
                 switch (array.type) {

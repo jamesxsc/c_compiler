@@ -1,9 +1,13 @@
+#include <cmath>
 #include "ast_assignment_expression.hpp"
 #include "ast_expression.hpp"
 #include "ast_type_specifier.hpp"
+#include "ast_conditional_expression.hpp"
+#include "ast_multiplicative_unary_expressions.hpp"
 
 namespace ast {
 
+    AssignmentExpression::~AssignmentExpression() = default;
 
     void AssignmentExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         if (op_ == AssignmentOperator::ConditionalPromote) {
@@ -81,12 +85,62 @@ namespace ast {
         // and somehow detect it here. or how else can we implement GetIdentifier to work. cx s
         if (context.IsArray(identifier)) {
             if (context.IsGlobal(identifier)) {
+                Register indexReg = context.AllocateTemporary();
+                // todo ughhh do we want to change order to match gcc more closely? probably cba
+                unary_->GetArrayIndexExpression().EmitRISC(stream, context, indexReg);
+                int logSize = static_cast<int>(std::log2(GetTypeSize(type))); // todo will this break for structs
+                if (logSize != 0) // Save an instruction if it's a char array
+                    stream << "slli " << indexReg << "," << indexReg << "," << logSize << std::endl;
                 Register addrReg = context.AllocateTemporary();
                 stream << "lui " << addrReg << ",%hi(" << identifier << ")" << std::endl;
                 stream << "addi " << addrReg << "," << addrReg << ",%lo(" << identifier << ")" << std::endl;
-                // todo ah shit we need the index
+                stream << "add " << addrReg << "," << addrReg << "," << indexReg << std::endl;
+                context.FreeTemporary(indexReg);
+                switch (type) {
+                    case TypeSpecifier::INT:
+                        stream << "sw " << right << ",0(" << addrReg << ")" << std::endl;
+                        break;
+                    case TypeSpecifier::FLOAT:
+                        stream << "fsw " << right << ",0(" << addrReg << ")" << std::endl;
+                        break;
+                    case TypeSpecifier::DOUBLE:
+                        stream << "fsd " << right << ",0(" << addrReg << ")" << std::endl;
+                        break;
+                    case TypeSpecifier::CHAR:
+                        stream << "sb " << right << ",0(" << addrReg << ")" << std::endl;
+                        break;
+                    case TypeSpecifier::POINTER:
+                        throw std::runtime_error(
+                                "ArrayIndexExpression::EmitRISC() called on a pointer array which is unsupported");
+                }
             } else {
-
+                Register indexReg = context.AllocateTemporary();
+                unary_->GetArrayIndexExpression().EmitRISC(stream, context, indexReg);
+                int logSize = static_cast<int>(std::log2(GetTypeSize(type)));
+                if (logSize != 0) // Save an instruction if it's a char array
+                    stream << "slli " << indexReg << "," << indexReg << "," << logSize << std::endl;
+                Register addrReg = context.AllocateTemporary();
+                // Offset of start of array
+                stream << "addi " << addrReg << ",s0," << context.CurrentFrame().bindings.Get(identifier).offset << std::endl;
+                stream << "add " << addrReg << "," << addrReg << "," << indexReg << std::endl;
+                context.FreeTemporary(indexReg);
+                switch (type) {
+                    case TypeSpecifier::INT:
+                        stream << "sw " << right << ",0(" << addrReg << ")" << std::endl;
+                        break;
+                    case TypeSpecifier::FLOAT:
+                        stream << "fsw " << right << ",0(" << addrReg << ")" << std::endl;
+                        break;
+                    case TypeSpecifier::DOUBLE:
+                        stream << "fsd " << right << ",0(" << addrReg << ")" << std::endl;
+                        break;
+                    case TypeSpecifier::CHAR:
+                        stream << "sb " << right << ",0(" << addrReg << ")" << std::endl;
+                        break;
+                    case TypeSpecifier::POINTER:
+                        throw std::runtime_error(
+                                "ArrayIndexExpression::EmitRISC() called on a pointer array which is unsupported");
+                }
             }
         } else {
             if (context.IsGlobal(identifier)) {
@@ -205,12 +259,12 @@ namespace ast {
             AssignmentOperator::ConditionalPromote), conditional_(std::move(conditional)), unary_(
             nullptr), assignment_(nullptr) {}
 
+
     AssignmentExpression::AssignmentExpression(UnaryExpressionPtr unary, AssignmentOperator op,
                                                AssignmentExpressionPtr assignment) : op_(op), conditional_(nullptr),
                                                                                      unary_(std::move(unary)),
                                                                                      assignment_(
                                                                                              std::move(assignment)) {}
-
 
     TypeSpecifier AssignmentExpression::GetType(Context &context) const {
         if (op_ == AssignmentOperator::ConditionalPromote) {

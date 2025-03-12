@@ -1,3 +1,4 @@
+#include <cassert>
 #include "ast_postfix_expression.hpp"
 #include "ast_identifier.hpp"
 #include "ast_type_specifier.hpp"
@@ -98,6 +99,11 @@ namespace ast {
 
     std::string PostfixExpression::GetGlobalIdentifier() const {
         return child_->GetGlobalIdentifier();
+    }
+
+    const Expression& PostfixExpression::GetArrayIndexExpression() const {
+        assert(op_ == PostfixOperator::ArrayIndexPromote && "PostfixExpression::GetArrayIndexExpression called on non-array");
+        return *dynamic_cast<const ArrayIndexExpression *>(child_.get())->index_;
     }
 
 } // namespace ast

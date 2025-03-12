@@ -31,7 +31,7 @@ namespace ast {
                 stream << ".data" << std::endl; // .sdata may be more appropriate (GCC)
                 if (initDeclarator->HasInitializer()) {
                     if (initDeclarator->IsArray()) {
-                        // waiting, see declaration
+                        // todo waiting, see declaration
                     } else {
                         context.InsertGlobal(identifier, type);
                         stream << ".size " << identifier << "," << GetTypeSize(type) << std::endl;
@@ -59,9 +59,9 @@ namespace ast {
                     if (initDeclarator->IsArray()) {
                         Array array = initDeclarator->BuildArray(type, context);
                         context.InsertGlobalArray(identifier, array); // Should be safe to copy for rvalue
-                        stream << ".size" << identifier << "," << array.size << std::endl;
+                        stream << ".size " << identifier << "," << array.size << std::endl;
                         stream << identifier << ":" << std::endl;
-                        stream << ".zero" << array.size << std::endl;
+                        stream << ".zero " << array.size << std::endl;
                     } else {
                         context.InsertGlobal(identifier, type);
                         stream << ".size " << identifier << "," << GetTypeSize(type) << std::endl;

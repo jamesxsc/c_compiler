@@ -5,10 +5,6 @@
 
 namespace ast {
 
-    int Array::ElementOffset(int index) {
-        return offset + index * GetTypeSize(type);
-    }
-
     const Variable &Bindings::Get(const std::string &identifier) const {
         auto it = bindingsMap_.find(identifier);
         assert(it != bindingsMap_.end() && "Variable not found in bindings");
@@ -20,7 +16,7 @@ namespace ast {
         if (bindings_.empty()) {
             variable.offset = start_;
         } else {
-            variable.offset = bindings_.back()->offset - bindings_.back()->size;
+            variable.offset = bindings_.back()->offset - variable.size;
         }
         assert(variable.offset > -size_ && "Bindings exceed allocated stack frame size");
         VariablePtr ptr = std::make_shared<Variable>(variable);
@@ -235,4 +231,5 @@ namespace ast {
     const Array &Context::GetGlobalArray(const std::string &identifier) const {
         return globalArrays_.at(identifier);
     }
+
 } // namespace ast

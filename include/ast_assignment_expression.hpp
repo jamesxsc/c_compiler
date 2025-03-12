@@ -1,10 +1,15 @@
 #pragma once
 
 #include "ast_expression_base.hpp"
-#include "ast_conditional_expression.hpp"
-#include "ast_multiplicative_unary_expressions.hpp"
 
 namespace ast {
+
+    class ConditionalExpression;
+
+    class UnaryExpression;
+
+    using ConditionalExpressionPtr = std::unique_ptr<const ConditionalExpression>;
+    using UnaryExpressionPtr = std::unique_ptr<const UnaryExpression>;
 
     enum class AssignmentOperator {
         ConditionalPromote,
@@ -26,17 +31,27 @@ namespace ast {
 
     class AssignmentExpression; // Forward declaration for recursive using declaration
     using AssignmentExpressionPtr = std::unique_ptr<const AssignmentExpression>;
+
     class AssignmentExpression : public ExpressionBase {
     public:
+        ~AssignmentExpression() override;
+
         TypeSpecifier GetType(Context &context) const override;
+
         explicit AssignmentExpression(ConditionalExpressionPtr conditional);
+
         AssignmentExpression(UnaryExpressionPtr unary, AssignmentOperator op, AssignmentExpressionPtr assignment);
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
+
         void Print(std::ostream &stream) const override;
+
         [[nodiscard]] bool ContainsFunctionCall() const override;
+
         [[nodiscard]] std::string GetGlobalIdentifier() const override;
+
         [[nodiscard]] int GetGlobalValue() const override;
+
     private:
         AssignmentOperator op_;
 

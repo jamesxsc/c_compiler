@@ -43,7 +43,6 @@ namespace ast {
         Array(TypeSpecifier elementType, int length) :
                 Variable({.size = GetTypeSize(elementType) * length, .type = elementType, .array = true}),
                 length(length) {}
-        int ElementOffset(int index);
         int length;
     };
 

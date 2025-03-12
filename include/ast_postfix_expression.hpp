@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ast_expression_base.hpp"
+#include "ast_expression.hpp"
 
 namespace ast {
 
@@ -26,6 +27,8 @@ namespace ast {
 
         // This should only be called in a context where we know it is an lvalue (identifier)
         [[nodiscard]] std::string GetIdentifier() const;
+
+        [[nodiscard]] const Expression& GetArrayIndexExpression() const;
 
         TypeSpecifier GetType(Context &context) const override;
 
