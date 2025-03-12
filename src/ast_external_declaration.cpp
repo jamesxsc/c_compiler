@@ -5,6 +5,8 @@
 namespace ast {
 
     void ExternalDeclaration::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
+        if (IsTypedef()) return;
+
         for (const auto &initDeclarator: *initDeclaratorList_) {
             // TODO delete my notes and put anything useful in management/readme
             // Could add a base stack frame, or a separate instance of Bindings

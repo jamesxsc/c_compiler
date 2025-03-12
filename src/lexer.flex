@@ -1,5 +1,6 @@
 %option noyywrap
 %option debug
+%option yylineno
 
 %{
   // A lot of this lexer is based off the ANSI C grammar:
@@ -56,7 +57,10 @@ IS  (u|U|l|L)*
 "volatile"	{return(VOLATILE);}
 "while"			{return(WHILE);}
 
-{L}({L}|{D})*		{yylval.string = new std::string(yytext); return(IDENTIFIER);}
+{L}({L}|{D})*		{
+    yylval.string = new std::string(yytext);
+    return typedefs.find(*yylval.string) != typedefs.end() ? TYPE_NAME : IDENTIFIER;
+}
 
 0[xX]{H}+{IS}?		{yylval.number_int = (int)strtol(yytext, NULL, 0); return(INT_CONSTANT);}
 0{D}+{IS}?		    {yylval.number_int = (int)strtol(yytext, NULL, 0); return(INT_CONSTANT);}
@@ -120,9 +124,3 @@ L?\"(\\.|[^\\"])*\"	{/* TODO process string literal */; return(STRING_LITERAL);}
 .			              {/* ignore bad characters */}
 
 %%
-
-void yyerror (char const *s)
-{
-  fprintf(stderr, "Lexing error: %s\n", s);
-  exit(1);
-}

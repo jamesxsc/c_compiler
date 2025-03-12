@@ -20,6 +20,8 @@ namespace ast {
         void Print(std::ostream &stream) const override;
         TypeSpecifier GetType(Context &context) const;
 
+        [[nodiscard]] bool IsTypedef() const;
+
     protected:
         DeclarationSpecifiersPtr declarationSpecifiers_;
         InitDeclaratorListPtr initDeclaratorList_;

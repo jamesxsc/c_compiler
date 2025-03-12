@@ -6,6 +6,8 @@ namespace ast {
 
     // Non-global declarations
     void Declaration::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
+        if (IsTypedef()) return;
+
         for (const auto &initDeclarator: *initDeclaratorList_) {
             // Handle local variable declarations
             TypeSpecifier type = GetType(context);
@@ -97,6 +99,10 @@ namespace ast {
     TypeSpecifier Declaration::GetType(Context &context) const {
         assert(!declarationSpecifiers_->GetTypeSpecifiers().empty() && "Declaration must have a type specifier");
         return declarationSpecifiers_->GetTypeSpecifiers().front();
+    }
+
+    bool Declaration::IsTypedef() const {
+        return declarationSpecifiers_->GetStorageClassSpecifier() == StorageClassSpecifier::Typedef;
     }
 
 }

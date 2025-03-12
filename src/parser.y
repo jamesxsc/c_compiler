@@ -3,10 +3,14 @@
 %code requires{
     #include "ast.hpp"
     #include <cassert>
+    #include <unordered_map>
 
     using namespace ast;
 
+    extern int yylineno;
+    extern char* yytext;
     extern Node* g_root;
+    extern std::unordered_map<std::string, TypeSpecifier> typedefs;
     extern FILE* yyin;
     int yylex(void);
     void yyerror(const char*);
@@ -131,7 +135,7 @@
 
 %type <number_int> INT_CONSTANT STRING_LITERAL
 %type <number_float> FLOAT_CONSTANT
-%type <string> IDENTIFIER
+%type <string> IDENTIFIER TYPE_NAME
 %type <type_specifier> type_specifier
 
 
@@ -171,10 +175,7 @@ function_definition
 
 
 primary_expression
-	: IDENTIFIER {
-	    $$ = new Identifier(*$1);
-	    delete $1;
-	}
+	: IDENTIFIER { $$ = new Identifier(*$1); delete $1; }
 	| INT_CONSTANT { $$ = new IntConstant($1); }
     | FLOAT_CONSTANT { $$ = new FloatConstant($1); }
 	| STRING_LITERAL
@@ -329,7 +330,11 @@ constant_expression
 
 declaration
 	: declaration_specifiers ';' { std::cerr << "Need to implement declaration specifiers only declaration" << std::endl; exit(1); }
-	| declaration_specifiers init_declarator_list ';' { $$ = new Declaration(DeclarationSpecifiersPtr($1), InitDeclaratorListPtr($2)); }
+	| declaration_specifiers init_declarator_list ';' {
+	    $$ = new Declaration(DeclarationSpecifiersPtr($1), InitDeclaratorListPtr($2));
+	    Context dummy; // It is not used in Declaration::GetIdentifier
+	    if ($$->IsTypedef()) { for (auto & decl : *$2) { typedefs.emplace(decl->GetIdentifier(), $$->GetType(dummy)); } } // Support typedef int x, y; syntax
+    }
 	;
 
 declaration_specifiers
@@ -369,7 +374,7 @@ type_specifier
 	| UNSIGNED
     | struct_specifier
 	| enum_specifier
-	| TYPE_NAME
+	| TYPE_NAME { $$ = typedefs.at(*$1); delete $1; } // todo think about a more complex TypeSpecifier class - may be necessary for structs
 	;
 
 struct_specifier
@@ -559,12 +564,20 @@ jump_statement
 
 %%
 
+void yyerror(const char* s)
+{
+    std::cerr << "Error at line " << yylineno << ": " << s << std::endl;
+    std::cerr << "Near token: " << yytext << std::endl;
+    exit(1);
+}
+
 Node* g_root;
+std::unordered_map<std::string, TypeSpecifier> typedefs;
 
 NodePtr ParseAST(std::string file_name)
 {
   yyin = fopen(file_name.c_str(), "r");
-  if(yyin == NULL){
+  if(yyin == nullptr){
     std::cerr << "Couldn't open input file: " << file_name << std::endl;
     exit(1);
   }
