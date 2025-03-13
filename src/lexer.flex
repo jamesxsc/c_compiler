@@ -119,7 +119,7 @@ L?'(\\.|[^\\'])+'	{
 {D}+"."{D}*({E})?{FSF}	{yylval.number_float = strtod(yytext, NULL); return(FLOAT_CONSTANT);}
 
 
-L?\"(\\.|[^\\"])*\"	{yylval.string = new std::string(yytext); return(STRING_LITERAL);}
+L?\"(\\.|[^\\"])*\"	{yylval.string = new std::string(yytext + 1, yyleng - 2); return(STRING_LITERAL);}
 
 "..."      {return(ELLIPSIS);}
 ">>="			 {return(RIGHT_ASSIGN);}

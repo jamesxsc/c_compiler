@@ -125,4 +125,35 @@ namespace ast {
     }
 
 
+    void StringConstant::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
+        // Place in stack and load address into destReg
+        std::string memoryLabel = context.MakeLabel(".LC");
+        context.DeferredRISC() << ".section .rodata" << std::endl;
+        context.DeferredRISC() << ".align 2" << std::endl;
+        context.DeferredRISC() << memoryLabel << ":" << std::endl;
+        context.DeferredRISC() << ".string \"" << value_ << '\"' << std::endl;
+
+        stream << "lui " << destReg << ",%hi(" << memoryLabel << ")" << std::endl;
+        stream << "addi " << destReg << "," << destReg << ",%lo(" << memoryLabel << ")" << std::endl;
+    }
+
+    void StringConstant::Print(std::ostream &stream) const {
+        stream << '\"' << value_ << '\"';
+    }
+
+    bool StringConstant::ContainsFunctionCall() const {
+        return false;
+    }
+
+    int StringConstant::GetGlobalValue() const {
+        throw std::runtime_error("StringConstant::GetGlobalValue() called on a string constant");
+    }
+
+    std::string StringConstant::GetGlobalIdentifier() const {
+        throw std::runtime_error("StringConstant::GetGlobalIdentifier() called on a string constant");
+    }
+
+    TypeSpecifier StringConstant::GetType(Context &context) const {
+        return TypeSpecifier::CHAR; // todo use fancy array type when we create it
+    }
 } // namespace ast

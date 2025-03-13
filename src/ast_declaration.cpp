@@ -14,9 +14,8 @@ namespace ast {
             int size = GetTypeSize(type);
             std::string identifier = initDeclarator->GetIdentifier();
             bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
+            // We won't ever need to "return" to destReg to overwrite it for temporary use
             destReg = context.AllocateTemporary(useFloat);
-
-            // todo check if using destreg is safe here (don't use zero as a temporary)
             // Bindings and init
             // Don't handle types with multiple keywords (for now)
             assert(!declarationSpecifiers_->GetTypeSpecifiers().empty() && "Declaration must have a type specifier");

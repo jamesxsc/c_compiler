@@ -43,6 +43,7 @@
   - We decided to subclass the Variable struct to Array to support arrays in the Bindings class. This was also used in a map for globals.
   - Because the Array struct required information from different node types, we pass the type to a BuildArray virtual method on (Array)Declarator which is consistent with how we build and store Function structs. 
   - Parameter list wasn't implemented with arrays initially because it's a bitch.
+- Strings and chars required changes to the lexer to handle edge cases such as escaped characters and ignoring the string quotes.
 
 # Milestones (Draft)
 

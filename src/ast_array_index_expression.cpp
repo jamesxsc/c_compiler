@@ -76,9 +76,10 @@ namespace ast {
             }
         } else { // Ptr syntax
             if (context.IsGlobal(identifier)) {
-                TypeSpecifier type = context.GetGlobalType(identifier);
-                assert(type == TypeSpecifier::POINTER &&
-                       "ArrayIndexExpression::EmitRISC() called on a non-pointer/array");
+//                TypeSpecifier type = context.GetGlobalType(identifier);
+                // We currently store the underlying type so this fails
+//                assert(type == TypeSpecifier::POINTER &&
+//                       "ArrayIndexExpression::EmitRISC() called on a non-pointer/array");
                 bool useFloat = IsFloatRegister(
                         destReg); // todo we need to get the underlying type unfortunately to determine what load to use
                 // and slli by the correct amount
@@ -93,8 +94,8 @@ namespace ast {
                 context.FreeTemporary(indexReg);
             } else {
                 Variable variable = context.CurrentFrame().bindings.Get(identifier);
-                assert(variable.type == TypeSpecifier::POINTER &&
-                       "ArrayIndexExpression::EmitRISC() called on a non-pointer/array");
+//                assert(variable.type == TypeSpecifier::POINTER &&
+//                       "ArrayIndexExpression::EmitRISC() called on a non-pointer/array");
                 bool useFloat = IsFloatRegister(destReg); // todo see above
                 Register indexReg = context.AllocateTemporary();
                 index_->EmitRISC(stream, context, indexReg);

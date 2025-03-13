@@ -133,9 +133,9 @@
 %nterm <specifier_qualifier_list> specifier_qualifier_list
 %nterm <type_name> type_name
 
-%type <number_int> INT_CONSTANT CHAR_CONSTANT STRING_LITERAL
+%type <number_int> INT_CONSTANT CHAR_CONSTANT
 %type <number_float> FLOAT_CONSTANT DOUBLE_CONSTANT
-%type <string> IDENTIFIER TYPE_NAME
+%type <string> IDENTIFIER TYPE_NAME STRING_LITERAL
 %type <type_specifier> type_specifier
 
 
@@ -180,7 +180,7 @@ primary_expression
 	| CHAR_CONSTANT { $$ = new CharConstant($1); }
     | FLOAT_CONSTANT { $$ = new FloatConstant($1, false); }
     | DOUBLE_CONSTANT { $$ = new FloatConstant($1, true); }
-	| STRING_LITERAL
+	| STRING_LITERAL { $$ = new StringConstant(*$1); delete $1; }
 	| '(' expression ')' { $$ = new ParenthesisedExpression(ExpressionPtr($2)); }
 	;
 
