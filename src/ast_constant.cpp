@@ -27,21 +27,84 @@ namespace ast {
         return TypeSpecifier::INT;
     }
 
+    void CharConstant::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
+        stream << "li " << destReg << "," << value_ << std::endl;
+    }
+
+    void CharConstant::Print(std::ostream &stream) const {
+        char c = static_cast<char>(value_);
+        switch (c) {
+            case '\n':
+                stream << "'\\n'";
+                break;
+            case '\t':
+                stream << "'\\t'";
+                break;
+            case '\r':
+                stream << "'\\r'";
+                break;
+            case '\v':
+                stream << "'\\v'";
+                break;
+            case '\b':
+                stream << "'\\b'";
+                break;
+            case '\f':
+                stream << "'\\f'";
+                break;
+            case '\a':
+                stream << "'\\a'";
+                break;
+            case '\\':
+                stream << "'\\\\'";
+                break;
+            case '\'':
+                stream << "'\\''";
+                break;
+            case '\"':
+                stream << "'\\\"'";
+                break;
+            default:
+                if (c >= 32 && c <= 126) {
+                    stream << "'" << c << "'";
+                } else {
+                    stream << "'\\x" << std::hex << static_cast<int>(c) << "'";
+                }
+        }
+    }
+
+    bool CharConstant::ContainsFunctionCall() const {
+        return false;
+    }
+
+    int CharConstant::GetGlobalValue() const {
+        return value_;
+    }
+
+    std::string CharConstant::GetGlobalIdentifier() const {
+        throw std::runtime_error("CharConstant::GetGlobalIdentifier() called on an int constant");
+    }
+
+    TypeSpecifier CharConstant::GetType(Context &context) const {
+        return TypeSpecifier::CHAR;
+    }
+
     void FloatConstant::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         std::string memoryLabel = context.MakeLabel(".LC");
         Register tempIntReg = context.AllocateTemporary();
         stream << "lui " << tempIntReg << ",%hi(" << memoryLabel << ")" << std::endl;
-        stream << "flw " << destReg << ",%lo(" << memoryLabel << ")(" << tempIntReg << ")" << std::endl;
+        stream << (doublePrecision_ ? "fld " : "flw ")
+               << destReg << ",%lo(" << memoryLabel << ")(" << tempIntReg << ")" << std::endl;
         context.FreeTemporary(tempIntReg);
 
         // Defer memory to the end
         context.DeferredRISC() << memoryLabel << ":" << std::endl;
-        context.DeferredRISC() << ".float " << value_ << std::endl; // todo should we convert to decimal?
-        // todo double constants?
+        context.DeferredRISC() << (doublePrecision_ ? ".double " : ".float ")
+                               << value_ << std::endl; // todo should we convert to decimal?
     }
 
     void FloatConstant::Print(std::ostream &stream) const {
-        stream << value_;
+        stream << value_ << (doublePrecision_ ? "" : "f");
     }
 
     bool FloatConstant::ContainsFunctionCall() const {
@@ -60,5 +123,6 @@ namespace ast {
     TypeSpecifier FloatConstant::GetType(Context &context) const {
         return TypeSpecifier::FLOAT;
     }
+
 
 } // namespace ast

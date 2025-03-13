@@ -18,7 +18,8 @@ D	  [0-9]
 L	  [a-zA-Z_]
 H   [a-fA-F0-9]
 E	  [Ee][+-]?{D}+
-FS  (f|F|l|L)
+FSF (f|F)
+FSL (l|L)
 IS  (u|U|l|L)*
 
 %%
@@ -65,13 +66,60 @@ IS  (u|U|l|L)*
 0[xX]{H}+{IS}?		{yylval.number_int = (int)strtol(yytext, NULL, 0); return(INT_CONSTANT);}
 0{D}+{IS}?		    {yylval.number_int = (int)strtol(yytext, NULL, 0); return(INT_CONSTANT);}
 {D}+{IS}?		      {yylval.number_int = (int)strtol(yytext, NULL, 0); return(INT_CONSTANT);}
-L?'(\\.|[^\\'])+'	{yylval.number_int = (int)strtol(yytext, NULL, 0); return(INT_CONSTANT);}
 
-{D}+{E}{FS}?		        {yylval.number_float = strtod(yytext, NULL); return(FLOAT_CONSTANT);}
-{D}*"."{D}+({E})?{FS}?	{yylval.number_float = strtod(yytext, NULL); return(FLOAT_CONSTANT);}
-{D}+"."{D}*({E})?{FS}?	{yylval.number_float = strtod(yytext, NULL); return(FLOAT_CONSTANT);}
+L?'(\\.|[^\\'])+'	{
+  const char *it = yytext;
+  assert(*it++ == '\'');
+  if (*it == '\\') {
+    ++it;
+    switch (*it) {
+      case 'n': yylval.number_int = '\n'; break;
+      case 't': yylval.number_int = '\t'; break;
+      case 'v': yylval.number_int = '\v'; break;
+      case 'b': yylval.number_int = '\b'; break;
+      case 'r': yylval.number_int = '\r'; break;
+      case 'f': yylval.number_int = '\f'; break;
+      case 'a': yylval.number_int = '\a'; break;
+      case '\\': yylval.number_int = '\\'; break;
+      case '?': yylval.number_int = '\?'; break;
+      case '\'': yylval.number_int = '\''; break;
+      case '"': yylval.number_int = '\"'; break;
+      case 'x': {
+        ++it;
+        std::string hex;
+        while (*it != '\'') {
+          hex += *it++;
+        }
+        yylval.number_int = (int)strtol(hex.c_str(), NULL, 16);
+        break;
+      }
+      default: {
+        std::string oct;
+        while (*it != '\'') {
+          oct += *it++;
+        }
+        yylval.number_int = (int)strtol(oct.c_str(), NULL, 8);
+        std::cerr << "oct: " << oct << std::endl;
+        break;
+      }
+    }
+  } else {
+    yylval.number_int = *it;
+  }
 
-L?\"(\\.|[^\\"])*\"	{/* TODO process string literal */; return(STRING_LITERAL);}
+  return(CHAR_CONSTANT);
+}
+
+{D}+{E}?		        {yylval.number_float = strtod(yytext, NULL); return(DOUBLE_CONSTANT);}
+{D}*"."{D}+({E})?	    {yylval.number_float = strtod(yytext, NULL); return(DOUBLE_CONSTANT);}
+{D}+"."{D}*({E})?   	{yylval.number_float = strtod(yytext, NULL); return(DOUBLE_CONSTANT);}
+
+{D}+{E}{FSF}?		        {yylval.number_float = strtod(yytext, NULL); return(FLOAT_CONSTANT);}
+{D}*"."{D}+({E})?{FSF}	{yylval.number_float = strtod(yytext, NULL); return(FLOAT_CONSTANT);}
+{D}+"."{D}*({E})?{FSF}	{yylval.number_float = strtod(yytext, NULL); return(FLOAT_CONSTANT);}
+
+
+L?\"(\\.|[^\\"])*\"	{yylval.string = new std::string(yytext); return(STRING_LITERAL);}
 
 "..."      {return(ELLIPSIS);}
 ">>="			 {return(RIGHT_ASSIGN);}

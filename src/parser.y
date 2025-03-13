@@ -68,7 +68,7 @@
   yytokentype  	token;
 }
 
-%token IDENTIFIER INT_CONSTANT FLOAT_CONSTANT STRING_LITERAL
+%token IDENTIFIER INT_CONSTANT FLOAT_CONSTANT DOUBLE_CONSTANT CHAR_CONSTANT STRING_LITERAL
 %token PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP AND_OP OR_OP
 %token MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN
 %token TYPE_NAME TYPEDEF EXTERN STATIC AUTO REGISTER SIZEOF
@@ -133,8 +133,8 @@
 %nterm <specifier_qualifier_list> specifier_qualifier_list
 %nterm <type_name> type_name
 
-%type <number_int> INT_CONSTANT STRING_LITERAL
-%type <number_float> FLOAT_CONSTANT
+%type <number_int> INT_CONSTANT CHAR_CONSTANT STRING_LITERAL
+%type <number_float> FLOAT_CONSTANT DOUBLE_CONSTANT
 %type <string> IDENTIFIER TYPE_NAME
 %type <type_specifier> type_specifier
 
@@ -177,7 +177,9 @@ function_definition
 primary_expression
 	: IDENTIFIER { $$ = new Identifier(*$1); delete $1; }
 	| INT_CONSTANT { $$ = new IntConstant($1); }
-    | FLOAT_CONSTANT { $$ = new FloatConstant($1); }
+	| CHAR_CONSTANT { $$ = new CharConstant($1); }
+    | FLOAT_CONSTANT { $$ = new FloatConstant($1, false); }
+    | DOUBLE_CONSTANT { $$ = new FloatConstant($1, true); }
 	| STRING_LITERAL
 	| '(' expression ')' { $$ = new ParenthesisedExpression(ExpressionPtr($2)); }
 	;

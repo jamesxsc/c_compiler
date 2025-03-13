@@ -68,6 +68,7 @@
 * Test for accessing a pointer when the original variable is out of scope (if this is possible without malloc and we think this will be tested; or just when the underlying variable has been shadowed)
 * Ternary operator
 * Float/double unary and postfix operators
+* Char operation byte masking where applicable
 * ~~Floats Eliott & James~~ Mar 10
 * ~~Char type - James~~ Mar 11
 * ~~Global variables - James~~ Mar 9
