@@ -64,7 +64,7 @@
   int          	number_int;
   double       	number_float;
   std::string* 	string;
-  TypeSpecifier	type_specifier;
+  TypeSpecifier*   type_specifier;
   yytokentype  	token;
 }
 
@@ -342,8 +342,8 @@ declaration
 declaration_specifiers
 	: storage_class_specifier { $$ = new DeclarationSpecifiers($1); }
 	| storage_class_specifier declaration_specifiers { $2->SetStorageClassSpecifier($1); $$ = $2; }
-	| type_specifier { $$ = new DeclarationSpecifiers($1); }
-	| type_specifier declaration_specifiers { $2->AddTypeSpecifier($1); $$ = $2; }
+	| type_specifier { $$ = new DeclarationSpecifiers(TypeSpecifierPtr($1)); }
+	| type_specifier declaration_specifiers { $2->AddTypeSpecifier(TypeSpecifierPtr($1)); $$ = $2; }
 	;
 
 init_declarator_list
@@ -366,18 +366,17 @@ storage_class_specifier
 
 type_specifier
 	: VOID
-	| CHAR { $$ = TypeSpecifier::CHAR; }
+	| CHAR { $$ = new TypeSpecifier(TypeSpecifier::CHAR); }
 	| SHORT { std::cerr << "Short type is unsupported." << std::endl; exit(1); }
-	| INT { $$ = TypeSpecifier::INT; }
+	| INT { $$ = new TypeSpecifier(TypeSpecifier::INT); }
 	| LONG { std::cerr << "Long type is unsupported." << std::endl; exit(1); }
-	| FLOAT { $$ = TypeSpecifier::FLOAT; }
-	| DOUBLE { $$ = TypeSpecifier::DOUBLE; }
+	| FLOAT { $$ = new TypeSpecifier(TypeSpecifier::FLOAT); }
+	| DOUBLE { $$ = new TypeSpecifier(TypeSpecifier::DOUBLE); }
 	| SIGNED
 	| UNSIGNED
     | struct_specifier
 	| enum_specifier
-	| TYPE_NAME { $$ = typedefs.at(*$1); delete $1; } // todo think about a more complex TypeSpecifier class - may be necessary for structs
-	// we like case safety, but really need array, struct, enum and void
+	| TYPE_NAME { $$ = new TypeSpecifier(typedefs.at(*$1)); delete $1; }
 	;
 
 struct_specifier
@@ -396,8 +395,8 @@ struct_declaration
 	;
 
 specifier_qualifier_list
-	: type_specifier specifier_qualifier_list { $$ = $2; $2->AddTypeSpecifier($1); }
-	| type_specifier { $$ = new SpecifierQualifierList($1); }
+	: type_specifier specifier_qualifier_list { $$ = $2; $2->AddTypeSpecifier(TypeSpecifierPtr($1)); }
+	| type_specifier { $$ = new SpecifierQualifierList(TypeSpecifierPtr($1)); }
 	;
 
 struct_declarator_list

@@ -21,7 +21,7 @@ namespace ast {
         explicit DeclarationSpecifiers(StorageClassSpecifier storageClassSpecifier) :
             typeSpecifiers_() , storageClassSpecifier_(storageClassSpecifier) {}
 
-        explicit DeclarationSpecifiers(TypeSpecifier first) : typeSpecifiers_({first}), storageClassSpecifier_(StorageClassSpecifier::None) {}
+        explicit DeclarationSpecifiers(TypeSpecifierPtr first) : typeSpecifiers_({*std::move(first)}), storageClassSpecifier_(StorageClassSpecifier::None) {}
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
 
@@ -31,7 +31,7 @@ namespace ast {
 
         [[nodiscard]] StorageClassSpecifier GetStorageClassSpecifier() const;
 
-        void AddTypeSpecifier(TypeSpecifier typeSpecifier);
+        void AddTypeSpecifier(TypeSpecifierPtr typeSpecifier);
 
         // todo add logic to support multiple specifiers - e.g. unsigned int for unsigned
         void SetStorageClassSpecifier(StorageClassSpecifier storageClassSpecifier);

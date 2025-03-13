@@ -2,8 +2,8 @@
 
 namespace ast {
 
-    void SpecifierQualifierList::AddTypeSpecifier(TypeSpecifier specifier) {
-        specifiers_.push_back(specifier);
+    void SpecifierQualifierList::AddTypeSpecifier(TypeSpecifierPtr specifier) {
+        specifiers_.push_back(*std::move(specifier));
     }
 
     void SpecifierQualifierList::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {

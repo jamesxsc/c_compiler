@@ -58,7 +58,7 @@ namespace ast {
         // Now emit the parameters and function body
         stream << bodyStream.rdbuf();
 
-        // Add the return RISC (that many return statements can jump to)
+        // Add the return RISC (that all return statements jump to)
         stream << *context.CurrentFrame().returnLabel << ":" << std::endl;
 
         // Stack/frame pointer/return address teardown

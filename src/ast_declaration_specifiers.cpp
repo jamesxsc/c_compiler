@@ -23,8 +23,8 @@ namespace ast {
         return storageClassSpecifier_;
     }
 
-    void DeclarationSpecifiers::AddTypeSpecifier(TypeSpecifier typeSpecifier) {
-        typeSpecifiers_.push_back(typeSpecifier);
+    void DeclarationSpecifiers::AddTypeSpecifier(TypeSpecifierPtr typeSpecifier) {
+        typeSpecifiers_.push_back(*std::move(typeSpecifier));
     }
 
     void DeclarationSpecifiers::SetStorageClassSpecifier(StorageClassSpecifier storageClassSpecifier) {
