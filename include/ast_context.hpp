@@ -66,7 +66,8 @@ namespace ast {
         Bindings bindings;
         std::bitset<12> usedIntegerPersistentRegisters{1}; // s0 is always used
         std::bitset<12> usedFloatPersistentRegisters{};
-        // todo consider a return label to avoid multiple return instruction sequences
+
+        std::optional<std::string> returnLabel{std::nullopt};
         std::optional<std::string> breakLabel{std::nullopt};
         std::optional<std::string> continueLabel{std::nullopt};
     };

@@ -22,6 +22,9 @@ namespace ast {
                                   .size = frameSize,
                                   .bindings = Bindings(frameSize, -4 * 13), // 4 * 13 is the size of the saved registers (max case)
                           });
+        // Set the return label for return statements to emit
+        context.CurrentFrame().returnLabel = context.MakeLabel(".L_RETURN");
+
         // Execute the declarator and function body without emitting it to determine which registers need to be saved
         std::stringstream bodyStream;
         if (compound_statement_) {
@@ -54,6 +57,31 @@ namespace ast {
 
         // Now emit the parameters and function body
         stream << bodyStream.rdbuf();
+
+        // Add the return RISC (that many return statements can jump to)
+        stream << *context.CurrentFrame().returnLabel << ":" << std::endl;
+
+        // Stack/frame pointer/return address teardown
+        stream << "lw ra," << frameSize - 4 << "(sp)" << std::endl;
+
+        // Restore used persistent registers
+        storedCount = 0;
+        for (int r = 0; r < 12; r++) {
+            if (context.CurrentFrame().usedIntegerPersistentRegisters.test(r)) {
+                stream << "lw s" << r << "," << frameSize - 8 - storedCount * 4 << "(sp)" << std::endl;
+                storedCount++;
+            }
+        }
+        storedCount++; // Make space for 64 bit reg // todo check this is correct and cx declaration (abi alignment)
+        for (int r = 0; r < 8; r++) {
+            if (context.CurrentFrame().usedFloatPersistentRegisters.test(r)) {
+                stream << "flw fs" << r << "," << frameSize - 8 - storedCount * 4 << "(sp)" << std::endl;
+                storedCount += 2; // Float registers are 64 bit
+            }
+        }
+
+        stream << "addi sp,sp," << context.CurrentFrame().size << std::endl;
+        stream << "ret" << std::endl;
 
         // Moved from return to fix multiple return statements/return in scope
         context.PopFrame();

@@ -5,40 +5,19 @@
 namespace ast {
 
     void ReturnStatement::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-        // todo I mentioned a return label and moving all this to the actual function emitter.
-        // this would make typing this easier and wouldnt fuck up for return 0; in a float function
+        assert(context.CurrentFrame().returnLabel.has_value() && "Return statement outside of a function");
+
         Register returnReg =
                 (GetType(context) == TypeSpecifier::FLOAT ||
                  GetType(context) == TypeSpecifier::DOUBLE)
                 ? Register::fa0 : Register::a0;
+        // this may become a ballache if (when) we have to return a struct
 
         if (expression_ != nullptr) {
             expression_->EmitRISC(stream, context, returnReg);
         }
 
-        int frameSize = context.CurrentFrame().size;
-
-        // Stack/frame pointer/return address teardown
-        stream << "lw ra," << frameSize - 4 << "(sp)" << std::endl;
-
-        // Restore used persistent registers
-        int storedCount = 0;
-        for (int r = 0; r < 12; r++) {
-            if (context.CurrentFrame().usedIntegerPersistentRegisters.test(r)) {
-                stream << "lw s" << r << "," << frameSize - 8 - storedCount * 4 << "(sp)" << std::endl;
-                storedCount++;
-            }
-        }
-        storedCount++; // Make space for 64 bit reg // todo check this is correct and cx declaration
-        for (int r = 0; r < 8; r++) {
-            if (context.CurrentFrame().usedFloatPersistentRegisters.test(r)) {
-                stream << "flw fs" << r << "," << frameSize - 8 - storedCount * 4 << "(sp)" << std::endl;
-                storedCount += 2; // Float registers are 64 bit
-            }
-        }
-
-        stream << "addi sp,sp," << context.CurrentFrame().size << std::endl;
-        stream << "ret" << std::endl;
+        stream << "j " << *context.CurrentFrame().returnLabel << std::endl;
     }
 
     void ReturnStatement::Print(std::ostream &stream) const {
