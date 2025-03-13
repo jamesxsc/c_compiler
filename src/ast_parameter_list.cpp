@@ -13,11 +13,10 @@ namespace ast {
             for (const auto &param: parameters_) {
                 TypeSpecifier type = param->GetType(context);
                 Variable var = context.CurrentFrame().bindings.Insert(param->GetIdentifier(), Variable{
-                        .size = GetTypeSize(type),
+                        .size = type.GetTypeSize(),
                         .reg = Register::zero,
                         .type = type
                 });
-                // todo array case here
                 switch (type) {
                     case TypeSpecifier::FLOAT:
                     case TypeSpecifier::DOUBLE:
@@ -35,6 +34,13 @@ namespace ast {
                         stream << "sb a" << iidx << "," << var.offset << "(s0)" << std::endl;
                         ++iidx;
                         break;
+                    case TypeSpecifier::VOID:
+                    case TypeSpecifier::ENUM:
+                    case TypeSpecifier::STRUCT:
+                    case TypeSpecifier::ARRAY:
+                        throw std::runtime_error(
+                                "ParameterList::EmitRISC() called on an unsupported array type");
+                        // todo handle these
                 }
             }
         }

@@ -23,8 +23,9 @@ namespace ast {
     };
 
     struct Array : public Variable {
+        // todo all variable array stuff needs to change really - not sure array is really even necessary?
         Array(TypeSpecifier elementType, int length) :
-                Variable({.size = GetTypeSize(elementType) * length, .type = elementType, .array = true}),
+                Variable({.size = elementType.GetTypeSize(), .type = elementType, .array = true}),
                 length(length) {}
         int length;
     };

@@ -39,6 +39,12 @@ namespace ast {
                        (op_ == AdditiveOperator::Add ? "add " : "sub ")
                        << destReg << "," << leftReg << "," << rightReg << std::endl;
                 break;
+            case TypeSpecifier::Type::VOID:
+            case TypeSpecifier::Type::ENUM:
+            case TypeSpecifier::Type::STRUCT:
+            case TypeSpecifier::Type::ARRAY:
+                throw std::runtime_error("Addition on that type isn't supported yet!");
+                // TODO it should be supported - array as ptr, enum as underlying
         }
         leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg);
         context.FreeTemporary(rightReg);

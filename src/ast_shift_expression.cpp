@@ -20,7 +20,7 @@ namespace ast {
                 break;
             }
             case ShiftOperator::Right: {
-                if (IsSigned(left_->GetType(context)))
+                if (left_->GetType(context).IsSigned())
                     stream << "sra " << destReg << "," << leftReg << "," << rightReg << std::endl;
                 else
                     stream << "srl " << destReg << "," << leftReg << "," << rightReg << std::endl;

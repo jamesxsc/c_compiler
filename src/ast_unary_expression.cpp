@@ -83,10 +83,10 @@ namespace ast {
                 stream << "andi " << destReg << "," << destReg << ",0xff" << std::endl;
                 break;
             case UnaryOperator::SizeofUnary:
-                stream << "li " << destReg << "," << GetTypeSize(unaryChild_->GetType(context)) << std::endl;
+                stream << "li " << destReg << "," << unaryChild_->GetType(context).GetTypeSize() << std::endl;
                 break;
             case UnaryOperator::SizeofType:
-                stream << "li " << destReg << "," << GetTypeSize(typeNameChild_->GetType(context)) << std::endl;
+                stream << "li " << destReg << "," << typeNameChild_->GetType(context).GetTypeSize() << std::endl;
                 break;
         }
     }

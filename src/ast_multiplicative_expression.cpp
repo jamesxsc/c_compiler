@@ -44,7 +44,7 @@ namespace ast {
                         stream << "div " << destReg << "," << leftReg << "," << rightReg << std::endl;
                         break;
                     case MultiplicativeOperator::Modulo:
-                        if (IsSigned(left_->GetType(context)) && IsSigned(right_->GetType(context))) // todo these kind of expressions could probably be simplified into a case: UNSIGNED and set that in GetType on this class
+                        if (left_->GetType(context).IsSigned() && right_->GetType(context).IsSigned()) // todo these kind of expressions could probably be simplified into a case: UNSIGNED and set that in GetType on this class
                             stream << "rem " << destReg << "," << leftReg << "," << rightReg << std::endl;
                         else
                             stream << "remu " << destReg << "," << leftReg << "," << rightReg << std::endl;

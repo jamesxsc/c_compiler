@@ -42,11 +42,18 @@ namespace ast {
                                     break;
                                 case TypeSpecifier::DOUBLE:
                                     break;
+                                case TypeSpecifier::VOID:
+                                case TypeSpecifier::ENUM:
+                                case TypeSpecifier::STRUCT:
+                                case TypeSpecifier::ARRAY:
+                                    throw std::runtime_error(
+                                            "ExternalDeclaration::EmitRISC() called on an unsupported array type");
+                                    // todo handle these
                             }
                         }
                     } else {
                         context.InsertGlobal(identifier, type);
-                        stream << ".size " << identifier << "," << GetTypeSize(type) << std::endl;
+                        stream << ".size " << identifier << "," << type.GetTypeSize() << std::endl;
                         stream << identifier << ":" << std::endl;
                         switch (type) {
                             case TypeSpecifier::INT:
@@ -61,10 +68,16 @@ namespace ast {
                                 stream << ".word " << initDeclarator->GetGlobalInitializerIdentifier() << std::endl;
                                 break;
                                 // TODO float work here and above, note double should be given two words or can we use .float? is there a .double cx the other todo relating to this (constant)
+                                // todo cx there is no duplication with the identifier method here
                             case TypeSpecifier::FLOAT:
-                                break;
                             case TypeSpecifier::DOUBLE:
-                                break;
+                            case TypeSpecifier::VOID:
+                            case TypeSpecifier::ENUM:
+                            case TypeSpecifier::STRUCT:
+                            case TypeSpecifier::ARRAY:
+                                throw std::runtime_error(
+                                        "ArrayIndexExpression::EmitRISC() called on an unsupported array type");
+                                // todo handle these
                         }
                     }
                 } else {
@@ -76,9 +89,9 @@ namespace ast {
                         stream << ".zero " << array.size << std::endl;
                     } else {
                         context.InsertGlobal(identifier, type);
-                        stream << ".size " << identifier << "," << GetTypeSize(type) << std::endl;
+                        stream << ".size " << identifier << "," << type.GetTypeSize() << std::endl;
                         stream << identifier << ":" << std::endl;
-                        stream << ".zero " << GetTypeSize(type) << std::endl;
+                        stream << ".zero " << type.GetTypeSize() << std::endl;
                     }
                 }
             }

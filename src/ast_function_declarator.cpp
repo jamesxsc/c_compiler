@@ -48,7 +48,7 @@ namespace ast {
         std::vector<int> parameterSizes;
         int totalSize = 0;
         for (const auto &param: *parameterList_) {
-            int size = GetTypeSize(param->GetType(context));
+            int size = param->GetType(context).GetTypeSize();
             parameterSizes.push_back(size);
             totalSize += size;
         }

@@ -14,7 +14,7 @@ namespace ast {
                        "ArrayIndexExpression::EmitRISC() destReg array type mismatch");
                 Register indexReg = context.AllocateTemporary();
                 index_->EmitRISC(stream, context, indexReg);
-                int logSize = static_cast<int>(std::log2(GetTypeSize(array.type))); // todo will this break for structs
+                int logSize = static_cast<int>(std::log2(array.type.GetTypeSize())); // todo will this break for structs
                 if (logSize != 0) // Save an instruction if it's a char array
                     stream << "slli " << indexReg << "," << indexReg << "," << logSize << std::endl;
                 Register addressTemp = useFloat ? context.AllocateTemporary() : destReg;
@@ -36,8 +36,12 @@ namespace ast {
                         stream << "lbu " << destReg << ",0(" << addressTemp << ")" << std::endl;
                         break;
                     case TypeSpecifier::POINTER:
+                    case TypeSpecifier::VOID:
+                    case TypeSpecifier::ENUM:
+                    case TypeSpecifier::STRUCT:
+                    case TypeSpecifier::ARRAY:
                         throw std::runtime_error(
-                                "ArrayIndexExpression::EmitRISC() called on a pointer array which is unsupported");
+                                "ArrayIndexExpression::EmitRISC() called on an unsupported array type");
                 }
             } else {
                 const Variable &variable = context.CurrentFrame().bindings.Get(identifier);
@@ -49,7 +53,7 @@ namespace ast {
                        "ArrayIndexExpression::EmitRISC() destReg array type mismatch");
                 Register indexReg = context.AllocateTemporary();
                 index_->EmitRISC(stream, context, indexReg);
-                int logSize = static_cast<int>(std::log2(GetTypeSize(array.type)));
+                int logSize = static_cast<int>(std::log2(array.type.GetTypeSize()));
                 if (logSize != 0) // Save an instruction if it's a char array
                     stream << "slli " << indexReg << "," << indexReg << "," << logSize << std::endl;
                 Register addressTemp = useFloat ? context.AllocateTemporary() : destReg;
@@ -70,8 +74,13 @@ namespace ast {
                         stream << "lbu " << destReg << ",0(" << addressTemp << ")" << std::endl;
                         break;
                     case TypeSpecifier::POINTER:
+                    case TypeSpecifier::VOID:
+                    case TypeSpecifier::ENUM:
+                    case TypeSpecifier::STRUCT:
+                    case TypeSpecifier::ARRAY:
                         throw std::runtime_error(
-                                "ArrayIndexExpression::EmitRISC() called on a pointer array which is unsupported");
+                                "ArrayIndexExpression::EmitRISC() called on an unsupported array type");
+                        // todo handle these
                 }
             }
         } else { // Ptr syntax

@@ -13,9 +13,7 @@ namespace ast {
 
     public:
         TypeSpecifier GetType(Context &context) const override;
-        explicit Identifier(std::string identifier) : identifier_(std::move(identifier)) {
-            std::cout << "Identifier constructor called" << std::endl;
-        };
+        explicit Identifier(std::string identifier) : identifier_(std::move(identifier)) {}
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
 

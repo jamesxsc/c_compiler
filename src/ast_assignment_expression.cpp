@@ -47,7 +47,7 @@ namespace ast {
                     break;
                 case AssignmentOperator::ModuloAssign:
                     // Checked, this logic is correct
-                    if (IsSigned(assignment_->GetType(context)) && IsSigned(unary_->GetType(context)))
+                    if (assignment_->GetType(context).IsSigned() && unary_->GetType(context).IsSigned())
                         stream << "rem " << right << "," << left << "," << right << std::endl;
                     else
                         stream << "remu " << right << "," << left << "," << right << std::endl;
@@ -62,7 +62,7 @@ namespace ast {
                     stream << "sll " << right << "," << left << "," << right << std::endl;
                     break;
                 case AssignmentOperator::RightShiftAssign:
-                    if (IsSigned(unary_->GetType(context)))
+                    if (unary_->GetType(context).IsSigned())
                         stream << "sra " << right << "," << left << "," << right << std::endl;
                     else
                         stream << "srl " << right << "," << left << "," << right << std::endl;
@@ -88,7 +88,7 @@ namespace ast {
                 Register indexReg = context.AllocateTemporary();
                 // todo ughhh do we want to change order to match gcc more closely? probably cba
                 unary_->GetArrayIndexExpression().EmitRISC(stream, context, indexReg);
-                int logSize = static_cast<int>(std::log2(GetTypeSize(type))); // todo will this break for structs
+                int logSize = static_cast<int>(std::log2(type.GetTypeSize())); // todo will this break for structs
                 if (logSize != 0) // Save an instruction if it's a char array
                     stream << "slli " << indexReg << "," << indexReg << "," << logSize << std::endl;
                 Register addrReg = context.AllocateTemporary();
@@ -110,13 +110,18 @@ namespace ast {
                         stream << "sb " << right << ",0(" << addrReg << ")" << std::endl;
                         break;
                     case TypeSpecifier::POINTER:
+                    case TypeSpecifier::VOID:
+                    case TypeSpecifier::ENUM:
+                    case TypeSpecifier::STRUCT:
+                    case TypeSpecifier::ARRAY:
                         throw std::runtime_error(
-                                "ArrayIndexExpression::EmitRISC() called on a pointer array which is unsupported");
+                                "AssignmentExpression::EmitRISC() called on an unsupported array type");
+                        // todo these do need to be supported
                 }
             } else {
                 Register indexReg = context.AllocateTemporary();
                 unary_->GetArrayIndexExpression().EmitRISC(stream, context, indexReg);
-                int logSize = static_cast<int>(std::log2(GetTypeSize(type)));
+                int logSize = static_cast<int>(std::log2(type.GetTypeSize()));
                 if (logSize != 0) // Save an instruction if it's a char array
                     stream << "slli " << indexReg << "," << indexReg << "," << logSize << std::endl;
                 Register addrReg = context.AllocateTemporary();
@@ -138,8 +143,12 @@ namespace ast {
                         stream << "sb " << right << ",0(" << addrReg << ")" << std::endl;
                         break;
                     case TypeSpecifier::POINTER:
+                    case TypeSpecifier::VOID:
+                    case TypeSpecifier::ENUM:
+                    case TypeSpecifier::STRUCT:
+                    case TypeSpecifier::ARRAY:
                         throw std::runtime_error(
-                                "ArrayIndexExpression::EmitRISC() called on a pointer array which is unsupported");
+                                "AssignmentExpression::EmitRISC() called on an unsupported array type");
                 }
             }
         } else {
@@ -169,12 +178,19 @@ namespace ast {
                         context.FreeTemporary(tempReg);
                         break;
                     }
-                    case TypeSpecifier::CHAR:
+                    case TypeSpecifier::CHAR: {
                         Register tempReg = context.AllocateTemporary();
                         stream << "lui " << tempReg << ",%hi(" << identifier << ")" << std::endl;
                         stream << "sb " << right << ",%lo(" << identifier << ")(" << tempReg << ")" << std::endl;
                         context.FreeTemporary(tempReg);
                         break;
+                    }
+                    case TypeSpecifier::VOID:
+                    case TypeSpecifier::ENUM:
+                    case TypeSpecifier::STRUCT:
+                    case TypeSpecifier::ARRAY:
+                        throw std::runtime_error("Unsupported type for global assignment");
+                        // TODO need to support at least some of these
                 }
             } else {
                 Variable lhsVariable = context.CurrentFrame().bindings.Get(
@@ -191,13 +207,20 @@ namespace ast {
                     case TypeSpecifier::CHAR:
                         stream << "sb " << right << "," << lhsVariable.offset << "(s0)" << std::endl;
                         break;
-                    case TypeSpecifier::POINTER:
+                    case TypeSpecifier::POINTER: {
                         // Pointer, load the address (LHS equivalent of UnaryOperator::Dereference)
                         Register addrReg = context.AllocateTemporary();
                         stream << "lw " << addrReg << "," << lhsVariable.offset << "(s0)" << std::endl;
                         stream << "sw " << right << ",0(" << addrReg << ")" << std::endl;
                         context.FreeTemporary(addrReg);
                         break;
+                    }
+                    case TypeSpecifier::VOID:
+                    case TypeSpecifier::ENUM:
+                    case TypeSpecifier::STRUCT:
+                    case TypeSpecifier::ARRAY:
+                        throw std::runtime_error("Unsupported type for assignment");
+                        // TODO need to support at least some of these
                 }
             }
         }

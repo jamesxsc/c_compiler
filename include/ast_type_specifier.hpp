@@ -45,14 +45,14 @@ namespace ast {
         inline static constexpr Type STRUCT = Type::STRUCT;
         inline static constexpr Type ARRAY = Type::ARRAY;
 
-        explicit TypeSpecifier(Type type) : type_(type) {}
+        TypeSpecifier(Type type) : type_(type) {}
 
         // Implicit construction to support old TypeSpecifier::TYPE syntax
         TypeSpecifier(int value) : type_(static_cast<Type>(value)) {}
 
         ~TypeSpecifier() = default;
 
-        constexpr operator int() const { return static_cast<int>(type_); }
+        constexpr operator Type() const { return type_; }
 
         [[nodiscard]] bool IsPointer() const;
 
@@ -67,8 +67,6 @@ namespace ast {
         int GetTypeSize() const;
 
         // Getters
-        [[nodiscard]] Type GetType() const;
-
         [[nodiscard]] const TypeSpecifier &GetPointeeType() const;
 
         [[nodiscard]] const TypeSpecifier &GetArrayType() const;
@@ -99,14 +97,10 @@ namespace ast {
 
     // will probably have to store struct and enum names in context, but also here for print if nothing else
 
-    bool IsSigned(const TypeSpecifier& type);
-
-    int GetTypeSize(const TypeSpecifier& type);
-
     // This is now recursive
     template<typename LogStream>
     LogStream &operator<<(LogStream &ls, const TypeSpecifier &type)  {
-        switch (type.GetType()) {
+        switch (type) {
             case TypeSpecifier::Type::INT:
                 ls << "int";
                 break;

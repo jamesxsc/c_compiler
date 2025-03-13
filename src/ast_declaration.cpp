@@ -11,7 +11,7 @@ namespace ast {
         for (const auto &initDeclarator: *initDeclaratorList_) {
             // Handle local variable declarations
             TypeSpecifier type = GetType(context);
-            int size = GetTypeSize(type);
+            int size = type.GetTypeSize();
             std::string identifier = initDeclarator->GetIdentifier();
             bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
             // We won't ever need to "return" to destReg to overwrite it for temporary use
@@ -30,19 +30,25 @@ namespace ast {
                         initializer->EmitRISC(stream, context, destReg);
                         switch (type) {
                             case TypeSpecifier::INT:
-                                stream << "sw " << destReg << "," << array.offset + idx * GetTypeSize(type) << "(s0)" << std::endl;
+                                stream << "sw " << destReg << "," << array.offset + idx * type.GetTypeSize() << "(s0)" << std::endl;
                                 break;
                             case TypeSpecifier::FLOAT:
-                                stream << "fsw " << destReg << "," << array.offset + idx * GetTypeSize(type) << "(s0)" << std::endl;
+                                stream << "fsw " << destReg << "," << array.offset + idx * type.GetTypeSize() << "(s0)" << std::endl;
                                 break;
                             case TypeSpecifier::DOUBLE:
-                                stream << "fsd " << destReg << "," << array.offset + idx * GetTypeSize(type) << "(s0)" << std::endl;
+                                stream << "fsd " << destReg << "," << array.offset + idx * type.GetTypeSize() << "(s0)" << std::endl;
                                 break;
                             case TypeSpecifier::CHAR:
-                                stream << "sb " << destReg << "," << array.offset + idx * GetTypeSize(type) << "(s0)" << std::endl;
+                                stream << "sb " << destReg << "," << array.offset + idx * type.GetTypeSize() << "(s0)" << std::endl;
                                 break;
                             case TypeSpecifier::POINTER:
-                                throw std::runtime_error("Array of pointers not supported");
+                            case TypeSpecifier::VOID:
+                            case TypeSpecifier::ENUM:
+                            case TypeSpecifier::STRUCT:
+                            case TypeSpecifier::ARRAY:
+                                throw std::runtime_error(
+                                        "Declaration::EmitRISC() called on an unsupported array type");
+                                // todo handle these
                         }
                         idx++;
                     }
@@ -53,7 +59,7 @@ namespace ast {
                     Variable var = context.CurrentFrame().bindings.InsertOrOverwrite(identifier, Variable{
                             .size = initDeclarator->IsPointer() ? 4 : size,
                             .reg = destReg,
-                            .type = initDeclarator->IsPointer() ? TypeSpecifier::POINTER : type
+                            .type = type
                     });
                     switch (type) {
                         // todo would you like some typechecking asserts sir?
@@ -72,6 +78,13 @@ namespace ast {
                         case TypeSpecifier::CHAR:
                             stream << "sb " << destReg << "," << var.offset << "(s0)" << std::endl;
                             break;
+                        case TypeSpecifier::VOID:
+                        case TypeSpecifier::ENUM:
+                        case TypeSpecifier::STRUCT:
+                        case TypeSpecifier::ARRAY:
+                            throw std::runtime_error(
+                                    "ArrayIndexExpression::EmitRISC() called on an unsupported type");
+                            // todo handle these
                     }
                 }
             } else {
@@ -82,7 +95,7 @@ namespace ast {
                     context.CurrentFrame().bindings.InsertOrOverwrite(identifier, Variable{
                             .size = initDeclarator->IsPointer() ? 4 : size,
                             .reg = Register::zero,
-                            .type = initDeclarator->IsPointer() ? TypeSpecifier::POINTER : type
+                            .type = type
                     });
                 }
             }

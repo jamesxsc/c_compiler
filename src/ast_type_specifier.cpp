@@ -5,7 +5,7 @@
 namespace ast {
 
     bool TypeSpecifier::IsSigned() const {
-        switch (GetType()) {
+        switch (type_) {
             case TypeSpecifier::INT:
             case TypeSpecifier::FLOAT:
             case TypeSpecifier::DOUBLE:
@@ -23,7 +23,7 @@ namespace ast {
     }
 
     int TypeSpecifier::GetTypeSize() const {
-        switch (GetType()) {
+        switch (type_) {
             case TypeSpecifier::CHAR:
                 return 1;
             case TypeSpecifier::INT:
@@ -59,10 +59,6 @@ namespace ast {
 
     bool TypeSpecifier::IsStruct() const {
         return type_ == Type::STRUCT;
-    }
-
-    [[nodiscard]] TypeSpecifier::Type TypeSpecifier::GetType() const {
-        return type_;
     }
 
     const TypeSpecifier &TypeSpecifier::GetPointeeType() const {

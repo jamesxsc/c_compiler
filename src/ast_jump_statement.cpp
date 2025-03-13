@@ -34,7 +34,7 @@ namespace ast {
         if (expression_)
             return expression_->GetType(context);
         else
-            return TypeSpecifier::INT; // todo fuck that
+            return TypeSpecifier::VOID;
     }
 
     void BreakStatement::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {

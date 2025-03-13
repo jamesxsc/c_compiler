@@ -31,6 +31,13 @@ namespace ast {
                     stream << "lui " << destReg << ",%hi(" << identifier_ << ")" << std::endl;
                     stream << "lbu " << destReg << ",%lo(" << identifier_ << ")(" << destReg << ")" << std::endl;
                     break;
+                case TypeSpecifier::VOID:
+                case TypeSpecifier::ENUM:
+                case TypeSpecifier::STRUCT:
+                case TypeSpecifier::ARRAY:
+                    throw std::runtime_error(
+                            "Identifier::EmitRISC() called on an unsupported type");
+                    // todo handle these
             }
         } else {
             int offset = context.CurrentFrame().bindings.Get(identifier_).offset;
@@ -51,6 +58,13 @@ namespace ast {
                 case TypeSpecifier::CHAR:
                     stream << "lbu " << destReg << "," << offset << "(s0)" << std::endl;
                     break;
+                case TypeSpecifier::VOID:
+                case TypeSpecifier::ENUM:
+                case TypeSpecifier::STRUCT:
+                case TypeSpecifier::ARRAY:
+                    throw std::runtime_error(
+                            "Identifier::EmitRISC() called on an unsupported type");
+                    // todo handle these
             }
         }
     }
