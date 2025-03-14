@@ -1,5 +1,6 @@
 #include "ast_exclusive_or_expression.hpp"
 #include "ast_type_specifier.hpp"
+#include "risc_utils.hpp"
 
 namespace ast {
 
@@ -7,14 +8,7 @@ namespace ast {
         if (left_ == nullptr) { // Promotion from and expression
             right_->EmitRISC(stream, context, destReg);
         } else {
-            bool leftStored = right_->ContainsFunctionCall();
-            Register leftReg = leftStored ? context.AllocatePersistent() : context.AllocateTemporary();
-            left_->EmitRISC(stream, context, leftReg);
-            Register rightReg = context.AllocateTemporary();
-            right_->EmitRISC(stream, context, rightReg);
-            stream << "xor " << destReg << "," << leftReg << "," << rightReg << std::endl;
-            leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg);
-            context.FreeTemporary(rightReg);
+            Utils::EmitBitwiseXor(stream, context, destReg, *left_, *right_);
         }
     }
 

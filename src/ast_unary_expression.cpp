@@ -59,6 +59,7 @@ namespace ast {
             case UnaryOperator::Dereference: {
                 std::string identifier = multiplicativeChild_->GetIdentifier();
                 // todo maybe the first load should be delegated to child
+                // todo this is incorrect becuase it only considers integer registers
                 if (context.IsGlobal(identifier)) {
                     stream << "lui " << destReg << ",%hi(" << identifier << ")" << std::endl;
                     stream << "lw " << destReg << ",%lo(" << identifier << ")(" << destReg << ")" << std::endl;

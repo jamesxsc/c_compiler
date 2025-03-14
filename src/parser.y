@@ -437,7 +437,7 @@ declarator
     // todo this fucks functions retutrning pointers
     // if function change type by member or something?
 	: pointer direct_declarator {
-	    // Function returning pointer isn't a pointer declarator
+	    // todo Function returning pointer isn't a pointer declarator
 	    if ($2->IsFunction()) throw std::runtime_error("Function returning pointer WIP"); // need a member used by FunctionDeclarator::BuildFunction AND ReturnStatement::GetType AND FunctionDefition::GetType
 	    // ban this from ever being a pointer declarator (final) but we need to set something
         else $$ = new PointerDeclarator(DeclaratorPtr($2));

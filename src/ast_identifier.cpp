@@ -5,7 +5,6 @@
 namespace ast {
 
     void Identifier::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-        // todo check if this is right for structs/arrays etc etc & propagate to to other usages
         TypeSpecifier type = GetType(context);
         if (context.IsGlobal(identifier_)) {
             switch (type) {
@@ -35,7 +34,7 @@ namespace ast {
                 case TypeSpecifier::VOID:
                 case TypeSpecifier::ENUM:
                 case TypeSpecifier::STRUCT:
-                case TypeSpecifier::ARRAY:
+                case TypeSpecifier::ARRAY: // Unsupported since it is handled in ArrayIndexExpression
                     throw std::runtime_error(
                             "Identifier::EmitRISC() called on an unsupported type");
                     // todo handle these
@@ -63,7 +62,7 @@ namespace ast {
                 case TypeSpecifier::VOID:
                 case TypeSpecifier::ENUM:
                 case TypeSpecifier::STRUCT:
-                case TypeSpecifier::ARRAY:
+                case TypeSpecifier::ARRAY: // Unsupported since it is handled in ArrayIndexExpression
                     throw std::runtime_error(
                             "Identifier::EmitRISC() called on an unsupported type");
                     // todo handle these

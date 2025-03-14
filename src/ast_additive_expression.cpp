@@ -1,54 +1,21 @@
 #include "ast_type_specifier.hpp"
 #include "ast_additive_expression.hpp"
+#include "risc_utils.hpp"
 
 namespace ast {
 
-    // todo nice to have : extract a binaryexpression class to handle common logic
     void AdditiveExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-        if (op_ == AdditiveOperator::MultiplicativePromote) {
-            right_->EmitRISC(stream, context, destReg);
-            return;
+        switch (op_) {
+            case AdditiveOperator::MultiplicativePromote:
+                right_->EmitRISC(stream, context, destReg);
+                break;
+            case AdditiveOperator::Add:
+                Utils::EmitAddition(stream, context, destReg, *left_, *right_);
+                break;
+            case AdditiveOperator::Subtract:
+                Utils::EmitSubtraction(stream, context, destReg, *left_, *right_);
+                break;
         }
-
-        TypeSpecifier type = GetType(context);
-        bool leftStored = right_->ContainsFunctionCall();
-        bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
-        Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(useFloat);
-        left_->EmitRISC(stream, context, leftReg);
-        Register rightReg = context.AllocateTemporary(useFloat);
-        right_->EmitRISC(stream, context, rightReg);
-        switch (type) {
-            case TypeSpecifier::FLOAT:
-                stream <<
-                       (op_ == AdditiveOperator::Add ? "fadd.s " : "fsub.s ")
-                       << destReg << "," << leftReg << "," << rightReg << std::endl;
-                break;
-            case TypeSpecifier::DOUBLE:
-                stream <<
-                       (op_ == AdditiveOperator::Add ? "fadd.d " : "fsub.d ")
-                       << destReg << "," << leftReg << "," << rightReg << std::endl;
-                break;
-            case TypeSpecifier::POINTER: // todo extract type here for pointer arith... need both sides right? but check in godbolt
-            case TypeSpecifier::INT:
-            case TypeSpecifier::UNSIGNED:
-                stream <<
-                       (op_ == AdditiveOperator::Add ? "add " : "sub ")
-                       << destReg << "," << leftReg << "," << rightReg << std::endl;
-                break;
-            case TypeSpecifier::CHAR:
-                stream <<
-                       (op_ == AdditiveOperator::Add ? "add " : "sub ")
-                       << destReg << "," << leftReg << "," << rightReg << std::endl;
-                break;
-            case TypeSpecifier::Type::ENUM:
-            case TypeSpecifier::Type::ARRAY:
-            case TypeSpecifier::Type::STRUCT:
-            case TypeSpecifier::Type::VOID:
-                throw std::runtime_error("Addition on that type isn't supported yet!");
-                // TODO it should be supported - array as ptr, enum as underlying void and struct are actually unsupported
-        }
-        leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg);
-        context.FreeTemporary(rightReg);
     }
 
     void AdditiveExpression::Print(std::ostream &stream) const {

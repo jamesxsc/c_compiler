@@ -27,6 +27,7 @@ namespace ast {
     };
 
     // I prefer this, but it may be possible to ditch the deque and just store a counter
+    // TODO just double check that we are storing the args in the correct end of the frame
     class Bindings {
     public:
         Bindings(int size, int start) : size_(size), start_(start) {};

@@ -10,11 +10,41 @@
 
 namespace ast::Utils {
 
-    void EmitComparison(std::ostream &ostream, Context &context, Register result, const ExpressionBase &operand);
+    void EmitComparison(std::ostream &stream, Context &context, Register result, const ExpressionBase &operand);
 
-    static std::map<std::set<TypeSpecifier::Type>, TypeSpecifier::Type> aliasMap {
-            {{TypeSpecifier::UNSIGNED, TypeSpecifier::INT}, TypeSpecifier::UNSIGNED},
-            {{TypeSpecifier::INT, TypeSpecifier::INT}, TypeSpecifier::INT}, // signed int
+    void EmitMultiply(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
+                      const ExpressionBase &right);
+
+    void EmitDivide(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
+                    const ExpressionBase &right);
+
+    void EmitModulo(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
+                    const ExpressionBase &right);
+
+    void EmitAddition(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
+                      const ExpressionBase &right);
+
+    void EmitSubtraction(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
+                         const ExpressionBase &right);
+
+    void EmitLeftShift(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
+                       const ExpressionBase &right);
+
+    void EmitRightShift(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
+                        const ExpressionBase &right);
+
+    void EmitBitwiseAnd(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
+                        const ExpressionBase &right);
+
+    void EmitBitwiseXor(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
+                        const ExpressionBase &right);
+
+    void EmitBitwiseOr(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
+                       const ExpressionBase &right);
+
+    static std::map<std::set<TypeSpecifier::Type>, TypeSpecifier::Type> aliasMap{
+            {{TypeSpecifier::UNSIGNED, TypeSpecifier::INT},  TypeSpecifier::UNSIGNED},
+            {{TypeSpecifier::INT,      TypeSpecifier::INT},  TypeSpecifier::INT}, // signed int
             {{TypeSpecifier::UNSIGNED, TypeSpecifier::CHAR}, TypeSpecifier::CHAR},
     };
 
