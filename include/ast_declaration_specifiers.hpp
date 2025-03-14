@@ -35,6 +35,9 @@ namespace ast {
 
         // todo add logic to support multiple specifiers - e.g. unsigned int for unsigned
         void SetStorageClassSpecifier(StorageClassSpecifier storageClassSpecifier);
+
+        // this
+        TypeSpecifier GetType(Context &context) const;
     private:
         std::vector<TypeSpecifier> typeSpecifiers_;
         StorageClassSpecifier storageClassSpecifier_;

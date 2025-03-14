@@ -12,11 +12,13 @@ namespace ast {
             if (initDeclarator->IsFunction()) {
                 // Store forward declarations
                 context.InsertFunction(initDeclarator->GetIdentifier(),
-                                       initDeclarator->BuildFunction(GetType(context), context));
+                                       initDeclarator->BuildFunction(declarationSpecifiers_->GetType(context), context)); // todo does this handle array/ptr return?
             } else {
                 // Handle global variables
                 std::string identifier = initDeclarator->GetIdentifier();
-                TypeSpecifier type = GetType(context);
+                TypeSpecifier type = declarationSpecifiers_->GetType(context);
+                if (initDeclarator->IsPointer())
+                    type = TypeSpecifier(TypeSpecifier::POINTER, type);
                 stream << ".globl " << identifier << std::endl;
                 stream << ".align 2" << std::endl; // TODO check directives and what is required for our project
                 stream << ".data" << std::endl; // .sdata may be more appropriate (GCC)
@@ -24,6 +26,7 @@ namespace ast {
                     if (initDeclarator->IsArray()) {
                         assert(initDeclarator->GetInitializer().IsList() && "Array initializer must be a list");
                         context.InsertGlobal(identifier, initDeclarator->BuildArray(type, context).type); // Pretty much discard the offset etc info.
+                        type = context.GetGlobalType(identifier); // Get the wrapped type
                         const auto& initializerList = static_cast<const InitializerList&>(initDeclarator->GetInitializer()); // NOLINT(*-pro-type-static-cast-downcast)
                         stream << ".size " << identifier << "," << context.GetGlobalType(identifier).GetTypeSize() << std::endl;
                         stream << identifier << ":" << std::endl;

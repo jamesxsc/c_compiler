@@ -10,9 +10,13 @@ namespace ast {
 
         for (const auto &initDeclarator: *initDeclaratorList_) {
             // Handle local variable declarations
-            TypeSpecifier type = GetType(context);
+            TypeSpecifier type = declarationSpecifiers_->GetType(context);
+            if (initDeclarator->IsPointer())
+                type = TypeSpecifier(TypeSpecifier::POINTER, type);
+
             int size = type.GetTypeSize();
             std::string identifier = initDeclarator->GetIdentifier();
+            // todo this is wrong - needs to get the underlying type
             bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
             // We won't ever need to "return" to destReg to overwrite it for temporary use
             destReg = context.AllocateTemporary(useFloat);
@@ -24,6 +28,7 @@ namespace ast {
                     // This approach may have to change slightly for (nested) structs
                     assert(initDeclarator->GetInitializer().IsList() && "Array initializer must be a list");
                     Variable array = context.CurrentFrame().bindings.InsertOrOverwrite(identifier, initDeclarator->BuildArray(type, context));
+                    type = array.type; // Wrapping the type in type array is done in build array
                     const auto &initializerList = static_cast<const InitializerList &>(initDeclarator->GetInitializer()); // NOLINT(*-pro-type-static-cast-downcast)
                     int idx = 0;
                     for (const auto & initializer : initializerList) {
@@ -106,10 +111,14 @@ namespace ast {
         initDeclaratorList_->Print(stream);
     }
 
-    TypeSpecifier Declaration::GetType(Context &context) const {
-        assert(!declarationSpecifiers_->GetTypeSpecifiers().empty() && "Declaration must have a type specifier");
-        return declarationSpecifiers_->GetTypeSpecifiers().front();
-    }
+    // assuming we only use this locally - bin it and just determine in EmitRISC loop
+//    TypeSpecifier Declaration::GetType(Context &context) const {
+//        // URGENT this is wrong - ignores ptrs etc. is in this declaration specifiers or somewhere else?
+//        // if not don't panic, just need if ptr etc.
+//        // technically the full type is associated with the initdeclarator and the declaration specifiers
+//        assert(!declarationSpecifiers_->GetTypeSpecifiers().empty() && "Declaration must have a type specifier");
+//        return declarationSpecifiers_->GetTypeSpecifiers().front();
+//    }
 
     bool Declaration::IsTypedef() const {
         return declarationSpecifiers_->GetStorageClassSpecifier() == StorageClassSpecifier::Typedef;

@@ -334,8 +334,8 @@ declaration
 	: declaration_specifiers ';' { std::cerr << "Need to implement declaration specifiers only declaration" << std::endl; exit(1); }
 	| declaration_specifiers init_declarator_list ';' {
 	    $$ = new Declaration(DeclarationSpecifiersPtr($1), InitDeclaratorListPtr($2));
-	    Context dummy; // It is not used in Declaration::GetIdentifier
-	    if ($$->IsTypedef()) { for (auto & decl : *$2) { typedefs.emplace(decl->GetIdentifier(), $$->GetType(dummy)); } } // Support typedef int x, y; syntax
+	    Context dummy; // Not required
+	    if ($$->IsTypedef()) { for (auto & decl : *$2) { typedefs.emplace(decl->GetIdentifier(), decl->BuildArray($1->GetType(dummy), dummy).type); } } // Support typedef int x, y; syntax
     }
 	;
 

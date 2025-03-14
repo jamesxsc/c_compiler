@@ -31,6 +31,11 @@ namespace ast {
         storageClassSpecifier_ = storageClassSpecifier;
     }
 
+    TypeSpecifier DeclarationSpecifiers::GetType(Context &context) const {
+        return typeSpecifiers_.front();
+    }
+
+
     std::ostream &operator<<(std::ostream &stream, StorageClassSpecifier storageClassSpecifier) {
         switch (storageClassSpecifier) {
             case StorageClassSpecifier::None:
