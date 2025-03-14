@@ -154,6 +154,6 @@ namespace ast {
     }
 
     TypeSpecifier StringConstant::GetType(Context &context) const {
-        return TypeSpecifier::CHAR; // todo use fancy array type when we create it
+        return {TypeSpecifier(TypeSpecifier::CHAR), static_cast<int>(value_.length())};
     }
 } // namespace ast

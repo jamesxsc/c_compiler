@@ -7,7 +7,6 @@ namespace ast {
     }
 
     void ArrayDeclarator::Print(std::ostream &stream) const {
-        // todo can we just stream gettype.. except that we don't have it here, think about it
         stream << GetIdentifier();
         stream << "[";
         size_->Print(stream);

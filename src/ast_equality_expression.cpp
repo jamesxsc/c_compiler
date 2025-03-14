@@ -8,7 +8,7 @@ namespace ast {
             right_->EmitRISC(stream, context, destReg);
             return;
         }
-
+        // todo float and everything else support
         bool leftStored = right_->ContainsFunctionCall();
         Register leftReg = leftStored ? context.AllocatePersistent() : context.AllocateTemporary();
         left_->EmitRISC(stream, context, leftReg);

@@ -9,32 +9,89 @@ namespace ast {
             return;
         }
 
+        TypeSpecifier type = GetType(context);
         bool leftStored = right_->ContainsFunctionCall();
-        Register leftReg = leftStored ? context.AllocatePersistent() : context.AllocateTemporary();
+        bool useFloat = type == TypeSpecifier::Type::FLOAT || type == TypeSpecifier::Type::DOUBLE;
+        Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(useFloat);
         left_->EmitRISC(stream, context, leftReg);
-        Register rightReg = context.AllocateTemporary();
+        Register rightReg = context.AllocateTemporary(useFloat);
         right_->EmitRISC(stream, context, rightReg);
-        // todo are these different for float
-        switch (op_) {
-            case RelationalOperator::LessThan:
-               stream << "slt " << destReg << "," << leftReg << "," << rightReg << std::endl;
-                break;
-            case RelationalOperator::GreaterThan:
-                stream << "sgt " << destReg << "," << leftReg << "," << rightReg << std::endl;
-                break;
-            case RelationalOperator::LessThanOrEqual:
-                stream << "sgt " << destReg << "," << leftReg << "," << rightReg << std::endl;
-                stream << "seqz " << destReg << "," << destReg << std::endl;
+        switch (type) {
+            case TypeSpecifier::Type::INT:
+            case TypeSpecifier::Type::ENUM:
+                switch (op_) {
+                    case RelationalOperator::LessThan:
+                        stream << "slt " << destReg << "," << leftReg << "," << rightReg << std::endl;
+                        break;
+                    case RelationalOperator::GreaterThan:
+                        stream << "sgt " << destReg << "," << leftReg << "," << rightReg << std::endl;
+                        break;
+                    case RelationalOperator::LessThanOrEqual:
+                        stream << "sgt " << destReg << "," << leftReg << "," << rightReg << std::endl;
+                        stream << "seqz " << destReg << "," << destReg << std::endl;
+                        break;
+                    case RelationalOperator::GreaterThanOrEqual:
+                        stream << "slt " << destReg << "," << leftReg << "," << rightReg << std::endl;
+                        stream << "seqz " << destReg << "," << destReg << std::endl;
+                        break;
+                    case RelationalOperator::ShiftPromote: // Should never reach here
+                        break;
+                }
                 stream << "andi " << destReg << "," << destReg << ",0xff" << std::endl;
                 break;
-            case RelationalOperator::GreaterThanOrEqual:
-                stream << "sle " << destReg << "," << leftReg << "," << rightReg << std::endl;
-                stream << "seqz " << destReg << "," << destReg << std::endl;
+            case TypeSpecifier::Type::CHAR:
+            case TypeSpecifier::Type::POINTER: // Treated as unsigned
+            case TypeSpecifier::Type::ARRAY: // Appears to be treated as pointer
+            case TypeSpecifier::Type::UNSIGNED:
+                switch (op_) {
+                    case RelationalOperator::LessThan:
+                        stream << "sltu " << destReg << "," << leftReg << "," << rightReg << std::endl;
+                        break;
+                    case RelationalOperator::GreaterThan:
+                        stream << "sgtu " << destReg << "," << leftReg << "," << rightReg << std::endl;
+                        break;
+                    case RelationalOperator::LessThanOrEqual:
+                        stream << "sgtu " << destReg << "," << leftReg << "," << rightReg << std::endl;
+                        stream << "seqz " << destReg << "," << destReg << std::endl;
+                        break;
+                    case RelationalOperator::GreaterThanOrEqual:
+                        stream << "sltu " << destReg << "," << leftReg << "," << rightReg << std::endl;
+                        stream << "seqz " << destReg << "," << destReg << std::endl;
+                        break;
+                    case RelationalOperator::ShiftPromote: // Should never reach here
+                        break;
+                }
                 stream << "andi " << destReg << "," << destReg << ",0xff" << std::endl;
                 break;
-            case RelationalOperator::ShiftPromote: // Should never reach here
+            case TypeSpecifier::Type::DOUBLE:
+            case TypeSpecifier::Type::FLOAT:
+                switch (op_) {
+                    case RelationalOperator::LessThan:
+                        stream << (type == TypeSpecifier::Type::FLOAT ? "flt.s " : "flt.d ")
+                               << destReg << "," << leftReg << "," << rightReg << std::endl;
+                        break;
+                    case RelationalOperator::GreaterThan:
+                        stream << (type == TypeSpecifier::Type::FLOAT ? "fgt.s " : "fgt.d ")
+                                << destReg << "," << leftReg << "," << rightReg << std::endl;
+                        break;
+                    case RelationalOperator::LessThanOrEqual:
+                        stream << (type == TypeSpecifier::Type::FLOAT ? "fle.s " : "fle.d ")
+                               << destReg << "," << leftReg << "," << rightReg << std::endl;
+                        break;
+                    case RelationalOperator::GreaterThanOrEqual:
+                        stream << (type == TypeSpecifier::Type::FLOAT ? "fge.s " : "fge.d ")
+                               << destReg << "," << leftReg << "," << rightReg << std::endl;
+                        break;
+                    case RelationalOperator::ShiftPromote: // Should never reach here
+                        break;
+                }
+                stream << "andi " << destReg << "," << destReg << ",0xff" << std::endl;
                 break;
+            case TypeSpecifier::Type::VOID:
+            case TypeSpecifier::Type::STRUCT:
+                throw std::runtime_error("RelationalExpression::EmitRISC() called on an unsupported type");
         }
+
         leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg);
         context.FreeTemporary(rightReg);
     }
@@ -62,6 +119,7 @@ namespace ast {
     }
 
     TypeSpecifier RelationalExpression::GetType(Context &context) const {
+        // todo which operand takes precedence eg unsigned int < int
         return right_->GetType(context);
     }
 

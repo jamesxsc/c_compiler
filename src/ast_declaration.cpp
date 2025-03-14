@@ -21,8 +21,6 @@ namespace ast {
             // We won't ever need to "return" to destReg to overwrite it for temporary use
             destReg = context.AllocateTemporary(useFloat);
             // Bindings and init
-            // Don't handle types with multiple keywords (for now)
-            assert(!declarationSpecifiers_->GetTypeSpecifiers().empty() && "Declaration must have a type specifier");
             if (initDeclarator->HasInitializer()) {
                 if (initDeclarator->IsArray()) {
                     // This approach may have to change slightly for (nested) structs
@@ -67,7 +65,6 @@ namespace ast {
                             .type = type
                     });
                     switch (type) {
-                        // todo would you like some typechecking asserts sir?
                         case TypeSpecifier::INT:
                         case TypeSpecifier::POINTER:
                         case TypeSpecifier::UNSIGNED:

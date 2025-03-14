@@ -1,5 +1,6 @@
 #include "ast_logical_or_expression.hpp"
 #include "ast_type_specifier.hpp"
+#include "risc_utils.hpp"
 
 namespace ast {
 
@@ -7,16 +8,15 @@ namespace ast {
         if (left_ == nullptr) { // Promotion from logical and expression
             right_->EmitRISC(stream, context, destReg);
         } else {
-            // TODO operation depends on types - add a switch on child type(s?)
-            Register leftReg = context.AllocateTemporary();
             std::string label2 {context.MakeLabel(".L_OR")};
             std::string label3 {context.MakeLabel(".L_OR")};
             std::string label4 {context.MakeLabel(".L_OR")};
-            left_->EmitRISC(stream, context, leftReg);
+            Register leftReg = context.AllocateTemporary();
+            Utils::EmitComparison(stream, context, leftReg, *left_);
             stream << "bne " << leftReg << ",zero," << label2 << std::endl;
             context.FreeTemporary(leftReg);
             Register rightReg = context.AllocateTemporary();
-            right_->EmitRISC(stream, context, rightReg);
+            Utils::EmitComparison(stream, context, rightReg, *right_);
             stream << "beq " << rightReg << ",zero," << label3 << std::endl;
             context.FreeTemporary(rightReg);
             stream << label2 << ":" << std::endl;

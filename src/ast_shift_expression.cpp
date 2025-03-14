@@ -3,6 +3,7 @@
 
 namespace ast {
 
+    // Doesn't support floats, no need to update
     void ShiftExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         if (op_ == ShiftOperator::AdditivePromote) {
             right_->EmitRISC(stream, context, destReg);

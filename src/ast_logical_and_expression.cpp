@@ -1,5 +1,6 @@
 #include "ast_logical_and_expression.hpp"
 #include "ast_type_specifier.hpp"
+#include "risc_utils.hpp"
 
 namespace ast {
 
@@ -7,16 +8,14 @@ namespace ast {
         if (left_ == nullptr) { // Promotion from inclusive or expression
             right_->EmitRISC(stream, context, destReg);
         } else {
-            // TODO operation depends on types - add a switch on child type(s?)
-            // This is for int
-            Register leftReg = context.AllocateTemporary();
             std::string label2{context.MakeLabel(".L_AND")};
             std::string label3{context.MakeLabel(".L_AND")};
-            left_->EmitRISC(stream, context, leftReg);
+            Register leftReg = context.AllocateTemporary();
+            Utils::EmitComparison(stream, context, leftReg, *left_);
             stream << "beq " << leftReg << ",zero," << label2 << std::endl;
             context.FreeTemporary(leftReg);
             Register rightReg = context.AllocateTemporary();
-            right_->EmitRISC(stream, context, rightReg);
+            Utils::EmitComparison(stream, context, leftReg, *left_);
             stream << "beq " << rightReg << ",zero," << label2 << std::endl;
             context.FreeTemporary(rightReg);
             stream << "li " << destReg << ",1" << std::endl;

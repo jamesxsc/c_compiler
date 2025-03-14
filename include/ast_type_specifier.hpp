@@ -28,14 +28,6 @@ namespace ast {
             ARRAY,
         };
 
-        // todo move my notes
-        // This is kind of ugly but not too bad
-        // Bigger question is do we change all switches to call enum getter, or lose safety
-        // Also will mean a lot of throw unsupported cases but that's ok
-        // There's going to be a lot of changes for unfolding typedefs as well as aggregate types stuff
-        // I think we're on the right track but need to decide what gettype returns, ideally unfolds typedef - can we do that here?
-        // maybe we can do away with typedef here entirely - the parser returns the right type already, as long as we can sustain that for structs and enums
-
         // Expose inline constexpr aliases to preserve current usage.
         inline static constexpr Type INT = Type::INT;
         inline static constexpr Type CHAR = Type::CHAR;
@@ -135,7 +127,7 @@ namespace ast {
                 ls << "struct " << type.GetStructIdentifier();
                 break;
             case TypeSpecifier::Type::ARRAY:
-                ls << type.GetArrayType() << "[" << type.GetArraySize() << "]";
+                ls << type.GetArrayType() << "[" << type.GetArraySize() << "]"; // todo is this ever called?
                 break;
         }
         return ls;

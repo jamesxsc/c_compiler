@@ -5,7 +5,7 @@ namespace ast {
 
     // Lvalue asserts are in GetIdentifier impls
     void UnaryExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-        // todo remove usage of destreg as a temp/ don't "return" to it if it is zero/unset
+        bool hasDestination = destReg != Register::zero;
         switch (op_) {
             case UnaryOperator::PostfixPromote:
                 postfixChild_->EmitRISC(stream, context, destReg);
@@ -16,23 +16,31 @@ namespace ast {
                 std::string identifier = unaryChild_->GetIdentifier();
                 if (context.IsGlobal(identifier)) {
                     Register tempReg = context.AllocateTemporary();
-                    stream << "lui " << destReg << ",%hi(" << identifier << ")" << std::endl;
-                    stream << "lw " << destReg << ",%lo(" << identifier << ")(" << destReg << ")" << std::endl;
-                    stream << "addi " << tempReg << "," << destReg << ","
+                    Register tempReg2 = hasDestination ? destReg : context.AllocateTemporary();
+                    stream << "lui " << tempReg2 << ",%hi(" << identifier << ")" << std::endl;
+                    stream << "lw " << tempReg2 << ",%lo(" << identifier << ")(" << tempReg2 << ")" << std::endl;
+                    stream << "addi " << tempReg << "," << tempReg2 << ","
                            << (op_ == UnaryOperator::PrefixIncrement ? "1" : "-1") << std::endl;
-                    stream << "lui " << destReg << ",%hi(" << identifier << ")" << std::endl;
-                    stream << "sw " << tempReg << ",%lo(" << identifier << ")(" << destReg << ")" << std::endl;
+                    stream << "lui " << tempReg2 << ",%hi(" << identifier << ")" << std::endl;
+                    stream << "sw " << tempReg << ",%lo(" << identifier << ")(" << tempReg2 << ")" << std::endl;
                     context.FreeTemporary(tempReg);
+                    if (!hasDestination)
+                        context.FreeTemporary(tempReg2);
                     // Store the incremented/decremented value in the destination register
-                    unaryChild_->EmitRISC(stream, context, destReg);
+                    if (destReg != Register::zero)
+                        unaryChild_->EmitRISC(stream, context, destReg);
                 } else {
                     Variable var = context.CurrentFrame().bindings.Get(identifier);
-                    stream << "lw " << destReg << "," << var.offset << "(s0)" << std::endl;
-                    stream << "addi " << destReg << "," << destReg << ","
+                    Register tempReg = hasDestination ? destReg : context.AllocateTemporary();
+                    stream << "lw " << tempReg << "," << var.offset << "(s0)" << std::endl;
+                    stream << "addi " << tempReg << "," << tempReg << ","
                            << (op_ == UnaryOperator::PrefixIncrement ? "1" : "-1") << std::endl;
-                    stream << "sw " << destReg << "," << var.offset << "(s0)" << std::endl;
+                    stream << "sw " << tempReg << "," << var.offset << "(s0)" << std::endl;
+                    if (!hasDestination)
+                        context.FreeTemporary(tempReg);
                     // Store the incremented/decremented value in the destination register
-                    unaryChild_->EmitRISC(stream, context, destReg);
+                    if (destReg != Register::zero)
+                        unaryChild_->EmitRISC(stream, context, destReg);
                 }
                 break;
             }
@@ -171,7 +179,6 @@ namespace ast {
             case UnaryOperator::PrefixDecrement:
                 return unaryChild_->GetType(context);
             case UnaryOperator::AddressOf:
-                // todo not ideal returning copies but may be acceptable
                 return {TypeSpecifier::POINTER, multiplicativeChild_->GetType(context)};
             case UnaryOperator::Dereference:
                 return multiplicativeChild_->GetType(context);
@@ -230,7 +237,7 @@ namespace ast {
         }
     }
 
-    const Expression& UnaryExpression::GetArrayIndexExpression() const {
+    const Expression &UnaryExpression::GetArrayIndexExpression() const {
         return postfixChild_->GetArrayIndexExpression();
     }
 

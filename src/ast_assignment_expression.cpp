@@ -17,8 +17,7 @@ namespace ast {
 
         // todo if it is already in a reg AND (BIG IF) WE DECIDE TO STORE REGISTERS/VARIABLES IN CONTEXT THEN UPDATE THAT
         // come back to this as a maybe
-        // todo diff types and arrays will be different here
-        // this is for int
+
         // todo i dont like how we don't always call unary emit risc (minor issue)
 
         // todo this usefloat check needs to be pushed down since it won't work for complex types
@@ -35,7 +34,7 @@ namespace ast {
 //            Register left = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(useFloat);
 //            unary_->EmitRISC(stream, context, left);
 //            // It's not ideal to duplicate instructions from other classes but unique pointer makes this a pain
-//            // todo ensure changes are propagated as necessary
+//            // todo ensure changes are propagated as necessary - I think we have to extract it - they are so complex with switching on ops and types
 //            // Maybe we create a RISC utils or something to actually emit RISC in both places
 //            // ugly but tempting
 //            switch (op_) {
@@ -231,6 +230,7 @@ namespace ast {
                     case TypeSpecifier::POINTER: {
                         if (unary_->IsPointerDereference()) {
                             // TODO check but this needs to be different for char or double right?
+                            // would be nice to extract it but may be a strech ... best option might be a helper in/for identifier (or is it unary?)
                             // Pointer, load the address (LHS equivalent of UnaryOperator::Dereference)
                             Register addrReg = context.AllocateTemporary();
                             stream << "lw " << addrReg << "," << lhsVariable.offset << "(s0)" << std::endl;

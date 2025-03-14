@@ -5,6 +5,7 @@
 namespace ast {
 
     void ArrayIndexExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
+        // We can safely-ish use destReg as a temporary here as we will always be inside a function
         std::string identifier = array_->GetIdentifier();
         if (context.IsArray(identifier)) { // Array syntax
             if (context.IsGlobal(identifier)) {
@@ -87,13 +88,10 @@ namespace ast {
             }
         } else { // Ptr syntax
             if (context.IsGlobal(identifier)) {
-                // todo cx classes like this manual assertion for destreg usability?
                 TypeSpecifier type = context.GetGlobalType(identifier);
                 assert(type == TypeSpecifier::POINTER &&
                        "ArrayIndexExpression::EmitRISC() called on a non-pointer/array");
-                // todo double cx that equality converts and equates correctly
                 bool useFloat = type.GetPointeeType() == TypeSpecifier::FLOAT || type.GetPointeeType() == TypeSpecifier::DOUBLE;
-                // and slli by the correct amount
                 Register indexReg = context.AllocateTemporary();
                 index_->EmitRISC(stream, context, indexReg);
                 stream << "slli " << indexReg << "," << indexReg << ",2" << std::endl;

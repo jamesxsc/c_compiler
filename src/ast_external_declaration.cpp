@@ -12,7 +12,7 @@ namespace ast {
             if (initDeclarator->IsFunction()) {
                 // Store forward declarations
                 context.InsertFunction(initDeclarator->GetIdentifier(),
-                                       initDeclarator->BuildFunction(declarationSpecifiers_->GetType(context), context)); // todo does this handle array/ptr return?
+                                       initDeclarator->BuildFunction(declarationSpecifiers_->GetType(context), context)); // todo does this handle array/ptr return? see parser
             } else {
                 // Handle global variables
                 std::string identifier = initDeclarator->GetIdentifier();
@@ -69,8 +69,7 @@ namespace ast {
                                 // Simply .word (RHS identifier)
                                 stream << ".word " << initDeclarator->GetGlobalInitializerIdentifier() << std::endl;
                                 break;
-                                // TODO float work here and above, note double should be given two words or can we use .float? is there a .double cx the other todo relating to this (constant)
-                                // todo cx there is no duplication with the identifier method here
+                                // TODO float work here and above, use .float/.double but a third global method needs adding
                             case TypeSpecifier::FLOAT:
                             case TypeSpecifier::DOUBLE:
                             case TypeSpecifier::VOID:

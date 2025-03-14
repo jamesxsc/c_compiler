@@ -6,6 +6,7 @@
 
 namespace ast {
 
+    // todo postfix and unary support for floating point or any other relevant types
     void PostfixExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         switch (op_) {
             case PostfixOperator::PrimaryPromote:

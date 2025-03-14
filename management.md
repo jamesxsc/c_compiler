@@ -46,6 +46,10 @@
   - Parameter list wasn't implemented with arrays initially because it's a bitch.
 - Strings and chars required changes to the lexer to handle edge cases such as escaped characters and ignoring the string quotes.
 - To save instructions, some of the common return logic is deferred to the end of the function and jumped to using the return label in the context.
+- TypeSpecifier
+  - TypeSpecifier was changed prior to implementing structs and enums. Instead of an enumerated type, a class was used to support holding underlying types of pointers and aggregates. The class was implemented such that missing switch case warnings still worked.
+
+Hmmm we always have destreg when inside a function...
 
 # Milestones (Draft)
 
@@ -70,6 +74,10 @@
 * Tests for global/local arrays of different types
 * Test for accessing a pointer when the original variable is out of scope (if this is possible without malloc and we think this will be tested; or just when the underlying variable has been shadowed)
 * Test void with and without return
+* Test for relational and logical operators on float and double
+* Test to assign to global ptr (not dereferenced)
+* Test for if (f) and while/for where f is a float or double to be implicitly converted. Same for pointer and char
+* Test for float equality e.g. f == 2.0f or d == 2.0d
 * Ternary operator
 * Float/double unary and postfix operators
 * Char operation byte masking where applicable

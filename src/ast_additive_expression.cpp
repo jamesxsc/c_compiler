@@ -36,17 +36,16 @@ namespace ast {
                        << destReg << "," << leftReg << "," << rightReg << std::endl;
                 break;
             case TypeSpecifier::CHAR:
-                // todo i think i already mentioned it but char masking
                 stream <<
                        (op_ == AdditiveOperator::Add ? "add " : "sub ")
                        << destReg << "," << leftReg << "," << rightReg << std::endl;
                 break;
-            case TypeSpecifier::Type::VOID:
             case TypeSpecifier::Type::ENUM:
-            case TypeSpecifier::Type::STRUCT:
             case TypeSpecifier::Type::ARRAY:
+            case TypeSpecifier::Type::STRUCT:
+            case TypeSpecifier::Type::VOID:
                 throw std::runtime_error("Addition on that type isn't supported yet!");
-                // TODO it should be supported - array as ptr, enum as underlying
+                // TODO it should be supported - array as ptr, enum as underlying void and struct are actually unsupported
         }
         leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg);
         context.FreeTemporary(rightReg);
