@@ -15,7 +15,7 @@ namespace ast {
             stream << "beq " << leftReg << ",zero," << label2 << std::endl;
             context.FreeTemporary(leftReg);
             Register rightReg = context.AllocateTemporary();
-            Utils::EmitComparison(stream, context, leftReg, *left_);
+            Utils::EmitComparison(stream, context, leftReg, *right_);
             stream << "beq " << rightReg << ",zero," << label2 << std::endl;
             context.FreeTemporary(rightReg);
             stream << "li " << destReg << ",1" << std::endl;

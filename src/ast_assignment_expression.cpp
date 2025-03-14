@@ -15,11 +15,8 @@ namespace ast {
             return;
         }
 
-        // todo if it is already in a reg AND (BIG IF) WE DECIDE TO STORE REGISTERS/VARIABLES IN CONTEXT THEN UPDATE THAT
-        // come back to this as a maybe
-
         // todo i dont like how we don't always call unary emit risc (minor issue)
-
+        // next do this, and then the gettype logic
         // todo this usefloat check needs to be pushed down since it won't work for complex types
         // really need to think hard about how this class should be structured
 //        TypeSpecifier type = GetType(context); // Should be LHS I think
