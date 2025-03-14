@@ -23,9 +23,9 @@ namespace ast {
                 if (initDeclarator->HasInitializer()) {
                     if (initDeclarator->IsArray()) {
                         assert(initDeclarator->GetInitializer().IsList() && "Array initializer must be a list");
-                        context.InsertGlobalArray(identifier, initDeclarator->BuildArray(type, context));
+                        context.InsertGlobal(identifier, initDeclarator->BuildArray(type, context).type); // Pretty much discard the offset etc info.
                         const auto& initializerList = static_cast<const InitializerList&>(initDeclarator->GetInitializer()); // NOLINT(*-pro-type-static-cast-downcast)
-                        stream << ".size " << identifier << "," << context.GetGlobalArray(identifier).size << std::endl;
+                        stream << ".size " << identifier << "," << context.GetGlobalType(identifier).GetTypeSize() << std::endl;
                         stream << identifier << ":" << std::endl;
                         for (const auto& initializer : initializerList) {
                             switch (type) {
@@ -82,11 +82,11 @@ namespace ast {
                     }
                 } else {
                     if (initDeclarator->IsArray()) {
-                        Array array = initDeclarator->BuildArray(type, context);
-                        context.InsertGlobalArray(identifier, array); // Should be safe to copy for rvalue
-                        stream << ".size " << identifier << "," << array.size << std::endl;
+                        TypeSpecifier array = initDeclarator->BuildArray(type, context).type;
+                        context.InsertGlobal(identifier, array); // Should be safe to copy for rvalue
+                        stream << ".size " << identifier << "," << array.GetTypeSize() << std::endl;
                         stream << identifier << ":" << std::endl;
-                        stream << ".zero " << array.size << std::endl;
+                        stream << ".zero " << array.GetTypeSize() << std::endl;
                     } else {
                         context.InsertGlobal(identifier, type);
                         stream << ".size " << identifier << "," << type.GetTypeSize() << std::endl;

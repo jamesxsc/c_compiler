@@ -27,7 +27,7 @@ namespace ast {
 
         [[nodiscard]] Function BuildFunction(TypeSpecifier returnType, Context &context) const; // Pass down to declarator
 
-        [[nodiscard]] Array BuildArray(TypeSpecifier type, Context &context) const; // Pass down to declarator
+        [[nodiscard]] Variable BuildArray(TypeSpecifier type, Context &context) const; // Pass down to declarator
 
         [[nodiscard]] bool IsFunction() const;
 

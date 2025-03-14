@@ -58,7 +58,6 @@ namespace ast {
 
                     Variable var = context.CurrentFrame().bindings.InsertOrOverwrite(identifier, Variable{
                             .size = initDeclarator->IsPointer() ? 4 : size,
-                            .reg = destReg,
                             .type = type
                     });
                     switch (type) {
@@ -94,7 +93,6 @@ namespace ast {
                 } else {
                     context.CurrentFrame().bindings.InsertOrOverwrite(identifier, Variable{
                             .size = initDeclarator->IsPointer() ? 4 : size,
-                            .reg = Register::zero,
                             .type = type
                     });
                 }

@@ -18,8 +18,13 @@ namespace ast {
         return true;
     }
 
-    Array ArrayDeclarator::BuildArray(TypeSpecifier type, Context &context) const {
-        return {type, size_->GetGlobalValue()}; // Get the size like it's a global integral init
+    Variable ArrayDeclarator::BuildArray(TypeSpecifier type, Context &context) const {
+        // Get the size like it's a global integral initializer
+        TypeSpecifier arrayType = {type, size_->GetGlobalValue()};
+        return {
+                .size = arrayType.GetTypeSize(),
+                .type = arrayType,
+        };
     }
 
 }

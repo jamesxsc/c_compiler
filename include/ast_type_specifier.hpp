@@ -50,6 +50,11 @@ namespace ast {
         // Implicit construction to support old TypeSpecifier::TYPE syntax
         TypeSpecifier(int value) : type_(static_cast<Type>(value)) {}
 
+        // Complex type constructors
+        TypeSpecifier(Type type, TypeSpecifier pointee): type_(POINTER), pointeeType_(std::make_shared<TypeSpecifier>(pointee)) {} // Type rqd to avoid making copy constructor
+        TypeSpecifier(TypeSpecifier arrayType, int size): type_(ARRAY), arrayType_(std::make_shared<TypeSpecifier>(arrayType)), arraySize_(size) {}
+
+
         ~TypeSpecifier() = default;
 
         constexpr operator Type() const { return type_; }
@@ -84,7 +89,7 @@ namespace ast {
         // todo array and pointer instantiation and use of this class
 
     private:
-        Type type_; // todo cx we dont need this init since i dont think we need default constructor
+        Type type_;
 
         TypeSpecifierPtr pointeeType_{nullptr};
         TypeSpecifierPtr arrayType_{nullptr};

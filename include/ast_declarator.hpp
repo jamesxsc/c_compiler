@@ -27,7 +27,7 @@ namespace ast {
 
         [[nodiscard]] virtual Function BuildFunction(TypeSpecifier returnType, Context &context) const;
 
-        [[nodiscard]] virtual Array BuildArray(TypeSpecifier type, Context &context) const;
+        [[nodiscard]] virtual Variable BuildArray(TypeSpecifier type, Context &context) const;
 
         [[nodiscard]] bool IsDirect() const;
 

@@ -14,7 +14,6 @@ namespace ast {
                 TypeSpecifier type = param->GetType(context);
                 Variable var = context.CurrentFrame().bindings.Insert(param->GetIdentifier(), Variable{
                         .size = type.GetTypeSize(),
-                        .reg = Register::zero,
                         .type = type
                 });
                 switch (type) {

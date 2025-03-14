@@ -38,7 +38,7 @@ namespace ast {
         return declarator_->BuildFunction(returnType, context);
     }
 
-    Array InitDeclarator::BuildArray(TypeSpecifier type, Context &context) const {
+    Variable InitDeclarator::BuildArray(TypeSpecifier type, Context &context) const {
         return declarator_->BuildArray(type, context);
     }
 

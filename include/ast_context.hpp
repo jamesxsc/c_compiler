@@ -16,20 +16,8 @@ namespace ast {
     struct Variable {
         int offset{0};
         int size; // Bytes
-        Register reg{Register::zero}; // todo probably avoid use
         TypeSpecifier type;
-        bool global{false};
-        bool array{false};
     };
-
-    struct Array : public Variable {
-        // todo all variable array stuff needs to change really - not sure array is really even necessary?
-        Array(TypeSpecifier elementType, int length) :
-                Variable({.size = elementType.GetTypeSize(), .type = elementType, .array = true}),
-                length(length) {}
-        int length;
-    };
-
     using VariablePtr = std::shared_ptr<const Variable>;
 
     struct Function {
@@ -43,9 +31,9 @@ namespace ast {
     public:
         Bindings(int size, int start) : size_(size), start_(start) {};
 
-        const Variable &Get(const std::string &identifier) const;
+        [[nodiscard]] const Variable &Get(const std::string &identifier) const;
 
-        bool Contains(const std::string &identifier) const;
+        [[nodiscard]] bool Contains(const std::string &identifier) const;
 
         // Must pass as rvalue to avoid slicing Array type
         const Variable &Insert(const std::string &identifier, Variable &&variable);
@@ -99,7 +87,7 @@ namespace ast {
 
         void InsertFunction(const std::string &identifier, Function &&function);
 
-        const Function &GetFunction(const std::string &identifier) const;
+        [[nodiscard]] const Function &GetFunction(const std::string &identifier) const;
 
         std::string MakeLabel(const std::string &prefix);
 
@@ -109,11 +97,7 @@ namespace ast {
 
         void InsertGlobal(const std::string &identifier, TypeSpecifier type);
 
-        void InsertGlobalArray(const std::string &identifier, Array array);
-
-        TypeSpecifier GetGlobalType(const std::string &identifier) const;
-
-        const Array& GetGlobalArray(const std::string &identifier) const;
+        [[nodiscard]] TypeSpecifier GetGlobalType(const std::string &identifier) const;
 
         std::ostream &DeferredRISC();
 
@@ -128,7 +112,6 @@ namespace ast {
         std::vector<StackFrame> stack_;
         // Globals are not stored on the stack so do not require the bindings class/ offsets
         std::unordered_map<std::string, TypeSpecifier> globals_;
-        std::unordered_map<std::string, Array> globalArrays_;
         std::unordered_map<std::string, Function> functions_;
 
         std::stringstream deferredRISC_{};

@@ -171,8 +171,10 @@ namespace ast {
             case UnaryOperator::PrefixDecrement:
                 return unaryChild_->GetType(context);
             case UnaryOperator::AddressOf:
+                // todo not ideal returning copies but may be acceptable
+                return {TypeSpecifier::POINTER, multiplicativeChild_->GetType(context)};
             case UnaryOperator::Dereference:
-                return TypeSpecifier::POINTER; // todo ptrs addressof is probably wrong if ever called
+                return multiplicativeChild_->GetType(context).GetPointeeType();
             case UnaryOperator::Plus:
             case UnaryOperator::Minus:
             case UnaryOperator::BitwiseNot:

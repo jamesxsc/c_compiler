@@ -42,7 +42,7 @@ namespace ast {
     bool Bindings::IsArray(const std::string &identifier) const {
         auto it = bindingsMap_.find(identifier);
         assert(it != bindingsMap_.end() && "Variable not found in bindings");
-        return it->second->array;
+        return it->second->type.IsArray();
     }
 
     static int temporaries = 0;
@@ -186,9 +186,8 @@ namespace ast {
 
     // todo make it const if we can be bothered to get a const frame and isarray
     bool Context::IsGlobal(const std::string &identifier) {
-        bool isGlobalArray = globalArrays_.find(identifier) != globalArrays_.end();
-        bool isGlobalVariable = globals_.find(identifier) != globals_.end();
-        if (!isGlobalArray && !isGlobalVariable) return false;
+        bool isGlobal = globals_.find(identifier) != globals_.end();
+        if (!isGlobal) return false;
 
         // Shadowing check
         return !(!stack_.empty() && CurrentFrame().bindings.Contains(identifier));
@@ -197,7 +196,8 @@ namespace ast {
     bool Context::IsArray(const std::string &identifier) {
         // I like how we call is global first here, because it guarantees we are checking the correct one (shadowing)
         if (IsGlobal(identifier)) {
-            return globalArrays_.find(identifier) != globalArrays_.end();
+            auto it = globals_.find(identifier);
+            return it != globals_.end() && it->second.IsArray();
         } else {
             return CurrentFrame().bindings.IsArray(identifier);
         }
@@ -205,11 +205,6 @@ namespace ast {
 
     void Context::InsertGlobal(const std::string &identifier, TypeSpecifier type) {
         globals_.emplace(identifier, type);
-    }
-
-    void Context::InsertGlobalArray(const std::string &identifier, Array array) {
-        array.global = true;
-        globalArrays_.emplace(identifier, array);
     }
 
     std::ostream &Context::DeferredRISC() {
@@ -223,13 +218,7 @@ namespace ast {
     TypeSpecifier Context::GetGlobalType(const std::string &identifier) const {
         auto itVar = globals_.find(identifier);
         if (itVar != globals_.end()) return itVar->second;
-        auto itArray = globalArrays_.find(identifier);
-        if (itArray != globalArrays_.end()) return itArray->second.type; // Gets element type
         throw std::runtime_error("Context::GetGlobalType Global not found in context");
-    }
-
-    const Array &Context::GetGlobalArray(const std::string &identifier) const {
-        return globalArrays_.at(identifier);
     }
 
 } // namespace ast
