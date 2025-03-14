@@ -7,7 +7,7 @@
 
 namespace ast {
 
-    class FunctionDeclarator : public Declarator {
+    class FunctionDeclarator final : public Declarator {
     private:
         // Identifier is stored in Declarator base class
         ParameterListPtr parameterList_;

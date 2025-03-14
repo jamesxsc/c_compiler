@@ -28,13 +28,15 @@ namespace ast {
                        (op_ == AdditiveOperator::Add ? "fadd.d " : "fsub.d ")
                        << destReg << "," << leftReg << "," << rightReg << std::endl;
                 break;
-            case TypeSpecifier::POINTER:
+            case TypeSpecifier::POINTER: // todo extract type here for pointer arith... need both sides right? but check in godbolt
             case TypeSpecifier::INT:
+            case TypeSpecifier::UNSIGNED:
                 stream <<
                        (op_ == AdditiveOperator::Add ? "add " : "sub ")
                        << destReg << "," << leftReg << "," << rightReg << std::endl;
                 break;
             case TypeSpecifier::CHAR:
+                // todo i think i already mentioned it but char masking
                 stream <<
                        (op_ == AdditiveOperator::Add ? "add " : "sub ")
                        << destReg << "," << leftReg << "," << rightReg << std::endl;

@@ -26,6 +26,7 @@ namespace ast {
                         break;
                     case TypeSpecifier::POINTER:
                     case TypeSpecifier::INT:
+                    case TypeSpecifier::UNSIGNED:
                         stream << "sw a" << iidx << "," << var.offset << "(s0)" << std::endl;
                         ++iidx;
                         break;

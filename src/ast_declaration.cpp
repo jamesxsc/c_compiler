@@ -35,6 +35,8 @@ namespace ast {
                         initializer->EmitRISC(stream, context, destReg);
                         switch (type) {
                             case TypeSpecifier::INT:
+                            case TypeSpecifier::UNSIGNED:
+                            case TypeSpecifier::POINTER:
                                 stream << "sw " << destReg << "," << array.offset + idx * type.GetTypeSize() << "(s0)" << std::endl;
                                 break;
                             case TypeSpecifier::FLOAT:
@@ -46,7 +48,6 @@ namespace ast {
                             case TypeSpecifier::CHAR:
                                 stream << "sb " << destReg << "," << array.offset + idx * type.GetTypeSize() << "(s0)" << std::endl;
                                 break;
-                            case TypeSpecifier::POINTER:
                             case TypeSpecifier::VOID:
                             case TypeSpecifier::ENUM:
                             case TypeSpecifier::STRUCT:
@@ -68,9 +69,8 @@ namespace ast {
                     switch (type) {
                         // todo would you like some typechecking asserts sir?
                         case TypeSpecifier::INT:
-                            stream << "sw " << destReg << "," << var.offset << "(s0)" << std::endl;
-                            break;
                         case TypeSpecifier::POINTER:
+                        case TypeSpecifier::UNSIGNED:
                             stream << "sw " << destReg << "," << var.offset << "(s0)" << std::endl;
                             break;
                         case TypeSpecifier::FLOAT:
@@ -110,15 +110,6 @@ namespace ast {
         declarationSpecifiers_->Print(stream);
         initDeclaratorList_->Print(stream);
     }
-
-    // assuming we only use this locally - bin it and just determine in EmitRISC loop
-//    TypeSpecifier Declaration::GetType(Context &context) const {
-//        // URGENT this is wrong - ignores ptrs etc. is in this declaration specifiers or somewhere else?
-//        // if not don't panic, just need if ptr etc.
-//        // technically the full type is associated with the initdeclarator and the declaration specifiers
-//        assert(!declarationSpecifiers_->GetTypeSpecifiers().empty() && "Declaration must have a type specifier");
-//        return declarationSpecifiers_->GetTypeSpecifiers().front();
-//    }
 
     bool Declaration::IsTypedef() const {
         return declarationSpecifiers_->GetStorageClassSpecifier() == StorageClassSpecifier::Typedef;

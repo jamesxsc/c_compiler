@@ -11,12 +11,13 @@ namespace ast {
             case TypeSpecifier::DOUBLE:
                 return true;
             case TypeSpecifier::CHAR: // Implementation defined, but required unsigned for RISCV ABI
+            case TypeSpecifier::UNSIGNED:
                 return false;
             case TypeSpecifier::POINTER:
-            case TypeSpecifier::Type::VOID:
-            case TypeSpecifier::Type::ENUM:
-            case TypeSpecifier::Type::STRUCT:
-            case TypeSpecifier::Type::ARRAY:
+            case TypeSpecifier::VOID:
+            case TypeSpecifier::ENUM:
+            case TypeSpecifier::STRUCT:
+            case TypeSpecifier::ARRAY:
                 throw std::runtime_error("Attempted to get sign of non-numeric type");
         }
         throw std::runtime_error("Unexpected type specifier");
@@ -28,6 +29,7 @@ namespace ast {
                 return 1;
             case TypeSpecifier::INT:
             case TypeSpecifier::POINTER:
+            case TypeSpecifier::UNSIGNED:
             case TypeSpecifier::FLOAT:
                 return 4;
             case TypeSpecifier::DOUBLE:

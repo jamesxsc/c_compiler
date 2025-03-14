@@ -182,7 +182,7 @@ namespace ast {
                 return multiplicativeChild_->GetType(context);
             case UnaryOperator::SizeofUnary:
             case UnaryOperator::SizeofType:
-                return TypeSpecifier::INT; // todo size_t or unsigned?
+                return TypeSpecifier::UNSIGNED;
         }
         std::cerr << "Invalid unary operator" << std::endl;
         exit(1);

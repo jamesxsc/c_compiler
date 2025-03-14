@@ -18,6 +18,7 @@ namespace ast {
         enum class Type {
             INT,
             CHAR,
+            UNSIGNED,
             FLOAT,
             DOUBLE,
             POINTER,
@@ -27,6 +28,7 @@ namespace ast {
             ARRAY,
         };
 
+        // todo move my notes
         // This is kind of ugly but not too bad
         // Bigger question is do we change all switches to call enum getter, or lose safety
         // Also will mean a lot of throw unsupported cases but that's ok
@@ -37,6 +39,7 @@ namespace ast {
         // Expose inline constexpr aliases to preserve current usage.
         inline static constexpr Type INT = Type::INT;
         inline static constexpr Type CHAR = Type::CHAR;
+        inline static constexpr Type UNSIGNED = Type::UNSIGNED;
         inline static constexpr Type FLOAT = Type::FLOAT;
         inline static constexpr Type DOUBLE = Type::DOUBLE;
         inline static constexpr Type POINTER = Type::POINTER;
@@ -86,8 +89,6 @@ namespace ast {
 
         [[nodiscard]] const std::string &GetStructIdentifier() const;
 
-        // todo array and pointer instantiation and use of this class
-
     private:
         Type type_;
 
@@ -111,6 +112,9 @@ namespace ast {
                 break;
             case TypeSpecifier::Type::CHAR:
                 ls << "char";
+                break;
+            case TypeSpecifier::Type::UNSIGNED:
+                ls << "unsigned";
                 break;
             case TypeSpecifier::Type::FLOAT:
                 ls << "float";

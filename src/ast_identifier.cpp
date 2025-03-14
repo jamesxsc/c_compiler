@@ -22,6 +22,7 @@ namespace ast {
                 }
                 case TypeSpecifier::POINTER:
                 case TypeSpecifier::INT:
+                case TypeSpecifier::UNSIGNED:
                     assert(!IsFloatRegister(destReg) &&
                            "Identifier::EmitRISC attempting to load non-float into float register");
                     stream << "lui " << destReg << ",%hi(" << identifier_ << ")" << std::endl;
@@ -51,6 +52,7 @@ namespace ast {
                     break;
                 case TypeSpecifier::POINTER:
                 case TypeSpecifier::INT:
+                case TypeSpecifier::UNSIGNED:
                     assert(!IsFloatRegister(destReg) &&
                            "Identifier::EmitRISC attempting to load non-float into float register");
                     stream << "lw " << destReg << "," << offset << "(s0)" << std::endl;

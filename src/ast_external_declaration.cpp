@@ -32,6 +32,7 @@ namespace ast {
                         for (const auto& initializer : initializerList) {
                             switch (type) {
                                 case TypeSpecifier::INT:
+                                case TypeSpecifier::UNSIGNED:
                                     stream << ".word " << initializer->GetGlobalValue() << std::endl;
                                     break;
                                 case TypeSpecifier::CHAR:
@@ -41,9 +42,7 @@ namespace ast {
                                     stream << ".word " << initializer->GetGlobalIdentifier() << std::endl;
                                     break;
                                 case TypeSpecifier::FLOAT:
-                                    break;
                                 case TypeSpecifier::DOUBLE:
-                                    break;
                                 case TypeSpecifier::VOID:
                                 case TypeSpecifier::ENUM:
                                 case TypeSpecifier::STRUCT:
@@ -59,6 +58,7 @@ namespace ast {
                         stream << identifier << ":" << std::endl;
                         switch (type) {
                             case TypeSpecifier::INT:
+                            case TypeSpecifier::UNSIGNED:
                                 // Can only be a constant (can't be assigned to another global for example)
                                 stream << ".word " << initDeclarator->GetGlobalInitializerValue() << std::endl;
                                 break;

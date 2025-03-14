@@ -30,6 +30,7 @@ namespace ast {
     }
 
 
+    // todo this is shit - get from context or something? must be a way to do that
     TypeSpecifier ReturnStatement::GetType(Context &context) const {
         if (expression_)
             return expression_->GetType(context);

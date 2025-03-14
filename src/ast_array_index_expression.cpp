@@ -23,6 +23,7 @@ namespace ast {
                 stream << "add " << addressTemp << "," << addressTemp << "," << indexReg << std::endl;
                 context.FreeTemporary(indexReg);
                 switch (array.GetArrayType()) {
+                    case TypeSpecifier::UNSIGNED:
                     case TypeSpecifier::INT:
                         stream << "lw " << destReg << ",0(" << addressTemp << ")" << std::endl;
                         break;
@@ -61,6 +62,7 @@ namespace ast {
                 stream << "add " << addressTemp << "," << addressTemp << "," << indexReg << std::endl;
                 context.FreeTemporary(indexReg);
                 switch (arrayType) {
+                    case TypeSpecifier::UNSIGNED:
                     case TypeSpecifier::INT:
                         stream << "lw " << destReg << ",0(" << addressTemp << ")" << std::endl;
                         break;
@@ -100,6 +102,7 @@ namespace ast {
                 stream << "addi " << addressTemp << "," << addressTemp << ",%lo(" << identifier << ")" << std::endl;
                 stream << "add " << addressTemp << "," << addressTemp << "," << indexReg << std::endl;
                 switch (GetType(context)) { // Already unwrapped
+                    case TypeSpecifier::UNSIGNED:
                     case TypeSpecifier::INT:
                         stream << "lw " << destReg << ",0(" << addressTemp << ")" << std::endl;
                         break;
@@ -135,6 +138,7 @@ namespace ast {
                 stream << "lw " << addressTemp << "," << variable.offset << "(s0)" << std::endl;
                 stream << "add " << addressTemp << "," << addressTemp << "," << indexReg << std::endl;
                 switch (GetType(context)) { // Already unwrapped
+                    case TypeSpecifier::UNSIGNED:
                     case TypeSpecifier::INT:
                         stream << "lw " << destReg << ",0(" << addressTemp << ")" << std::endl;
                         break;

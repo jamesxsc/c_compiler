@@ -104,6 +104,7 @@ namespace ast {
                 stream << "add " << addrReg << "," << addrReg << "," << indexReg << std::endl;
                 context.FreeTemporary(indexReg);
                 switch (type) {
+                    case TypeSpecifier::UNSIGNED:
                     case TypeSpecifier::INT:
                         stream << "sw " << right << ",0(" << addrReg << ")" << std::endl;
                         break;
@@ -137,6 +138,7 @@ namespace ast {
                 stream << "add " << addrReg << "," << addrReg << "," << indexReg << std::endl;
                 context.FreeTemporary(indexReg);
                 switch (type) {
+                    case TypeSpecifier::UNSIGNED:
                     case TypeSpecifier::INT:
                         stream << "sw " << right << ",0(" << addrReg << ")" << std::endl;
                         break;
@@ -188,6 +190,7 @@ namespace ast {
                         context.FreeTemporary(tempReg);
                         break;
                     }
+                    case TypeSpecifier::UNSIGNED:
                     case TypeSpecifier::INT: {
                         Register tempReg = context.AllocateTemporary();
                         stream << "lui " << tempReg << ",%hi(" << identifier << ")" << std::endl;
@@ -218,6 +221,7 @@ namespace ast {
                         stream << (type == TypeSpecifier::FLOAT ? "fsw " : "fsd ") << right << "," << lhsVariable.offset
                                << "(s0)" << std::endl;
                         break;
+                    case TypeSpecifier::UNSIGNED:
                     case TypeSpecifier::INT:
                         stream << "sw " << right << "," << lhsVariable.offset << "(s0)" << std::endl;
                         break;

@@ -370,7 +370,7 @@ storage_class_specifier
 	;
 
 type_specifier
-	: VOID
+	: VOID { $$ = new TypeSpecifier(TypeSpecifier::VOID); }
 	| CHAR { $$ = new TypeSpecifier(TypeSpecifier::CHAR); }
 	| SHORT { std::cerr << "Short type is unsupported." << std::endl; exit(1); }
 	| INT { $$ = new TypeSpecifier(TypeSpecifier::INT); }
@@ -378,7 +378,7 @@ type_specifier
 	| FLOAT { $$ = new TypeSpecifier(TypeSpecifier::FLOAT); }
 	| DOUBLE { $$ = new TypeSpecifier(TypeSpecifier::DOUBLE); }
 	| SIGNED
-	| UNSIGNED
+	| UNSIGNED { $$ = new TypeSpecifier(TypeSpecifier::UNSIGNED); }
     | struct_specifier
 	| enum_specifier
 	| TYPE_NAME { $$ = new TypeSpecifier(typedefs.at(*$1)); delete $1; }
@@ -409,10 +409,11 @@ struct_declarator_list
 	| struct_declarator_list ',' struct_declarator
 	;
 
+// hmmm undecided if we keep this type
 struct_declarator
 	: declarator
-	| ':' constant_expression
-	| declarator ':' constant_expression
+	| ':' constant_expression { throw std::runtime_error("Struct bitfields are not supported."); }
+	| declarator ':' constant_expression { throw std::runtime_error("Struct bitfields are not supported."); }
 	;
 
 enum_specifier
@@ -433,7 +434,14 @@ enumerator
 
 declarator
     // todo do we need to support double pointers?
-	: pointer direct_declarator { $$ = new PointerDeclarator(DeclaratorPtr($2)); }
+    // todo this fucks functions retutrning pointers
+    // if function change type by member or something?
+	: pointer direct_declarator {
+	    // Function returning pointer isn't a pointer declarator
+	    if ($2->IsFunction()) throw std::runtime_error("Function returning pointer WIP"); // need a member used by FunctionDeclarator::BuildFunction AND ReturnStatement::GetType AND FunctionDefition::GetType
+	    // ban this from ever being a pointer declarator (final) but we need to set something
+        else $$ = new PointerDeclarator(DeclaratorPtr($2));
+	}
 	| direct_declarator { $$ = $1; $$->Indirect(); }
 	;
 
