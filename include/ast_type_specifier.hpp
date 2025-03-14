@@ -119,7 +119,7 @@ namespace ast {
                 ls << "double";
                 break;
             case TypeSpecifier::Type::POINTER:
-                ls << "*" << type.GetPointeeType();
+                ls << type.GetPointeeType() << "*";
                 break;
             case TypeSpecifier::Type::VOID:
                 ls << "void";

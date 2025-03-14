@@ -28,7 +28,7 @@ namespace ast {
                     // This approach may have to change slightly for (nested) structs
                     assert(initDeclarator->GetInitializer().IsList() && "Array initializer must be a list");
                     Variable array = context.CurrentFrame().bindings.InsertOrOverwrite(identifier, initDeclarator->BuildArray(type, context));
-                    type = array.type; // Wrapping the type in type array is done in build array
+                    // ^ Wraps the type, but we keep element type here
                     const auto &initializerList = static_cast<const InitializerList &>(initDeclarator->GetInitializer()); // NOLINT(*-pro-type-static-cast-downcast)
                     int idx = 0;
                     for (const auto & initializer : initializerList) {

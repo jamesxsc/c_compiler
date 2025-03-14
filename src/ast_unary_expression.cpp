@@ -174,7 +174,7 @@ namespace ast {
                 // todo not ideal returning copies but may be acceptable
                 return {TypeSpecifier::POINTER, multiplicativeChild_->GetType(context)};
             case UnaryOperator::Dereference:
-                return multiplicativeChild_->GetType(context).GetPointeeType();
+                return multiplicativeChild_->GetType(context);
             case UnaryOperator::Plus:
             case UnaryOperator::Minus:
             case UnaryOperator::BitwiseNot:
@@ -232,6 +232,10 @@ namespace ast {
 
     const Expression& UnaryExpression::GetArrayIndexExpression() const {
         return postfixChild_->GetArrayIndexExpression();
+    }
+
+    bool UnaryExpression::IsPointerDereference() const {
+        return op_ == UnaryOperator::Dereference;
     }
 
     UnaryExpression::~UnaryExpression() = default;

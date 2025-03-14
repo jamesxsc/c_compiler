@@ -335,7 +335,12 @@ declaration
 	| declaration_specifiers init_declarator_list ';' {
 	    $$ = new Declaration(DeclarationSpecifiersPtr($1), InitDeclaratorListPtr($2));
 	    Context dummy; // Not required
-	    if ($$->IsTypedef()) { for (auto & decl : *$2) { typedefs.emplace(decl->GetIdentifier(), decl->BuildArray($1->GetType(dummy), dummy).type); } } // Support typedef int x, y; syntax
+	    if ($$->IsTypedef()) { for (auto & decl : *$2) {
+	        TypeSpecifier type = $1->GetType(dummy);
+	        if (decl->IsPointer()) type = { TypeSpecifier::POINTER, type };
+	        if (decl->IsArray()) type = decl->BuildArray(type, dummy).type;
+            typedefs.emplace(decl->GetIdentifier(), type);
+        } } // Support typedef int x, y; syntax
     }
 	;
 

@@ -16,9 +16,13 @@ namespace ast {
         return identifier_->GetIdentifier();
     }
 
-    TypeSpecifier ParameterDeclaration::GetType(Context&) const {
-        assert(!declarationSpecifiers_->GetTypeSpecifiers().empty() && "Parameter declaration must have type specifier");
-        return declarationSpecifiers_->GetTypeSpecifiers().front();
+    TypeSpecifier ParameterDeclaration::GetType(Context& context) const {
+        TypeSpecifier type = declarationSpecifiers_->GetType(context);
+        if (identifier_->IsPointer())
+            type = {TypeSpecifier::POINTER, type};
+        if (identifier_->IsArray())
+            type = identifier_->BuildArray(type, context).type;
+        return type;
     }
 
 } // namespace ast

@@ -164,7 +164,6 @@ namespace ast {
             }
             context.FreeTemporary(right);
         } else {
-            // todo cx how we unfold pointer types here - dereference currently returns ptr type
             TypeSpecifier type = GetType(context); // LHS, non array case
             bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
             Register right = context.AllocateTemporary(useFloat);
@@ -182,6 +181,7 @@ namespace ast {
                         break;
                     }
                     case TypeSpecifier::POINTER: {
+                        // todo check this unfolds?
                         Register tempReg = context.AllocateTemporary();
                         stream << "lui " << tempReg << ",%hi(" << identifier << ")" << std::endl;
                         stream << "sw " << right << ",%lo(" << identifier << ")(" << tempReg << ")" << std::endl;
@@ -225,11 +225,16 @@ namespace ast {
                         stream << "sb " << right << "," << lhsVariable.offset << "(s0)" << std::endl;
                         break;
                     case TypeSpecifier::POINTER: {
-                        // Pointer, load the address (LHS equivalent of UnaryOperator::Dereference)
-                        Register addrReg = context.AllocateTemporary();
-                        stream << "lw " << addrReg << "," << lhsVariable.offset << "(s0)" << std::endl;
-                        stream << "sw " << right << ",0(" << addrReg << ")" << std::endl;
-                        context.FreeTemporary(addrReg);
+                        if (unary_->IsPointerDereference()) {
+                            // TODO check but this needs to be different for char or double right?
+                            // Pointer, load the address (LHS equivalent of UnaryOperator::Dereference)
+                            Register addrReg = context.AllocateTemporary();
+                            stream << "lw " << addrReg << "," << lhsVariable.offset << "(s0)" << std::endl;
+                            stream << "sw " << right << ",0(" << addrReg << ")" << std::endl;
+                            context.FreeTemporary(addrReg);
+                        } else {
+                            stream << "sw " << right << "," << lhsVariable.offset << "(s0)" << std::endl;
+                        }
                         break;
                     }
                     case TypeSpecifier::VOID:

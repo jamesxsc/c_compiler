@@ -99,7 +99,7 @@ namespace ast {
                 stream << "lui " << addressTemp << ", %hi(" << identifier << ")" << std::endl;
                 stream << "addi " << addressTemp << "," << addressTemp << ",%lo(" << identifier << ")" << std::endl;
                 stream << "add " << addressTemp << "," << addressTemp << "," << indexReg << std::endl;
-                switch (GetType(context).GetPointeeType()) {
+                switch (GetType(context)) { // Already unwrapped
                     case TypeSpecifier::INT:
                         stream << "lw " << destReg << ",0(" << addressTemp << ")" << std::endl;
                         break;
@@ -134,7 +134,7 @@ namespace ast {
                 Register addressTemp = useFloat ? context.AllocateTemporary() : destReg;
                 stream << "lw " << addressTemp << "," << variable.offset << "(s0)" << std::endl;
                 stream << "add " << addressTemp << "," << addressTemp << "," << indexReg << std::endl;
-                switch (GetType(context).GetPointeeType()) {
+                switch (GetType(context)) { // Already unwrapped
                     case TypeSpecifier::INT:
                         stream << "lw " << destReg << ",0(" << addressTemp << ")" << std::endl;
                         break;
@@ -173,7 +173,11 @@ namespace ast {
     }
 
     TypeSpecifier ArrayIndexExpression::GetType(Context &context) const {
-        return array_->GetType(context).GetArrayType();
+        if (context.IsArray(array_->GetIdentifier())) {
+            return array_->GetType(context).GetArrayType();
+        } else {
+            return array_->GetType(context).GetPointeeType();
+        }
     }
 
     std::string ArrayIndexExpression::GetGlobalIdentifier() const {

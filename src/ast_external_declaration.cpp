@@ -26,7 +26,6 @@ namespace ast {
                     if (initDeclarator->IsArray()) {
                         assert(initDeclarator->GetInitializer().IsList() && "Array initializer must be a list");
                         context.InsertGlobal(identifier, initDeclarator->BuildArray(type, context).type); // Pretty much discard the offset etc info.
-                        type = context.GetGlobalType(identifier); // Get the wrapped type
                         const auto& initializerList = static_cast<const InitializerList&>(initDeclarator->GetInitializer()); // NOLINT(*-pro-type-static-cast-downcast)
                         stream << ".size " << identifier << "," << context.GetGlobalType(identifier).GetTypeSize() << std::endl;
                         stream << identifier << ":" << std::endl;

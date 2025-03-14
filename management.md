@@ -69,6 +69,7 @@
 * Test for calling a function from our test with several arguments of different sizes e.g. char, float, int
 * Tests for global/local arrays of different types
 * Test for accessing a pointer when the original variable is out of scope (if this is possible without malloc and we think this will be tested; or just when the underlying variable has been shadowed)
+* Test void with and without return
 * Ternary operator
 * Float/double unary and postfix operators
 * Char operation byte masking where applicable

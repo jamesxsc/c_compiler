@@ -61,6 +61,8 @@ namespace ast {
 
         TypeSpecifier GetType(Context &context) const override;
 
+        [[nodiscard]] bool IsPointerDereference() const;
+
         [[nodiscard]] const Expression &GetArrayIndexExpression() const;
 
         [[nodiscard]] int GetGlobalValue() const override;
