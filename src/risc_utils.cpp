@@ -36,4 +36,16 @@ namespace ast::Utils {
         }
     }
 
+    TypeSpecifier ResolveTypeAlias(std::vector<TypeSpecifier> specifiers) {
+        if (specifiers.size() == 1) {
+            return {specifiers.front()};
+        }
+        std::set<TypeSpecifier::Type> typeSet{specifiers.begin(), specifiers.end()};
+        auto it = aliasMap.find(typeSet);
+        if (it == aliasMap.end()) {
+            throw std::runtime_error("Unsupported type alias");
+        }
+        return {it->second};
+    }
+
 }

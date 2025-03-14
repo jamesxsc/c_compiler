@@ -1,4 +1,5 @@
 #include "ast_specifier_qualifier_list.hpp"
+#include "risc_utils.hpp"
 
 namespace ast {
 
@@ -17,9 +18,7 @@ namespace ast {
     }
 
     TypeSpecifier SpecifierQualifierList::GetType(Context &context) const {
-
-        // TODO gettype logic - support multiple specifiers, can this be shared with declaration_specifiers somehow? structs and enums may change this so wait till then
-        return specifiers_.front();
+        return Utils::ResolveTypeAlias(specifiers_);
     }
 
 }

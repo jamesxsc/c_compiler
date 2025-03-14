@@ -1,4 +1,5 @@
 #include "ast_declaration_specifiers.hpp"
+#include "risc_utils.hpp"
 
 namespace ast {
 
@@ -10,13 +11,9 @@ namespace ast {
         if (storageClassSpecifier_ != StorageClassSpecifier::None) {
             stream << storageClassSpecifier_ << " ";
         }
-        for (const auto &typeSpecifier : typeSpecifiers_) {
+        for (const auto &typeSpecifier: typeSpecifiers_) {
             stream << typeSpecifier << " ";
         }
-    }
-
-    const std::vector<TypeSpecifier> &DeclarationSpecifiers::GetTypeSpecifiers() const {
-        return typeSpecifiers_;
     }
 
     StorageClassSpecifier DeclarationSpecifiers::GetStorageClassSpecifier() const {
@@ -32,7 +29,7 @@ namespace ast {
     }
 
     TypeSpecifier DeclarationSpecifiers::GetType(Context &context) const {
-        return typeSpecifiers_.front();
+        return Utils::ResolveTypeAlias(typeSpecifiers_);
     }
 
 

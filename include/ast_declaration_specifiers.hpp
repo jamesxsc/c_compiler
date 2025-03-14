@@ -1,5 +1,9 @@
 #pragma once
 
+#include <unordered_set>
+#include <map>
+#include <set>
+
 #include "ast_node.hpp"
 
 namespace ast {
@@ -27,18 +31,15 @@ namespace ast {
 
         void Print(std::ostream &stream) const override;
 
-        [[nodiscard]] const std::vector<TypeSpecifier> &GetTypeSpecifiers() const;
-
         [[nodiscard]] StorageClassSpecifier GetStorageClassSpecifier() const;
 
         void AddTypeSpecifier(TypeSpecifierPtr typeSpecifier);
 
-        // todo add logic to support multiple specifiers - e.g. unsigned int for unsigned
         void SetStorageClassSpecifier(StorageClassSpecifier storageClassSpecifier);
 
-        // this
         TypeSpecifier GetType(Context &context) const;
     private:
+        // Store the full type in case via a typedef it has some complexities
         std::vector<TypeSpecifier> typeSpecifiers_;
         StorageClassSpecifier storageClassSpecifier_;
     };

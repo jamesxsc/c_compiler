@@ -78,6 +78,7 @@ Hmmm we always have destreg when inside a function...
 * Test to assign to global ptr (not dereferenced)
 * Test for if (f) and while/for where f is a float or double to be implicitly converted. Same for pointer and char
 * Test for float equality e.g. f == 2.0f or d == 2.0d
+* Test using "unsigned int" type
 * Ternary operator
 * Float/double unary and postfix operators
 * Char operation byte masking where applicable

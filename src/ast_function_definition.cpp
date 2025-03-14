@@ -98,10 +98,8 @@ namespace ast {
     }
 
 
-    TypeSpecifier FunctionDefinition::GetType(Context &) const {
-        // Only support types with a single keyword for now
-        assert(!declaration_specifiers_->GetTypeSpecifiers().empty() && "Function definition must have a type specifier");
-        return declaration_specifiers_->GetTypeSpecifiers().front();
+    TypeSpecifier FunctionDefinition::GetType(Context &context) const {
+        return declaration_specifiers_->GetType(context);
     }
 
 }

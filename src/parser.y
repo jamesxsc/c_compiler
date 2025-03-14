@@ -377,7 +377,7 @@ type_specifier
 	| LONG { std::cerr << "Long type is unsupported." << std::endl; exit(1); }
 	| FLOAT { $$ = new TypeSpecifier(TypeSpecifier::FLOAT); }
 	| DOUBLE { $$ = new TypeSpecifier(TypeSpecifier::DOUBLE); }
-	| SIGNED
+	| SIGNED { $$ = new TypeSpecifier(TypeSpecifier::INT); }
 	| UNSIGNED { $$ = new TypeSpecifier(TypeSpecifier::UNSIGNED); }
     | struct_specifier
 	| enum_specifier
