@@ -1,4 +1,5 @@
 #include "ast_selection_statement.hpp"
+#include "risc_utils.hpp"
 #include <sstream>
 
 namespace ast {
@@ -10,8 +11,7 @@ namespace ast {
         std::string labelEnd = context.MakeLabel("endif");
 
         Register condReg = context.AllocateTemporary();
-        condition_->EmitRISC(stream, context, condReg);
-
+        Utils::EmitComparison(stream, context, condReg, *condition_);
         stream << "beq " << condReg << ", zero, " << labelElse << std::endl;
 
         context.FreeTemporary(condReg);
@@ -45,7 +45,7 @@ namespace ast {
     void SwitchStatement::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         if (body_) {
             std::string endLabel = context.MakeLabel(".SWITCH_END");
-            context.CurrentFrame().breakLabel = endLabel;
+            context.CurrentFrame().breakLabel.push_back(endLabel);
 
             std::stringstream bodyBuffer;
             body_->SetInSwitchScope();
@@ -75,6 +75,8 @@ namespace ast {
             stream << bodyBuffer.rdbuf();
 
             stream << endLabel << ":" << std::endl;
+
+            context.CurrentFrame().breakLabel.pop_back();
         }
 
     }

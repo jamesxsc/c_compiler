@@ -42,6 +42,10 @@ namespace ast {
         return false;
     }
 
+    void Declarator::SetPointerReturn() {
+        throw std::runtime_error("Declarator::SetPointerReturn() called on a non-function declarator");
+    }
+
     Function Declarator::BuildFunction(TypeSpecifier returnType, Context &context) const {
         std::cerr << "Error: Declarator is not a function" << std::endl;
         exit(1);

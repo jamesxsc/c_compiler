@@ -39,8 +39,8 @@ namespace ast {
     }
 
     void BreakStatement::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-        assert(context.CurrentFrame().breakLabel && "Break statement outside of loop or switch");
-        stream << "j " << *context.CurrentFrame().breakLabel << std::endl;
+        assert(context.CurrentFrame().breakLabel.size() > 0 && "Break statement outside of loop or switch");
+        stream << "j " << context.CurrentFrame().breakLabel.back() << std::endl;
     }
 
     void BreakStatement::Print(std::ostream &stream) const {
@@ -48,8 +48,8 @@ namespace ast {
     }
 
     void ContinueStatement::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-        assert(context.CurrentFrame().continueLabel && "Continue statement outside of loop");
-        stream << "j " << *context.CurrentFrame().continueLabel << std::endl;
+        assert(context.CurrentFrame().continueLabel.size() > 0 && "Continue statement outside of loop");
+        stream << "j " << context.CurrentFrame().continueLabel.back() << std::endl;
     }
 
     void ContinueStatement::Print(std::ostream &stream) const {

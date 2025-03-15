@@ -1,6 +1,8 @@
-/* Created by James on 12/03/2025. */
+/* Created by James & Eliott on 12/03/2025. */
 
 int f() {
+    int i;
+
     ;
 
     if (1) ;
@@ -13,7 +15,9 @@ int f() {
 
     do ; while (0);
 
-    for (; ; ) ;
+    /*for (; ; ) ; */ /* Yes, checked, this loops infinitely */
 
-    return 0;
+    for (i = 0; i < 5; i++)
+        ;
+    return i;
 }
