@@ -37,6 +37,9 @@ namespace ast {
     }
 
     Function FunctionDeclarator::BuildFunction(TypeSpecifier returnType, Context &context) const {
+        if (pointerReturn_)
+            returnType = {TypeSpecifier::POINTER, returnType};
+
         if (!parameterList_) {
             return {
                     .parameterSizes = {},
@@ -57,6 +60,14 @@ namespace ast {
                 .totalSize = totalSize,
                 .returnType = returnType,
         };
+    }
+
+    void FunctionDeclarator::SetPointerReturn() {
+        pointerReturn_ = true;
+    }
+
+    bool FunctionDeclarator::GetPointerReturn() const {
+        return pointerReturn_;
     }
 
 }
