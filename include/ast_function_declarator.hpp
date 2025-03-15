@@ -11,6 +11,7 @@ namespace ast {
     private:
         // Identifier is stored in Declarator base class
         ParameterListPtr parameterList_;
+        bool pointerReturn_{false};
 
     public:
         explicit FunctionDeclarator(DeclaratorPtr identifier) : Declarator(
@@ -36,6 +37,10 @@ namespace ast {
         [[nodiscard]] Function BuildFunction(TypeSpecifier returnType, Context &context) const override;
 
         void EmitLabelRISC(std::ostream &stream) const;
+
+        void SetPointerReturn() override;
+
+        bool GetPointerReturn() const;
     };
 
     using FunctionDeclaratorPtr = std::unique_ptr<const FunctionDeclarator>;

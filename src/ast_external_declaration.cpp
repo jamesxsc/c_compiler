@@ -12,7 +12,7 @@ namespace ast {
             if (initDeclarator->IsFunction()) {
                 // Store forward declarations
                 context.InsertFunction(initDeclarator->GetIdentifier(),
-                                       initDeclarator->BuildFunction(declarationSpecifiers_->GetType(context), context)); // todo does this handle array/ptr return? see parser
+                                       initDeclarator->BuildFunction(declarationSpecifiers_->GetType(context), context));
             } else {
                 // Handle global variables
                 std::string identifier = initDeclarator->GetIdentifier();

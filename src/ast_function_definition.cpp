@@ -90,6 +90,9 @@ namespace ast {
     void FunctionDefinition::Print(std::ostream &stream) const {
         declaration_specifiers_->Print(stream);
 
+        if (declarator_->GetPointerReturn())
+            stream << "*";
+
         declarator_->Print(stream);
 
         if (compound_statement_ != nullptr) {
@@ -99,7 +102,12 @@ namespace ast {
 
 
     TypeSpecifier FunctionDefinition::GetType(Context &context) const {
-        return declaration_specifiers_->GetType(context);
+        // todo is this the best soln, and do we need to modify external decl. also can we return an array?
+        // search wont pass until pointer loads/stores are complete
+        TypeSpecifier returnType = declaration_specifiers_->GetType(context);
+        if (declarator_->GetPointerReturn())
+            returnType = {TypeSpecifier::POINTER, returnType};
+        return returnType;
     }
 
 }

@@ -5,7 +5,7 @@
 namespace ast {
 
     class Declarator : public Node {
-    private:
+    protected:
         std::string identifier_;
         bool isDirect_;
 
@@ -24,6 +24,8 @@ namespace ast {
         [[nodiscard]] virtual bool IsFunction() const;
 
         [[nodiscard]] virtual bool IsArray() const;
+
+        virtual void SetPointerReturn();
 
         [[nodiscard]] virtual Function BuildFunction(TypeSpecifier returnType, Context &context) const;
 
