@@ -17,10 +17,12 @@ namespace ast {
         context.InsertFunction(declarator_->GetIdentifier(), declarator_->BuildFunction(GetType(context), context));
 
         // Push a new frame onto the stack
+        // todo pass to get this?
         int frameSize = 512; // bytes // fixed until we get time to perform analysis of how large the frame needs to be
         context.PushFrame({
                                   .size = frameSize,
-                                  .bindings = Bindings(frameSize, -4 * 13), // 4 * 13 is the size of the saved registers (max case)
+                                  .bindings = Bindings(frameSize,
+                                                       -4 * 13), // 4 * 13 is the size of the saved registers (max case)
                           });
         // Set the return label for return statements to emit
         context.CurrentFrame().returnLabel = context.MakeLabel(".L_RETURN");
@@ -56,7 +58,8 @@ namespace ast {
         stream << "addi s0,sp," << frameSize << std::endl;
 
         // Now emit the parameters and function body
-        stream << bodyStream.rdbuf();
+        if (bodyStream.rdbuf()->in_avail() > 0)
+            stream << bodyStream.rdbuf();
 
         // Add the return RISC (that all return statements jump to)
         stream << *context.CurrentFrame().returnLabel << ":" << std::endl;

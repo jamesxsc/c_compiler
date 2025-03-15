@@ -72,7 +72,8 @@ namespace ast {
 
             context.FreeTemporary(condReg);
 
-            stream << bodyBuffer.rdbuf();
+            if (bodyBuffer.rdbuf()->in_avail() > 0)
+                stream << bodyBuffer.rdbuf();
 
             stream << endLabel << ":" << std::endl;
 
