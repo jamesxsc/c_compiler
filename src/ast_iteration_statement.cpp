@@ -1,4 +1,5 @@
 #include "ast_iteration_statement.hpp"
+#include "risc_utils.hpp"
 #include <iostream>
 
 namespace ast {
@@ -7,14 +8,14 @@ namespace ast {
     void WhileStatement::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         std::string labelStart = context.MakeLabel("while_start");
         std::string labelEnd = context.MakeLabel("while_end");
-        context.CurrentFrame().breakLabel = labelEnd;
-        context.CurrentFrame().continueLabel = labelStart;
+        context.CurrentFrame().breakLabel.push_back(labelEnd);
+        context.CurrentFrame().continueLabel.push_back(labelStart);
 
         stream << labelStart << ":" << std::endl;
 
         // Evaluate condition
         Register condReg = context.AllocateTemporary();
-        condition_->EmitRISC(stream, context, condReg);
+        Utils::EmitComparison(stream, context, condReg, *condition_);
 
         // If condReg == 0 => jump labelEnd
         stream << "beq " << condReg << ", zero, " << labelEnd << std::endl;
@@ -28,6 +29,9 @@ namespace ast {
 
         // label_end:
         stream << labelEnd << ":" << std::endl;
+
+        context.CurrentFrame().breakLabel.pop_back();
+        context.CurrentFrame().continueLabel.pop_back();
     }
 
     void WhileStatement::Print(std::ostream &stream) const {
@@ -41,20 +45,22 @@ namespace ast {
     void DoWhileStatement::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         std::string labelStart = context.MakeLabel("do_while_start");
         std::string labelEnd = context.MakeLabel("do_while_end");
-        context.CurrentFrame().breakLabel = labelEnd;
-        context.CurrentFrame().continueLabel = labelStart;
+        context.CurrentFrame().breakLabel.push_back(labelEnd);
+        context.CurrentFrame().continueLabel.push_back(labelStart);
 
         stream << labelStart << ":" << std::endl;
         body_->EmitRISC(stream, context, destReg);
 
         Register condReg = context.AllocateTemporary();
-        condition_->EmitRISC(stream, context, condReg);
-
+        Utils::EmitComparison(stream, context, condReg, *condition_);
         stream << "bne " << condReg << ", zero, " << labelStart << std::endl;
 
         context.FreeTemporary(condReg);
 
         stream << labelEnd << ":" << std::endl;
+
+        context.CurrentFrame().continueLabel.pop_back();
+        context.CurrentFrame().breakLabel.pop_back();
     }
 
     void DoWhileStatement::Print(std::ostream &stream) const {
@@ -68,22 +74,27 @@ namespace ast {
 //==================== ForStatement ====================//
     void ForStatement::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         std::string labelStart = context.MakeLabel("for_start");
+        std::string labelContinue = context.MakeLabel("for_continue");
         std::string labelEnd = context.MakeLabel("for_end");
-        context.CurrentFrame().breakLabel = labelEnd;
-        context.CurrentFrame().continueLabel = labelStart;
+        context.CurrentFrame().breakLabel.push_back(labelEnd);
+        context.CurrentFrame().continueLabel.push_back(labelContinue);
 
         initStmt_->EmitRISC(stream, context, destReg);
-
         stream << labelStart << ":" << std::endl;
 
         Register condReg = context.AllocateTemporary();
-        condStmt_->EmitRISC(stream, context, condReg);
-
-        stream << "beq " << condReg << ", zero, " << labelEnd << std::endl;
+        const Expression *cond = condStmt_->GetExpression();
+        if (cond) {
+            Utils::EmitComparison(stream, context, condReg, *cond);
+        } else {
+            stream << "li " << condReg << ",1" << std::endl;
+        }
+        stream << "beq " << condReg << ",zero," << labelEnd << std::endl;
         context.FreeTemporary(condReg);
 
         body_->EmitRISC(stream, context, destReg);
 
+        stream << labelContinue << ":" << std::endl; // Must still inc
         if (increment_) {
             Register incReg = context.AllocateTemporary();
             increment_->EmitRISC(stream, context, incReg);
@@ -91,8 +102,10 @@ namespace ast {
         }
 
         stream << "j " << labelStart << std::endl;
-
         stream << labelEnd << ":" << std::endl;
+
+        context.CurrentFrame().breakLabel.pop_back();
+        context.CurrentFrame().continueLabel.pop_back();
     }
 
     void ForStatement::Print(std::ostream &stream) const {

@@ -58,8 +58,8 @@ namespace ast {
         std::bitset<12> usedFloatPersistentRegisters{};
 
         std::optional<std::string> returnLabel{std::nullopt};
-        std::optional<std::string> breakLabel{std::nullopt};
-        std::optional<std::string> continueLabel{std::nullopt};
+        std::vector<std::string> breakLabel{};
+        std::vector<std::string> continueLabel{};
     };
 
     class Context {

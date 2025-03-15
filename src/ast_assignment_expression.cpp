@@ -34,25 +34,24 @@ namespace ast {
                                     *unary_); // Invert order like GCC, unary less likely to need storing
                 break;
             case AssignmentOperator::DivideAssign:
-                Utils::EmitDivide(stream, context, result, *assignment_, *unary_);
+                Utils::EmitDivide(stream, context, result, *unary_, *assignment_);
                 break;
             case AssignmentOperator::ModuloAssign:
                 assert(!useFloat && "Modulo assignment operator not supported for floating point types");
-                Utils::EmitModulo(stream, context, result, *assignment_, *unary_);
+                Utils::EmitModulo(stream, context, result, *unary_, *assignment_);
                 break;
             case AssignmentOperator::AddAssign:
                 Utils::EmitAddition(stream, context, result, *assignment_, *unary_);
                 break;
             case AssignmentOperator::SubtractAssign:
-                Utils::EmitSubtraction(stream, context, result, *assignment_, *unary_);
+                Utils::EmitSubtraction(stream, context, result, *unary_, *assignment_);
                 break;
             case AssignmentOperator::LeftShiftAssign:
                 assert(!useFloat && "Left shift assignment operator not supported for floating point types");
-                Utils::EmitLeftShift(stream, context, result, *assignment_, *unary_);
+                Utils::EmitLeftShift(stream, context, result, *unary_, *assignment_);
                 break;
             case AssignmentOperator::RightShiftAssign:
                 assert(!useFloat && "Right shift assignment operator not supported for floating point types");
-                // Has to be left right since sign is based on left
                 Utils::EmitRightShift(stream, context, result, *unary_, *assignment_);
                 break;
             case AssignmentOperator::BitwiseAndAssign:
