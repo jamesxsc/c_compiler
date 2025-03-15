@@ -61,6 +61,9 @@
   JumpStatement* jump_statement;
   SpecifierQualifierList* specifier_qualifier_list;
   TypeName* type_name;
+  Enumerator* enumerator;
+  EnumeratorList* enumerator_list;
+  EnumSpecifier* enum_specifier;
   int          	number_int;
   double       	number_float;
   std::string* 	string;
@@ -83,7 +86,7 @@
 %type <node> external_declaration function_definition
 %type <expression_base> primary_expression
 %type <node> struct_specifier struct_declaration_list struct_declaration struct_declarator_list
-%type <node> struct_declarator enum_specifier enumerator_list enumerator pointer
+%type <node> struct_declarator pointer
 %type <node> identifier_list abstract_declarator direct_abstract_declarator
 
 // Statement types
@@ -133,11 +136,15 @@
 %nterm <specifier_qualifier_list> specifier_qualifier_list
 %nterm <type_name> type_name
 
+// Enums
+%nterm <enumerator> enumerator
+%nterm <enumerator_list> enumerator_list
+%nterm <enum_specifier> enum_specifier
+
 %type <number_int> INT_CONSTANT CHAR_CONSTANT
 %type <number_float> FLOAT_CONSTANT DOUBLE_CONSTANT
 %type <string> IDENTIFIER TYPE_NAME STRING_LITERAL
 %type <type_specifier> type_specifier
-
 
 %start ROOT
 %%
@@ -155,7 +162,7 @@ translation_unit
 
 external_declaration
 	: function_definition { $$ = $1; }
-	| declaration { $$ = new ExternalDeclaration(DeclarationPtr($1)); }
+	| declaration { $$ = $1 ? new ExternalDeclaration(DeclarationPtr($1)) : nullptr; }
 	;
 
 function_definition
@@ -331,7 +338,7 @@ constant_expression
 	;
 
 declaration
-	: declaration_specifiers ';' { std::cerr << "Need to implement declaration specifiers only declaration" << std::endl; exit(1); }
+	: declaration_specifiers ';' { $$ = nullptr; } // Aggregate definition - there is actually no RISC to emit
 	| declaration_specifiers init_declarator_list ';' {
 	    $$ = new Declaration(DeclarationSpecifiersPtr($1), InitDeclaratorListPtr($2));
 	    Context dummy; // Not required
@@ -380,7 +387,7 @@ type_specifier
 	| SIGNED { $$ = new TypeSpecifier(TypeSpecifier::INT); }
 	| UNSIGNED { $$ = new TypeSpecifier(TypeSpecifier::UNSIGNED); }
     | struct_specifier
-	| enum_specifier
+	| enum_specifier { $$ = new TypeSpecifier($1->GetTypeSpecifier()); }
 	| TYPE_NAME { $$ = new TypeSpecifier(typedefs.at(*$1)); delete $1; }
 	;
 
@@ -417,19 +424,19 @@ struct_declarator
 	;
 
 enum_specifier
-	: ENUM '{' enumerator_list '}'
-	| ENUM IDENTIFIER '{' enumerator_list '}'
-	| ENUM IDENTIFIER
+	: ENUM '{' enumerator_list '}' { $$ = new EnumSpecifier(EnumeratorListPtr($3)); }
+	| ENUM IDENTIFIER '{' enumerator_list '}' { $$ = new EnumSpecifier(*$2, EnumeratorListPtr($4)); delete $2; }
+	| ENUM IDENTIFIER { $$ = new EnumSpecifier(*$2); delete $2; }
 	;
 
 enumerator_list
-	: enumerator
-	| enumerator_list ',' enumerator
+	: enumerator { $$ = new EnumeratorList(EnumeratorPtr($1)); }
+	| enumerator_list ',' enumerator { $1->PushBack(EnumeratorPtr($3)); $$=$1; }
 	;
 
 enumerator
-	: IDENTIFIER
-	| IDENTIFIER '=' constant_expression
+	: IDENTIFIER { $$ = new Enumerator(*$1); delete $1; }
+	| IDENTIFIER '=' constant_expression { $$ = new Enumerator(*$1, ConstantExpressionPtr($3)); delete $1; }
 	;
 
 declarator

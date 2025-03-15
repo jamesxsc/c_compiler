@@ -48,7 +48,7 @@ namespace ast {
         // Complex type constructors
         TypeSpecifier(Type type, TypeSpecifier pointee): type_(POINTER), pointeeType_(std::make_shared<TypeSpecifier>(pointee)) {} // Type rqd to avoid making copy constructor
         TypeSpecifier(TypeSpecifier arrayType, int size): type_(ARRAY), arrayType_(std::make_shared<TypeSpecifier>(arrayType)), arraySize_(size) {}
-
+        TypeSpecifier(std::string identifier, std::unordered_map<std::string, int> values): type_(ENUM), enumValues_(std::move(values)), enumIdentifier_(std::move(identifier)) {}
 
         ~TypeSpecifier() = default;
 
@@ -87,6 +87,7 @@ namespace ast {
         TypeSpecifierPtr pointeeType_{nullptr};
         TypeSpecifierPtr arrayType_{nullptr};
         int arraySize_{0};
+        // Copying these may get expensive but I don't have all night
         std::unordered_map<std::string, int> enumValues_{};
         std::string enumIdentifier_{};
         std::vector<std::pair<std::string, TypeSpecifierPtr>> structMembers_{};

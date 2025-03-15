@@ -2,34 +2,28 @@
 
 namespace ast {
 
-void NodeList::PushBack(NodePtr item)
-{
-    nodes_.push_back(std::move(item));
-}
-
-void NodeList::EmitRISC(std::ostream& stream, Context& context, Register destReg) const
-{
-    for (const auto& node : nodes_)
-    {
-        if (node == nullptr)
-        {
-            continue;
-        }
-        node->EmitRISC(stream, context, destReg);
+    void NodeList::PushBack(NodePtr item) {
+        if (item)
+            nodes_.push_back(std::move(item));
     }
-}
 
-void NodeList::Print(std::ostream& stream) const
-{
-    for (const auto& node : nodes_)
-    {
-        if (node == nullptr)
-        {
-            continue;
+    void NodeList::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
+        for (const auto &node: nodes_) {
+            if (node == nullptr) {
+                continue;
+            }
+            node->EmitRISC(stream, context, destReg);
         }
-        node->Print(stream);
     }
-}
+
+    void NodeList::Print(std::ostream &stream) const {
+        for (const auto &node: nodes_) {
+            if (node == nullptr) {
+                continue;
+            }
+            node->Print(stream);
+        }
+    }
 
     std::vector<NodePtr>::const_iterator NodeList::begin() const {
         return nodes_.begin();

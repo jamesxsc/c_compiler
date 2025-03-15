@@ -5,8 +5,9 @@
 namespace ast {
 
     void Identifier::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-        TypeSpecifier type = GetType(context);
+        // Variable identifier
         if (context.IsGlobal(identifier_)) {
+            TypeSpecifier type = GetType(context);
             switch (type) {
                 case TypeSpecifier::DOUBLE:
                 case TypeSpecifier::FLOAT: {
@@ -39,7 +40,8 @@ namespace ast {
                             "Identifier::EmitRISC() called on an unsupported type");
                     // todo handle these
             }
-        } else {
+        } else if (context.CurrentFrame().bindings.Contains(identifier_)) {
+            TypeSpecifier type = GetType(context);
             int offset = context.CurrentFrame().bindings.Get(identifier_).offset;
             switch (type) {
                 case TypeSpecifier::FLOAT:
@@ -68,6 +70,8 @@ namespace ast {
                     // todo handle these
             }
         }
+        // Enumerator identifier
+
     }
 
     void Identifier::Print(std::ostream &stream) const {

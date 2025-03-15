@@ -8,7 +8,8 @@ namespace ast {
     class DeclarationList : public Node {
     public:
         explicit DeclarationList(DeclarationPtr first) : declarations_() {
-            declarations_.push_back(std::move(first));
+            if (first)
+                declarations_.push_back(std::move(first));
         }
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
