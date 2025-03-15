@@ -20,8 +20,12 @@ namespace ast {
         right_->Print(stream);
     }
 
-    TypeSpecifier AndExpression::GetType(Context& context) const {
-        return right_->GetType(context);
+    TypeSpecifier AndExpression::GetType(Context &context) const {
+        if (left_ == nullptr) {
+            return right_->GetType(context);
+        }
+
+        return Utils::BinaryResultType(left_->GetType(context), right_->GetType(context));
     }
 
     bool AndExpression::ContainsFunctionCall() const {

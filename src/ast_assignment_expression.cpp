@@ -30,8 +30,8 @@ namespace ast {
                 assignment_->EmitRISC(stream, context, result);
                 break;
             case AssignmentOperator::MultiplyAssign:
-                Utils::EmitMultiply(stream, context, result, *assignment_,
-                                    *unary_); // Invert order like GCC, unary less likely to need storing
+                Utils::EmitMultiply(stream, context, result, *assignment_,*unary_);
+                // Invert order like GCC, unary less likely to need storing
                 break;
             case AssignmentOperator::DivideAssign:
                 Utils::EmitDivide(stream, context, result, *unary_, *assignment_);
@@ -70,8 +70,6 @@ namespace ast {
 
         // Common: store the result
         std::string identifier = unary_->GetIdentifier();
-        // hmmm so we can store array as a different type or a large set of types with a funny identifier in our bindings/globals
-        // and somehow detect it here. or how else can we implement GetIdentifier to work. cx s
         if (context.IsArray(identifier)) {
             if (context.IsGlobal(identifier)) {
                 Register indexReg = context.AllocateTemporary();
@@ -108,6 +106,7 @@ namespace ast {
                                 "AssignmentExpression::EmitRISC() called on an unsupported array type");
                         // todo these do need to be supported
                 }
+                context.FreeTemporary(addrReg);
             } else {
                 Register indexReg = context.AllocateTemporary();
                 unary_->GetArrayIndexExpression().EmitRISC(stream, context, indexReg);
@@ -142,6 +141,7 @@ namespace ast {
                         throw std::runtime_error(
                                 "AssignmentExpression::EmitRISC() called on an unsupported array type");
                 }
+                context.FreeTemporary(addrReg);
             }
         } else if (unary_->IsPointerDereference()) { // Type is already unfolded
             // replaces the deref'd check inside pointer case - that will only be reassigning a pointer or ptr to ptr
@@ -177,6 +177,7 @@ namespace ast {
                         throw std::runtime_error("Unsupported type for assignment");
                         // TODO need to support at least some of these
                 }
+                context.FreeTemporary(addrReg);
             }
         } else {
             if (context.IsGlobal(identifier)) {
@@ -222,8 +223,8 @@ namespace ast {
                         // TODO need to support at least some of these
                 }
             } else {
-                Variable lhsVariable = context.CurrentFrame().bindings.Get(
-                        identifier); // Can only assign to lvalue so this call should succeed
+                Variable lhsVariable = context.CurrentFrame().bindings.Get(identifier);
+                // Can only assign to lvalue so this call should succeed
                 switch (type) {
                     case TypeSpecifier::FLOAT:
                     case TypeSpecifier::DOUBLE:
@@ -316,15 +317,8 @@ namespace ast {
                                                                                      assignment_(
                                                                                              std::move(assignment)) {}
 
+    // The logic of this function is to return the type of the actual arithmetic operation
     TypeSpecifier AssignmentExpression::GetType(Context &context) const {
-        // TODO this is subject to change
-        // TODO this can probably be extracted for all binary ops -not really, this relies on identifier - and then can move my notes
-        // if either is ptr -> ptr
-        // if either is array get underlying type
-        // if either is deref'd ptr get underlying type
-        // consider these methods on expressions as returning the type being worked with arithmetically
-        // assert types are equal? with exception of ptr, and maybe int/char. maybe we just get lhs since there's no implicit casting. i'm happy with that
-
         // Just pass down, there is only one operand
         if (op_ == AssignmentOperator::ConditionalPromote) {
             return conditional_->GetType(context);

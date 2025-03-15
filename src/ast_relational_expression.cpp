@@ -1,5 +1,6 @@
 #include "ast_relational_expression.hpp"
 #include "ast_type_specifier.hpp"
+#include "risc_utils.hpp"
 
 namespace ast {
 
@@ -9,7 +10,7 @@ namespace ast {
             return;
         }
 
-        TypeSpecifier type = GetType(context);
+        TypeSpecifier type = Utils::BinaryResultType(left_->GetType(context), right_->GetType(context));
         bool leftStored = right_->ContainsFunctionCall();
         bool useFloat = type == TypeSpecifier::Type::FLOAT || type == TypeSpecifier::Type::DOUBLE;
         Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(useFloat);
@@ -119,8 +120,11 @@ namespace ast {
     }
 
     TypeSpecifier RelationalExpression::GetType(Context &context) const {
-        // todo which operand takes precedence eg unsigned int < int
-        return right_->GetType(context);
+        if (op_ == RelationalOperator::ShiftPromote) {
+            return right_->GetType(context);
+        }
+
+        return TypeSpecifier::INT;
     }
 
     bool RelationalExpression::ContainsFunctionCall() const {

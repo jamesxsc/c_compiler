@@ -50,4 +50,10 @@ namespace ast::Utils {
 
     TypeSpecifier ResolveTypeAlias(std::vector<TypeSpecifier> specifiers);
 
+    TypeSpecifier BinaryResultType(const TypeSpecifier &leftType, const TypeSpecifier &rightType);
+
+    TypeSpecifier BinaryAdditionResultType(const TypeSpecifier& leftType, const TypeSpecifier& rightType);
+
+    TypeSpecifier BinarySubtractionResultType(const TypeSpecifier& leftType, const TypeSpecifier& rightType);
+
 }

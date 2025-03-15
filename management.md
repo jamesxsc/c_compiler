@@ -48,8 +48,9 @@
 - To save instructions, some of the common return logic is deferred to the end of the function and jumped to using the return label in the context.
 - TypeSpecifier
   - TypeSpecifier was changed prior to implementing structs and enums. Instead of an enumerated type, a class was used to support holding underlying types of pointers and aggregates. The class was implemented such that missing switch case warnings still worked.
+- GetType on expressions is designed to always return the type of the actual operation (return) being performed to easily know whether to use a floating-point register and switch on the type.
+  - TODO we return int from logical, is that ok for storing result in a char? if thats allowed anyway
 
-Hmmm we always have destreg when inside a function...
 
 # Milestones (Draft)
 
@@ -70,33 +71,40 @@ Hmmm we always have destreg when inside a function...
 * Tests for null statements
 * Test for nested switch
 * Tests for global floats doubles and pointers if there aren't already any
-* Test for calling a function from our test with several arguments of different sizes e.g. char, float, int
+* Test for calling a function from our test with several arguments of different sizes e.g. char, float, int and calling external
+  * I want one with just float, double as well to check alignment, both calling from and being called by our compiled code
 * Tests for global/local arrays of different types
 * Test for accessing a pointer when the original variable is out of scope (if this is possible without malloc and we think this will be tested; or just when the underlying variable has been shadowed)
+* Test returning an array from a function
 * Test void with and without return
 * Test for relational and logical operators on float and double
 * Test to assign to global ptr (not dereferenced)
 * Test for if (f) and while/for where f is a float or double to be implicitly converted. Same for pointer and char
+* Test for multidimensional arrays
 * Test for float equality e.g. f == 2.0f or d == 2.0d
 * Test using "unsigned int" type
+* Tests for integral promotion
+* Test for modulo behaviour with signed/unsigned left/right operands
+* Test for sizeof (char + char) should be 4 because of promotion
+* Test for ++ and = x + 1 on arrays (like int a[] not a[index]) and pointers (similar to pointer/arithmetic)
 * Ternary operator
-* Float/double unary and postfix operators
+* Float/double unary and postfix operators AND pointers/array identifier
 * Char operation byte masking where applicable
 * ~~Floats Eliott & James~~ Mar 10
 * ~~Char type - James~~ Mar 11
 * ~~Global variables - James~~ Mar 9
 * ~~Arrays local or global - James~~ Mar 11
-* Char constant (override same methods as int but accept char or int in constructor; needs work in lexer also)
-* Float int double char conversion pain - but implicit casting isn't tested apparently
+* ~~Char constant (override same methods as int but accept char or int in constructor; needs work in lexer also) - James~~ Mar 13
+* Float int double char (weird shifting and masking int | char return char eg) conversion pain - but implicit casting isn't tested apparently what about int + float
 * Cerr outputs for all unsupported features
 * Function calls with many arguments and test
 * Register spilling
-* Void type/functions
-* Assignment operators impl and testing
+* ~~Void type/functions~~ Mar 14
+* ~~Assignment operators impl and testing - James~~ Mar 14
 * Structs
 * Enum
-* Sizeof
-* Pointer arithmetic - loads of places this needs to be added
+* ~~Sizeof~~
+* Pointer arithmetic 
 
 
 Needs more who did what and collaboration stuff and timelines

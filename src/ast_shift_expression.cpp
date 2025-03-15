@@ -37,7 +37,16 @@ namespace ast {
     }
 
     TypeSpecifier ShiftExpression::GetType(Context &context) const {
-        return right_->GetType(context);
+        if (op_ == ShiftOperator::AdditivePromote) {
+            return right_->GetType(context);
+        }
+
+        TypeSpecifier leftType = left_->GetType(context);
+        if (leftType == TypeSpecifier::UNSIGNED) {
+            return TypeSpecifier::UNSIGNED; // Only unsigned won't be promoted because it can't fit in a signed int
+        } else {
+            return TypeSpecifier::INT;
+        }
     }
 
     bool ShiftExpression::ContainsFunctionCall() const {

@@ -1,5 +1,6 @@
 #include "ast_equality_expression.hpp"
 #include "ast_type_specifier.hpp"
+#include "risc_utils.hpp"
 
 namespace ast {
 
@@ -8,26 +9,62 @@ namespace ast {
             right_->EmitRISC(stream, context, destReg);
             return;
         }
-        // todo float and everything else support
+
+        TypeSpecifier type = Utils::BinaryResultType(left_->GetType(context), right_->GetType(context));
+        bool useFloat = type == TypeSpecifier::Type::FLOAT || type == TypeSpecifier::Type::DOUBLE;
         bool leftStored = right_->ContainsFunctionCall();
-        Register leftReg = leftStored ? context.AllocatePersistent() : context.AllocateTemporary();
+        Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(useFloat);
         left_->EmitRISC(stream, context, leftReg);
-        Register rightReg = context.AllocateTemporary();
+        Register rightReg = context.AllocateTemporary(useFloat);
         right_->EmitRISC(stream, context, rightReg);
         switch (op_) {
             case EqualityOperator::Equality:
+                switch (type) {
+                    case TypeSpecifier::Type::INT:
+                    case TypeSpecifier::Type::ENUM:
+                    case TypeSpecifier::Type::CHAR:
+                    case TypeSpecifier::Type::UNSIGNED:
+                    case TypeSpecifier::Type::POINTER:
+                    case TypeSpecifier::Type::ARRAY:
+                        stream << "sub " << destReg << "," << leftReg << "," << rightReg << std::endl;
+                        stream << "seqz " << destReg << "," << destReg << std::endl;
+                        break;
+                    case TypeSpecifier::Type::FLOAT:
+                    case TypeSpecifier::Type::DOUBLE:
+                        stream << (type == TypeSpecifier::Type::FLOAT ? "feq.s " : "feq.d ") << destReg << "," << leftReg << "," << rightReg << std::endl;
+                        break;
+                    case TypeSpecifier::Type::STRUCT:
+                    case TypeSpecifier::Type::VOID:
+                        throw std::runtime_error("EqualityExpression::EmitRISC() called on an unsupported type");
+                }
                 stream << "sub " << destReg << "," << leftReg << "," << rightReg << std::endl;
                 stream << "seqz " << destReg << "," << destReg << std::endl;
-                stream << "andi " << destReg << "," << destReg << ",0xff" << std::endl;
                 break;
             case EqualityOperator::Inequality:
-                stream << "sub " << destReg << "," << leftReg << "," << rightReg << std::endl;
-                stream << "snez " << destReg << "," << destReg << std::endl;
-                stream << "andi " << destReg << "," << destReg << ",0xff" << std::endl;
+                switch (type) {
+                    case TypeSpecifier::Type::INT:
+                    case TypeSpecifier::Type::ENUM:
+                    case TypeSpecifier::Type::CHAR:
+                    case TypeSpecifier::Type::UNSIGNED:
+                    case TypeSpecifier::Type::POINTER:
+                    case TypeSpecifier::Type::ARRAY:
+                        stream << "sub " << destReg << "," << leftReg << "," << rightReg << std::endl;
+                        stream << "snez " << destReg << "," << destReg << std::endl;
+                        break;
+                    case TypeSpecifier::Type::FLOAT:
+                    case TypeSpecifier::Type::DOUBLE:
+                        stream << (type == TypeSpecifier::Type::FLOAT ? "feq.s " : "feq.d ") << destReg << "," << leftReg << "," << rightReg << std::endl;
+                        stream << "seqz " << destReg << "," << destReg << std::endl;
+                        break;
+                    case TypeSpecifier::Type::STRUCT:
+                    case TypeSpecifier::Type::VOID:
+                        throw std::runtime_error("EqualityExpression::EmitRISC() called on an unsupported type");
+                }
                 break;
             case EqualityOperator::RelationalPromote: // Should never reach here
                 break;
         }
+        stream << "andi " << destReg << "," << destReg << ",0xff" << std::endl;
         leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg);
         context.FreeTemporary(rightReg);
     }
@@ -52,9 +89,12 @@ namespace ast {
         right_->Print(stream);
     }
 
-
     TypeSpecifier EqualityExpression::GetType(Context & context) const {
-        return right_->GetType(context);
+        if (op_ == EqualityOperator::RelationalPromote) {
+            return right_->GetType(context);
+        }
+
+        return TypeSpecifier::INT;
     }
 
     bool EqualityExpression::ContainsFunctionCall() const {

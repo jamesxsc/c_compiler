@@ -19,7 +19,7 @@ namespace ast {
     }
 
     TypeSpecifier Expression::GetType(Context& context) const {
-        return assignment_->GetType(context);
+        return assignment_->GetType(context); // Return type of last comma separated expression
     }
 
     bool Expression::ContainsFunctionCall() const {

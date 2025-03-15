@@ -44,7 +44,15 @@ namespace ast {
 
 
     TypeSpecifier MultiplicativeExpression::GetType(Context &context) const {
-        return right_->GetType(context);
+        if (op_ == MultiplicativeOperator::UnaryPromote) {
+            if (right_->IsPointerDereference())
+                return right_->GetType(context).GetPointeeType();
+            else
+                return right_->GetType(context);
+        }
+
+        // todo handle unary deref in here // make another method // test
+        return Utils::BinaryResultType(left_->GetType(context), right_->GetType(context));
     }
 
     bool MultiplicativeExpression::ContainsFunctionCall() const {

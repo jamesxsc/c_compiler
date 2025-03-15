@@ -22,7 +22,11 @@ namespace ast {
     }
 
     TypeSpecifier InclusiveOrExpression::GetType(Context& context) const {
-        return right_->GetType(context);
+        if (left_ == nullptr) {
+            return right_->GetType(context);
+        }
+
+        return Utils::BinaryResultType(left_->GetType(context), right_->GetType(context));
     }
 
     bool InclusiveOrExpression::ContainsFunctionCall() const {

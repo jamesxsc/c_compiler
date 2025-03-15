@@ -30,7 +30,7 @@ namespace ast {
                         stream << ".size " << identifier << "," << context.GetGlobalType(identifier).GetTypeSize() << std::endl;
                         stream << identifier << ":" << std::endl;
                         for (const auto& initializer : initializerList) {
-                            switch (type) {
+                            switch (type) { // Type is element type in array case here
                                 case TypeSpecifier::INT:
                                 case TypeSpecifier::UNSIGNED:
                                     stream << ".word " << initializer->GetGlobalValue() << std::endl;
@@ -42,7 +42,11 @@ namespace ast {
                                     stream << ".word " << initializer->GetGlobalIdentifier() << std::endl;
                                     break;
                                 case TypeSpecifier::FLOAT:
+                                    stream << ".float " << initializer->GetGlobalValue() << std::endl;
+                                    break;
                                 case TypeSpecifier::DOUBLE:
+                                    stream << ".double " << initializer->GetGlobalValue() << std::endl;
+                                    break;
                                 case TypeSpecifier::VOID:
                                 case TypeSpecifier::ENUM:
                                 case TypeSpecifier::STRUCT:
@@ -69,9 +73,12 @@ namespace ast {
                                 // Simply .word (RHS identifier)
                                 stream << ".word " << initDeclarator->GetGlobalInitializerIdentifier() << std::endl;
                                 break;
-                                // TODO float work here and above, use .float/.double but a third global method needs adding
                             case TypeSpecifier::FLOAT:
+                                stream << ".float " << initDeclarator->GetGlobalInitializerValue() << std::endl;
+                                break;
                             case TypeSpecifier::DOUBLE:
+                                stream << ".double " << initDeclarator->GetGlobalInitializerValue() << std::endl;
+                                break;
                             case TypeSpecifier::VOID:
                             case TypeSpecifier::ENUM:
                             case TypeSpecifier::STRUCT:

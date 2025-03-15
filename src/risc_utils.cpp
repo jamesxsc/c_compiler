@@ -1,3 +1,4 @@
+#include <cmath>
 #include "risc_utils.hpp"
 
 namespace ast::Utils {
@@ -39,8 +40,7 @@ namespace ast::Utils {
     // todo nice to have : extract a binaryexpression class to handle common logic
     void EmitMultiply(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
                       const ExpressionBase &right) {
-        TypeSpecifier type = left.GetType(
-                context); // todo is left op ok, check its unfolded everywhere?-ish? this is relevant to every helper here pretty much
+        TypeSpecifier type = BinaryResultType(left.GetType(context), right.GetType(context));
         // at the very least for ptr arithmetic we will need to check both sides
         bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
         bool leftStored = right.ContainsFunctionCall();
@@ -70,7 +70,7 @@ namespace ast::Utils {
 
     void EmitDivide(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
                     const ExpressionBase &right) {
-        TypeSpecifier type = left.GetType(context);
+        TypeSpecifier type = BinaryResultType(left.GetType(context), right.GetType(context));
         bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
         bool leftStored = right.ContainsFunctionCall();
         Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(useFloat);
@@ -99,7 +99,7 @@ namespace ast::Utils {
 
     void EmitModulo(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
                     const ExpressionBase &right) {
-        TypeSpecifier type = left.GetType(context);
+        TypeSpecifier type = BinaryResultType(left.GetType(context), right.GetType(context));
         bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
         bool leftStored = right.ContainsFunctionCall();
         Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(useFloat);
@@ -109,13 +109,11 @@ namespace ast::Utils {
 
         switch (type) {
             case TypeSpecifier::INT:
-            case TypeSpecifier::UNSIGNED:
+                stream << "rem " << result << "," << leftReg << "," << rightReg << std::endl;
+                break;
             case TypeSpecifier::CHAR: // todo there is masking here, at least when int is result check!
-                if (left.GetType(context).IsSigned() && right.GetType(context).IsSigned())
-                    // todo these kind of expressions could probably be simplified into a case: UNSIGNED and set that in GetType on this class
-                    stream << "rem " << result << "," << leftReg << "," << rightReg << std::endl;
-                else
-                    stream << "remu " << result << "," << leftReg << "," << rightReg << std::endl;
+            case TypeSpecifier::UNSIGNED: // This is after promotion so no need to check signs
+                stream << "remu " << result << "," << leftReg << "," << rightReg << std::endl;
                 break;
             default:
                 throw std::runtime_error("Multiplicative operation attempted on unsupported type.");
@@ -127,7 +125,7 @@ namespace ast::Utils {
 
     void EmitAddition(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
                       const ExpressionBase &right) {
-        TypeSpecifier type = right.GetType(context);
+        TypeSpecifier type = BinaryAdditionResultType(left.GetType(context), right.GetType(context));
         bool leftStored = right.ContainsFunctionCall();
         bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
         Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(useFloat);
@@ -141,20 +139,29 @@ namespace ast::Utils {
             case TypeSpecifier::DOUBLE:
                 stream << "fadd.d " << result << "," << leftReg << "," << rightReg << std::endl;
                 break;
-            case TypeSpecifier::POINTER: // todo extract type here for pointer arith... need both sides right? but check in godbolt
+            case TypeSpecifier::POINTER:
+            case TypeSpecifier::ARRAY: {
+                // We are guaranteed here that only one is a pointer
+                int logSize = static_cast<int>(std::log2(type.GetPointeeType().GetTypeSize()));
+                if (left.GetType(context).IsPointer()) {
+                    // todo wont work for structs
+                    // logsize != 0 etc... but can maybe extract this as it will actually be pretty long to stay efficient
+                    stream << "slli " << rightReg << "," << rightReg << "," << logSize << std::endl;
+                } else {
+                    stream << "slli " << leftReg << "," << leftReg << "," << logSize << std::endl;
+                }
+                stream << "add " << result << "," << leftReg << "," << rightReg << std::endl;
+                break;
+            }
             case TypeSpecifier::INT:
             case TypeSpecifier::UNSIGNED:
-                stream << "add " << result << "," << leftReg << "," << rightReg << std::endl;
-                break;
             case TypeSpecifier::CHAR:
+            case TypeSpecifier::ENUM:
                 stream << "add " << result << "," << leftReg << "," << rightReg << std::endl;
                 break;
-            case TypeSpecifier::Type::ENUM:
-            case TypeSpecifier::Type::ARRAY:
-            case TypeSpecifier::Type::STRUCT:
-            case TypeSpecifier::Type::VOID:
-                throw std::runtime_error("Addition on that type isn't supported yet!");
-                // TODO it should be supported - array as ptr, enum as underlying void and struct are actually unsupported
+            case TypeSpecifier::STRUCT:
+            case TypeSpecifier::VOID:
+                throw std::runtime_error("Attempted addition on an unsupported type.");
         }
         leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg);
         context.FreeTemporary(rightReg);
@@ -162,7 +169,7 @@ namespace ast::Utils {
 
     void EmitSubtraction(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
                          const ExpressionBase &right) {
-        TypeSpecifier type = right.GetType(context);
+        TypeSpecifier type = BinarySubtractionResultType(left.GetType(context), right.GetType(context));
         bool leftStored = right.ContainsFunctionCall();
         bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
         Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(useFloat);
@@ -176,20 +183,24 @@ namespace ast::Utils {
             case TypeSpecifier::DOUBLE:
                 stream << "fsub.d " << result << "," << leftReg << "," << rightReg << std::endl;
                 break;
-            case TypeSpecifier::POINTER: // todo extract type here for pointer arith... need both sides right? but check in godbolt
+            case TypeSpecifier::ARRAY:
+            case TypeSpecifier::POINTER: {
+                // We are guaranteed here that both are ptrs
+                int logSize = static_cast<int>(std::log2(left.GetType(context).GetPointeeType().GetTypeSize()));
+                // todo wont work for structs
+                stream << "sub " << result << "," << leftReg << "," << rightReg << std::endl;
+                stream << "srai " << result << "," << result << "," << logSize << std::endl;
+                break;
+            }
             case TypeSpecifier::INT:
             case TypeSpecifier::UNSIGNED:
-                stream << "sub " << result << "," << leftReg << "," << rightReg << std::endl;
-                break;
             case TypeSpecifier::CHAR:
+            case TypeSpecifier::ENUM:
                 stream << "sub " << result << "," << leftReg << "," << rightReg << std::endl;
                 break;
-            case TypeSpecifier::Type::ENUM:
-            case TypeSpecifier::Type::ARRAY:
-            case TypeSpecifier::Type::STRUCT:
-            case TypeSpecifier::Type::VOID:
-                throw std::runtime_error("Addition on that type isn't supported yet!");
-                // TODO it should be supported - array as ptr, enum as underlying void and struct are actually unsupported
+            case TypeSpecifier::STRUCT:
+            case TypeSpecifier::VOID:
+                throw std::runtime_error("Attempted subtraction on an unsupported type.");
         }
         leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg);
         context.FreeTemporary(rightReg);
@@ -214,10 +225,10 @@ namespace ast::Utils {
         left.EmitRISC(stream, context, leftReg);
         Register rightReg = context.AllocateTemporary();
         right.EmitRISC(stream, context, rightReg);
-                if (left.GetType(context).IsSigned())
-                    stream << "sra " << result << "," << leftReg << "," << rightReg << std::endl;
-                else
-                    stream << "srl " << result << "," << leftReg << "," << rightReg << std::endl;
+        if (left.GetType(context).IsSigned())
+            stream << "sra " << result << "," << leftReg << "," << rightReg << std::endl;
+        else
+            stream << "srl " << result << "," << leftReg << "," << rightReg << std::endl;
         leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg);
         context.FreeTemporary(rightReg);
     }
@@ -267,6 +278,52 @@ namespace ast::Utils {
             throw std::runtime_error("Unsupported type alias");
         }
         return {it->second};
+    }
+
+    TypeSpecifier BinaryResultType(const TypeSpecifier &leftType, const TypeSpecifier &rightType) {
+        // Choose wider type, and choose unsigned if equal
+        if (leftType.GetTypeSize() > rightType.GetTypeSize()) {
+            return leftType;
+        } else if (leftType.GetTypeSize() == rightType.GetTypeSize()) {
+            if (leftType.IsSigned() && !rightType.IsSigned())
+                return rightType;
+            else
+                return leftType;
+        } else {
+            return rightType;
+        }
+    }
+
+    // TODO handle array type here - should only be for pointer treating in add/sub
+    // but where does it get passed, identifier? need tests ASAP
+    TypeSpecifier BinaryAdditionResultType(const TypeSpecifier &leftType, const TypeSpecifier &rightType) {
+        // Choose wider type, and choose unsigned if equal
+        // Differs from other operators because of ptr arithmetic
+        if (leftType.IsPointer() != rightType.IsPointer()) {
+            if (leftType.IsPointer())
+                return leftType;
+            else
+                return rightType;
+        } else if (leftType.IsPointer() && rightType.IsPointer()) {
+            throw std::runtime_error("Pointer addition not supported");
+        }
+
+        return BinaryResultType(leftType, rightType);
+    }
+
+    TypeSpecifier BinarySubtractionResultType(const TypeSpecifier &leftType, const TypeSpecifier &rightType) {
+        // Choose wider type, and choose unsigned if equal
+        // Differs from other operators because of ptr arithmetic
+        if (leftType.IsPointer() != rightType.IsPointer()) {
+            if (leftType.IsPointer())
+                return leftType;
+            else
+                return rightType;
+        } else if (leftType.IsPointer() && rightType.IsPointer()) {
+            return TypeSpecifier::INT; // ABI says its signed, and this will only be used on integrals
+        }
+
+        return BinaryResultType(leftType, rightType);
     }
 
 }

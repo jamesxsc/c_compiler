@@ -34,6 +34,7 @@ namespace ast {
 
 
     TypeSpecifier ConditionalExpression::GetType(Context& context) const {
+        // todo once ternary is implemented, complicated
         return left_->GetType(context);
     }
 

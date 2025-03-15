@@ -434,14 +434,9 @@ enumerator
 
 declarator
     // todo do we need to support double pointers?
-    // todo this fucks functions retutrning pointers
-    // if function change type by member or something?
-    // or can we mutate the type somehow? its not const...
-    // declarator doesn't hold the type, but we could set a bool and use it in build function
 	: pointer direct_declarator {
-	    // todo Function returning pointer isn't a pointer declarator
-	    if ($2->IsFunction()) { $2->SetPointerReturn(); $$ = $2; } //throw std::runtime_error("Function returning pointer WIP"); // need a member used by FunctionDeclarator::BuildFunction AND ReturnStatement::GetType AND FunctionDefition::GetType
-	    // ban this from ever being a pointer declarator (final) but we need to set something
+	    // Function returning pointer isn't a pointer declarator
+	    if ($2->IsFunction()) { $2->SetPointerReturn(); $$ = $2; }
         else $$ = new PointerDeclarator(DeclaratorPtr($2));
 	}
 	| direct_declarator { $$ = $1; $$->Indirect(); }

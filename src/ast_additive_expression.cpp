@@ -39,8 +39,15 @@ namespace ast {
 
 
     TypeSpecifier AdditiveExpression::GetType(Context &context) const {
-        // todo technically should be l or r e.g. for float, need some ordering/ranking of types and propagate elsewhere
-        return right_->GetType(context);
+        if (op_ == AdditiveOperator::MultiplicativePromote) {
+            return right_->GetType(context);
+        }
+
+        if (op_ == AdditiveOperator::Add) {
+            return Utils::BinaryAdditionResultType(left_->GetType(context), right_->GetType(context));
+        } else {
+            return Utils::BinarySubtractionResultType(left_->GetType(context), right_->GetType(context));
+        }
     }
 
     bool AdditiveExpression::ContainsFunctionCall() const {
