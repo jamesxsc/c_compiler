@@ -55,4 +55,12 @@ namespace ast {
         return left_->GetGlobalValue();
     }
 
+    int ConditionalExpression::Evaluate() const {
+        if (ternary_) {
+            return left_->Evaluate() ? middle_->Evaluate() : right_->Evaluate();
+        } else {
+            return left_->Evaluate();
+        }
+    }
+
 }

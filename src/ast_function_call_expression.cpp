@@ -37,4 +37,8 @@ namespace ast {
         throw std::runtime_error("FunctionCallExpression::GetGlobalIdentifier() called on a function call");
     }
 
+    int FunctionCallExpression::Evaluate() const {
+        throw std::runtime_error("FunctionCallExpression::Evaluate() called on a function call");
+    }
+
 }

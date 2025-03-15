@@ -22,7 +22,6 @@ namespace ast {
         bool rightStored = (op_ != AssignmentOperator::Assign) &&
                            unary_->ContainsFunctionCall(); // I can't see any case where this is true
         Register result = rightStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(useFloat);
-        // todo can probably use destreg as we will be in a function, but need to check
         switch (op_) {
             case AssignmentOperator::ConditionalPromote:
                 break; // Handled above
@@ -352,6 +351,10 @@ namespace ast {
 
     int AssignmentExpression::GetGlobalValue() const {
         return conditional_->GetGlobalValue();
+    }
+
+    int AssignmentExpression::Evaluate() const {
+        throw std::runtime_error("AssignmentExpression::Evaluate() called on an assignment expression");
     }
 
 }

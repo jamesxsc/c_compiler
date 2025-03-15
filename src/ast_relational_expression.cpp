@@ -143,4 +143,20 @@ namespace ast {
         return right_->GetGlobalValue();
     }
 
+    int RelationalExpression::Evaluate() const {
+        switch (op_) {
+            case RelationalOperator::ShiftPromote:
+                return right_->Evaluate();
+            case RelationalOperator::LessThan:
+                return left_->Evaluate() < right_->Evaluate();
+            case RelationalOperator::GreaterThan:
+                return left_->Evaluate() > right_->Evaluate();
+            case RelationalOperator::LessThanOrEqual:
+                return left_->Evaluate() <= right_->Evaluate();
+            case RelationalOperator::GreaterThanOrEqual:
+                return left_->Evaluate() >= right_->Evaluate();
+        }
+        throw std::runtime_error("RelationalExpression::Evaluate() reached end of function");
+    }
+
 }

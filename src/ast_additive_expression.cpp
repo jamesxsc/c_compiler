@@ -66,4 +66,16 @@ namespace ast {
         return right_->GetGlobalValue();
     }
 
+    int AdditiveExpression::Evaluate() const {
+        switch (op_) {
+            case AdditiveOperator::MultiplicativePromote:
+                return right_->Evaluate();
+            case AdditiveOperator::Add:
+                return left_->Evaluate() + right_->Evaluate();
+            case AdditiveOperator::Subtract:
+                return left_->Evaluate() - right_->Evaluate();
+        }
+        throw std::runtime_error("AdditiveExpression::Evaluate() reached end of function");
+    }
+
 } // namespace ast

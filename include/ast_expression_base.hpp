@@ -14,10 +14,12 @@ namespace ast {
         virtual void Print(std::ostream &stream) const override = 0;
         [[nodiscard]] virtual bool ContainsFunctionCall() const = 0;
         virtual TypeSpecifier GetType(Context &context) const = 0;
+        [[nodiscard]] virtual int Evaluate() const = 0;
         // These are for global variables where we need a shortcut to initialize them
         // Calling these methods assume that the programmer is good
         virtual std::string GetGlobalIdentifier() const = 0;
-        virtual int GetGlobalValue() const = 0; // Used for integral types
+        virtual int GetGlobalValue() const = 0; // Used for integral types // TODO need a float version of this
+        // todo replace emission of constant expressions e.g. in switch statement, and use of getglobalvalue with evaluate
     };
 
     using ExpressionBasePtr = std::unique_ptr<const ExpressionBase>;

@@ -19,6 +19,7 @@
 #include "ast_declaration_list.hpp"
 #include "ast_declaration_specifiers.hpp"
 #include "ast_declarator.hpp"
+#include "ast_enumerator.hpp"
 #include "ast_equality_expression.hpp"
 #include "ast_exclusive_or_expression.hpp"
 #include "ast_function_declarator.hpp"

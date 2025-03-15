@@ -114,4 +114,16 @@ namespace ast {
         return right_->GetGlobalValue();
     }
 
+    int EqualityExpression::Evaluate() const {
+        switch (op_) {
+            case EqualityOperator::RelationalPromote:
+                return right_->Evaluate();
+            case EqualityOperator::Equality:
+                return left_->Evaluate() == right_->Evaluate();
+            case EqualityOperator::Inequality:
+                return left_->Evaluate() != right_->Evaluate();
+        }
+        throw std::runtime_error("EqualityExpression::Evaluate() reached end of function");
+    }
+
 }

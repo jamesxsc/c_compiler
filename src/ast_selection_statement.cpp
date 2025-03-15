@@ -57,13 +57,13 @@ namespace ast {
             condition_->EmitRISC(stream, context, condReg);
             std::string defaultLabel{endLabel};
             for (auto &pair: body_->GetSwitchLabelCasePairs()) {
-                if (pair.second == nullptr) {
+                if (!pair.second.has_value()) {
                     defaultLabel = pair.first;
                     continue;
                 }
                 std::string label = pair.first;
-                Register constexprReg = context.AllocateTemporary(); // Only use a temporary as there won't be fn calls in case
-                pair.second->EmitRISC(stream, context, constexprReg);
+                Register constexprReg = context.AllocateTemporary();
+                stream << "li " << constexprReg << "," << *pair.second << std::endl;
                 stream << "beq " << condReg << "," << constexprReg << "," << label << std::endl;
                 context.FreeTemporary(constexprReg);
             }

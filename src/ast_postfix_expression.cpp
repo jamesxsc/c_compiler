@@ -6,7 +6,7 @@
 
 namespace ast {
 
-    // todo postfix and unary support for floating point or any other relevant types
+    // todo postfix and unary support for floating point or any other relevant types (ptr/array)
     void PostfixExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         switch (op_) {
             case PostfixOperator::PrimaryPromote:
@@ -105,6 +105,13 @@ namespace ast {
     const Expression& PostfixExpression::GetArrayIndexExpression() const {
         assert(op_ == PostfixOperator::ArrayIndexPromote && "PostfixExpression::GetArrayIndexExpression called on non-array");
         return dynamic_cast<const ArrayIndexExpression *>(child_.get())->GetIndexExpression();
+    }
+
+    int PostfixExpression::Evaluate() const {
+        if (op_ != PostfixOperator::PrimaryPromote)
+            throw std::runtime_error("PostfixExpression::Evaluate() called on non-primary expression");
+
+        return child_->Evaluate();
     }
 
 } // namespace ast

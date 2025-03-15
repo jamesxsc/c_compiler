@@ -34,4 +34,8 @@ namespace ast {
         return assignment_->GetGlobalValue();
     }
 
+    int Expression::Evaluate() const {
+        return assignment_->Evaluate(); // Don't support comma operator in constexpr
+    }
+
 }

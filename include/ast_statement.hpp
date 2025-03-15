@@ -9,7 +9,8 @@
 namespace ast {
 
     // Serves as base abstract class and type for top-level 'statement'
-    using LabelCasePairVector = std::vector<std::pair<std::string, ConstantExpressionPtr>>;
+    using LabelCasePairVector = std::vector<std::pair<std::string, std::optional<int>>>;
+
     class Statement : public Node {
     public:
         virtual ~Statement() = default;
@@ -22,11 +23,10 @@ namespace ast {
 
         void SetInSwitchScope() const;
 
-        [[nodiscard]] const LabelCasePairVector & GetSwitchLabelCasePairs() const;
+        [[nodiscard]] const LabelCasePairVector &GetSwitchLabelCasePairs() const;
 
     protected:
         mutable bool inSwitchScope_ = false;
-        // Pair of label and ConstantExpressionPtr (shared for this purpose)
         // Note that this is populated by EmitRISC
         mutable LabelCasePairVector switchLabelCasePairs_;
     };

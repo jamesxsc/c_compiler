@@ -50,6 +50,7 @@
   - TypeSpecifier was changed prior to implementing structs and enums. Instead of an enumerated type, a class was used to support holding underlying types of pointers and aggregates. The class was implemented such that missing switch case warnings still worked.
 - GetType on expressions is designed to always return the type of the actual operation (return) being performed to easily know whether to use a floating-point register and switch on the type.
   - TODO we return int from logical, is that ok for storing result in a char? if thats allowed anyway
+- Constexpr evaluation. I didn't want to do it but enums would be super ugly without it.
 
 
 # Milestones (Draft)
@@ -87,6 +88,7 @@
 * Test for modulo behaviour with signed/unsigned left/right operands
 * Test for sizeof (char + char) should be 4 because of promotion
 * Test for ++ and = x + 1 on arrays (like int a[] not a[index]) and pointers (similar to pointer/arithmetic)
+* Check if we need nops anywhere/load delay slots
 * Ternary operator
 * Float/double unary and postfix operators AND pointers/array identifier
 * Char operation byte masking where applicable

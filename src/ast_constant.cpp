@@ -27,6 +27,10 @@ namespace ast {
         return TypeSpecifier::INT;
     }
 
+    int IntConstant::Evaluate() const {
+        return value_;
+    }
+
     void CharConstant::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         stream << "li " << destReg << "," << value_ << std::endl;
     }
@@ -89,6 +93,10 @@ namespace ast {
         return TypeSpecifier::CHAR;
     }
 
+    int CharConstant::Evaluate() const {
+        return value_;
+    }
+
     void FloatConstant::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         std::string memoryLabel = context.MakeLabel(".LC");
         Register tempIntReg = context.AllocateTemporary();
@@ -124,6 +132,10 @@ namespace ast {
         return TypeSpecifier::FLOAT;
     }
 
+    int FloatConstant::Evaluate() const {
+        throw std::runtime_error("Evaluation of float constants is unsupported");
+    }
+
 
     void StringConstant::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         // Place in stack and load address into destReg
@@ -156,4 +168,9 @@ namespace ast {
     TypeSpecifier StringConstant::GetType(Context &context) const {
         return {TypeSpecifier(TypeSpecifier::CHAR), static_cast<int>(value_.length())};
     }
+
+    int StringConstant::Evaluate() const {
+        throw std::runtime_error("Evaluation of string constants is unsupported");
+    }
+
 } // namespace ast

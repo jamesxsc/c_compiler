@@ -187,7 +187,6 @@ namespace ast {
     }
 
     int ArrayIndexExpression::GetGlobalValue() const {
-        // probably do need to implement this and the above
         throw std::runtime_error("ArrayIndexExpression::GetGlobalValue() called on an array index expression");
     }
 
@@ -197,6 +196,10 @@ namespace ast {
 
     const Expression &ArrayIndexExpression::GetIndexExpression() const {
         return *index_;
+    }
+
+    int ArrayIndexExpression::Evaluate() const {
+        throw std::runtime_error("ArrayIndexExpression::Evaluate() called on an array index expression");
     }
 
 }

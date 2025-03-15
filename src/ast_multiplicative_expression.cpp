@@ -77,4 +77,25 @@ namespace ast {
         return right_->GetGlobalIdentifier();
     }
 
+    int MultiplicativeExpression::Evaluate() const {
+        if (op_ == MultiplicativeOperator::UnaryPromote) {
+            return right_->Evaluate();
+        } else {
+            int left = left_->Evaluate();
+            int right = right_->Evaluate();
+            switch (op_) {
+                case MultiplicativeOperator::Multiply:
+                    return left * right;
+                case MultiplicativeOperator::Divide:
+                    return left / right;
+                case MultiplicativeOperator::Modulo:
+                    return left % right;
+                case MultiplicativeOperator::UnaryPromote:
+                    break;
+            }
+        }
+        std::cerr << "Invalid multiplicative operator" << std::endl;
+        exit(1);
+    }
+
 }

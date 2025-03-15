@@ -40,4 +40,12 @@ namespace ast {
         return right_->GetGlobalValue();
     }
 
+    int AndExpression::Evaluate() const {
+        if (left_ == nullptr) {
+            return right_->Evaluate();
+        }
+
+        return left_->Evaluate() & right_->Evaluate();
+    }
+
 }

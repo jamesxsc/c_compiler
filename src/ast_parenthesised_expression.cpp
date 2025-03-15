@@ -27,4 +27,8 @@ namespace ast {
     std::string ParenthesisedExpression::GetGlobalIdentifier() const {
         return expression_->GetGlobalIdentifier();
     }
+
+    int ParenthesisedExpression::Evaluate() const {
+        return expression_->Evaluate();
+    }
 }

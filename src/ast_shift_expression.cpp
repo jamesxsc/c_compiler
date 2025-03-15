@@ -65,4 +65,16 @@ namespace ast {
         return right_->GetGlobalValue();
     }
 
+    int ShiftExpression::Evaluate() const {
+        switch (op_) {
+            case ShiftOperator::AdditivePromote:
+                return right_->Evaluate();
+            case ShiftOperator::Left: // May not be watertight if theres something with stupid types
+                return left_->Evaluate() << right_->Evaluate();
+            case ShiftOperator::Right:
+                return left_->Evaluate() >> right_->Evaluate();
+        }
+        throw std::runtime_error("ShiftExpression::Evaluate() reached end of function");
+    }
+
 }

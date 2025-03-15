@@ -14,6 +14,8 @@ namespace ast {
 
         void Print(std::ostream &stream) const override;
 
+        [[nodiscard]] int Evaluate() const override;
+
         [[nodiscard]] bool ContainsFunctionCall() const override;
 
         TypeSpecifier GetType(Context &context) const override;
@@ -25,6 +27,6 @@ namespace ast {
     private:
         ConditionalExpressionPtr expression_;
     };
-    using ConstantExpressionPtr = std::shared_ptr<const ConstantExpression>;
+    using ConstantExpressionPtr = std::unique_ptr<const ConstantExpression>;
 
 }

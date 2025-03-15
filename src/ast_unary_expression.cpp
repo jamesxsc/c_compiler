@@ -296,6 +296,34 @@ namespace ast {
         return op_ == UnaryOperator::Dereference;
     }
 
+    int UnaryExpression::Evaluate() const {
+        // Probably overkill
+        Context dummy;
+        switch (op_) {
+            case UnaryOperator::PostfixPromote:
+                return postfixChild_->Evaluate();
+            case UnaryOperator::Plus:
+                return multiplicativeChild_->Evaluate();
+            case UnaryOperator::Minus:
+                return -multiplicativeChild_->Evaluate();
+            case UnaryOperator::BitwiseNot:
+                return ~multiplicativeChild_->Evaluate();
+            case UnaryOperator::LogicalNot:
+                return !multiplicativeChild_->Evaluate();
+            // Accept errors if context is rqd
+            case UnaryOperator::SizeofUnary:
+                return unaryChild_->GetType(dummy).GetTypeSize();
+            case UnaryOperator::SizeofType:
+                return typeNameChild_->GetType(dummy).GetTypeSize();
+            case UnaryOperator::AddressOf:
+            case UnaryOperator::Dereference:
+            case UnaryOperator::PrefixDecrement:
+            case UnaryOperator::PrefixIncrement:
+                break;
+        }
+        throw std::runtime_error("UnaryExpression::Evaluate() called on a non-constant");
+    }
+
     UnaryExpression::~UnaryExpression() = default;
 
 } // namespace ast

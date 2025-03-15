@@ -25,4 +25,8 @@ namespace ast {
     std::string ConstantExpression::GetGlobalIdentifier() const {
         return expression_->GetGlobalIdentifier();
     }
+
+    int ConstantExpression::Evaluate() const {
+        return expression_->Evaluate();
+    }
 }

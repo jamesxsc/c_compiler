@@ -99,4 +99,8 @@ namespace ast {
         throw std::runtime_error("Identifier::GetGlobalValue() called on a identifier");
     }
 
+    int Identifier::Evaluate() const {
+        throw std::runtime_error("Identifier::Evaluate() called on a identifier");
+    }
+
 }

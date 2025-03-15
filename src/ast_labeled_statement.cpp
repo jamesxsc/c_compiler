@@ -5,9 +5,9 @@ namespace ast {
     void LabeledStatement::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         if (inSwitchScope_) {
             std::string label = context.MakeLabel(".CASE");
-            std::pair<std::string, ConstantExpressionPtr> pair = std::pair(label, case_);
-            switchLabelCasePairs_.push_back(pair);
-
+            std::optional<int> value = case_ ? std::optional<int>{case_->Evaluate()} : std::nullopt;
+            std::pair<std::string, std::optional<int>> pair = std::pair(label, value);
+            switchLabelCasePairs_.emplace_back(pair);
             stream << label << ":" << std::endl;
         } // Otherwise ignore a labelled statement
         statement_->EmitRISC(stream, context, destReg);
