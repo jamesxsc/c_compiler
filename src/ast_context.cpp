@@ -313,4 +313,11 @@ namespace ast {
         return structs_.find(identifier) != structs_.end();
     }
 
-} // namespace ast
+TypeSpecifier Context::UnifyTypes(const TypeSpecifier &a, const TypeSpecifier &b) const {
+    if (a == b) return a;
+    if (a == TypeSpecifier::DOUBLE || b == TypeSpecifier::DOUBLE) return TypeSpecifier::DOUBLE;
+    if (a == TypeSpecifier::FLOAT || b == TypeSpecifier::FLOAT) return TypeSpecifier::FLOAT;
+    return TypeSpecifier::INT;
+}
+
+}

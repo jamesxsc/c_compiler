@@ -1,17 +1,27 @@
 #include "ast_conditional_expression.hpp"
 #include "ast_expression.hpp"
 #include "ast_type_specifier.hpp"
+#include "ast_context.hpp"
 
 namespace ast {
 
-    void ConditionalExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-        // TODO implement
-        // Can we reuse some logic from if/else blocks?
-        // for now (temp) just emit the middle
-        if (ternary_)
-            std::cerr << ":ConditionalExpression::EmitRISC Temporary logic" << std::endl;
+void ConditionalExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
+    if (!ternary_) {
         left_->EmitRISC(stream, context, destReg);
+        return;
     }
+    Register condReg = context.AllocateTemporary();
+    left_->EmitRISC(stream, context, condReg);
+    std::string falseLabel = context.MakeLabel("ternary_false");
+    std::string joinLabel = context.MakeLabel("ternary_join");
+    stream << "beqz " << condReg << "," << falseLabel << std::endl;
+    middle_->EmitRISC(stream, context, destReg);
+    stream << "j " << joinLabel << std::endl;
+    stream << falseLabel << ":" << std::endl;
+    right_->EmitRISC(stream, context, destReg);
+    stream << joinLabel << ":" << std::endl;
+    context.FreeTemporary(condReg);
+}
 
     void ConditionalExpression::Print(std::ostream &stream) const {
         if (ternary_) {
@@ -31,12 +41,14 @@ namespace ast {
     ConditionalExpression::ConditionalExpression(LogicalOrExpressionPtr left) : ternary_(false), left_(std::move(left)), middle_(nullptr), right_(
             nullptr) {}
 
-
-
-    TypeSpecifier ConditionalExpression::GetType(Context& context) const {
-        // todo once ternary is implemented, complicated
+TypeSpecifier ConditionalExpression::GetType(Context &context) const {
+    if (!ternary_) {
         return left_->GetType(context);
     }
+    TypeSpecifier trueType = middle_->GetType(context);
+    TypeSpecifier falseType = right_->GetType(context);
+    return context.UnifyTypes(trueType, falseType);
+}
 
     bool ConditionalExpression::ContainsFunctionCall() const {
         if (ternary_) {
