@@ -19,6 +19,7 @@ namespace ast::Utils {
                 operand.EmitRISC(stream, context, tempReg2);
                 stream << "fmv.s.x " << tempReg1 << ",zero" << std::endl;
                 stream << "feq.s " << result << "," << tempReg2 << "," << tempReg1 << std::endl;
+                stream << "seqz " << result << "," << result << std::endl;
                 context.FreeTemporary(tempReg1);
                 context.FreeTemporary(tempReg2);
                 break;
@@ -29,6 +30,7 @@ namespace ast::Utils {
                 operand.EmitRISC(stream, context, tempReg2);
                 stream << "fcvt.d.w " << tempReg1 << ",zero" << std::endl;
                 stream << "feq.d " << result << "," << tempReg2 << "," << tempReg1 << std::endl;
+                stream << "seqz " << result << "," << result << std::endl;
                 break;
             }
             case TypeSpecifier::Type::STRUCT:

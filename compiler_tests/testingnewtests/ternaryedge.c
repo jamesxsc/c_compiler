@@ -1,6 +1,8 @@
 int f() {
     int res = 0;
     int a = 0, b = 5, c = -5;
+    float f1 = 0.0f;
+    int *p = &a;
 
 
     res += (a ? b : c);
@@ -11,10 +13,8 @@ int f() {
 
     res += ((b > c) ? ((a < 0) ? 100 : 200) : 300);
 
-    float f1 = 0.0f;
     res += (f1 ? 10 : 20);
 
-    int *p = &a;
     res += (p ? 1 : 2);
 
     p = 0;

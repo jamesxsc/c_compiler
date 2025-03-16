@@ -91,7 +91,7 @@
 * Test for ++ and = x + 1 on arrays (like int a[] not a[index]) and pointers (similar to pointer/arithmetic)
 * Test for chained assignment
 * Check if we need nops anywhere/load delay slots
-* Ternary operator
+* ~~Ternary operator - Eliott~~ Mar 16
 * Test with multiply where right hand is dereferenced pointer e.g. int *p = &x; int y = 2 * *p;
 * Float/double unary and postfix operators AND for pointers/array identifier e.g. float++ --float float[0]++ --float[0], globals and local ideally
 * Char operation byte masking where applicable

@@ -1,27 +1,29 @@
 #include "ast_conditional_expression.hpp"
-#include "ast_expression.hpp"
+
 #include "ast_type_specifier.hpp"
 #include "ast_context.hpp"
+#include "risc_utils.hpp"
 
 namespace ast {
 
-void ConditionalExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-    if (!ternary_) {
-        left_->EmitRISC(stream, context, destReg);
-        return;
+    void ConditionalExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
+        if (!ternary_) {
+            left_->EmitRISC(stream, context, destReg);
+            return;
+        }
+
+        Register condReg = context.AllocateTemporary();
+        Utils::EmitComparison(stream, context, condReg, *left_);
+        std::string falseLabel = context.MakeLabel("ternary_false");
+        std::string joinLabel = context.MakeLabel("ternary_join");
+        stream << "beqz " << condReg << "," << falseLabel << std::endl;
+        context.FreeTemporary(condReg);
+        middle_->EmitRISC(stream, context, destReg);
+        stream << "j " << joinLabel << std::endl;
+        stream << falseLabel << ":" << std::endl;
+        right_->EmitRISC(stream, context, destReg);
+        stream << joinLabel << ":" << std::endl;
     }
-    Register condReg = context.AllocateTemporary();
-    left_->EmitRISC(stream, context, condReg);
-    std::string falseLabel = context.MakeLabel("ternary_false");
-    std::string joinLabel = context.MakeLabel("ternary_join");
-    stream << "beqz " << condReg << "," << falseLabel << std::endl;
-    middle_->EmitRISC(stream, context, destReg);
-    stream << "j " << joinLabel << std::endl;
-    stream << falseLabel << ":" << std::endl;
-    right_->EmitRISC(stream, context, destReg);
-    stream << joinLabel << ":" << std::endl;
-    context.FreeTemporary(condReg);
-}
 
     void ConditionalExpression::Print(std::ostream &stream) const {
         if (ternary_) {
@@ -36,19 +38,19 @@ void ConditionalExpression::EmitRISC(std::ostream &stream, Context &context, Reg
     }
 
     ConditionalExpression::ConditionalExpression(LogicalOrExpressionPtr left, ExpressionPtr middle,
-                                                 ConditionalExpressionPtr right) : ternary_(true), left_(std::move(left)), middle_(std::move(middle)), right_(std::move(right)) {}
+                                                 ConditionalExpressionPtr right)
+            : ternary_(true), left_(std::move(left)), middle_(std::move(middle)), right_(std::move(right)) {}
 
-    ConditionalExpression::ConditionalExpression(LogicalOrExpressionPtr left) : ternary_(false), left_(std::move(left)), middle_(nullptr), right_(
-            nullptr) {}
+    ConditionalExpression::ConditionalExpression(LogicalOrExpressionPtr left)
+            : ternary_(false), left_(std::move(left)), middle_(nullptr), right_(nullptr) {}
 
-TypeSpecifier ConditionalExpression::GetType(Context &context) const {
-    if (!ternary_) {
-        return left_->GetType(context);
+    TypeSpecifier ConditionalExpression::GetType(Context &context) const {
+        if (!ternary_) {
+            return left_->GetType(context);
+        }
+        // These should always be the same - if not it shouldn't be an issue
+        return middle_->GetType(context);
     }
-    TypeSpecifier trueType = middle_->GetType(context);
-    TypeSpecifier falseType = right_->GetType(context);
-    return context.UnifyTypes(trueType, falseType);
-}
 
     bool ConditionalExpression::ContainsFunctionCall() const {
         if (ternary_) {
