@@ -76,7 +76,7 @@
   * ~~I want one with just float, double as well to check alignment, both calling from and being called by our compiled code~~
 * ~~Tests for global/local arrays of different types~~
 * ~~Test for accessing a pointer when the original variable is out of scope (if this is possible without malloc and we think this will be tested; or just when the underlying variable has been shadowed)~~
-* Test returning an array from a function as array and pointer (first not done yet)
+* ~~Test returning an array from a function as pointer~~
 * ~~Test void with and without return~~
 * ~~Test for relational operators on float and double~~
 * Test for logical operators on float and double
@@ -96,6 +96,7 @@
 * Float/double unary and postfix operators AND for pointers/array identifier e.g. float++ --float float[0]++ --float[0], globals and local ideally
 * Char operation byte masking where applicable
 * Enum tests: arithmetic e.g. adding multiplying enums with each other and ints; scoped enums; enum in switch case; initialize global int from enum identifier
+* Struct tests: various including nested structs and arrays of structs (maybe will get time for implementing this)
 * ~~Floats Eliott & James~~ Mar 10
 * ~~Char type - James~~ Mar 11
 * ~~Global variables - James~~ Mar 9
@@ -103,7 +104,7 @@
 * ~~Char constant (override same methods as int but accept char or int in constructor; needs work in lexer also) - James~~ Mar 13
 * Float int double char (weird shifting and masking int | char return char eg) conversion pain - but implicit casting isn't tested apparently what about int + float
 * Function calls with many arguments and test
-* Register spilling
+* Register spilling and test
 * ~~Void type/functions~~ Mar 14
 * ~~Assignment operators impl and testing - James~~ Mar 14
 * Structs

@@ -19,7 +19,6 @@ namespace ast {
                 switch (type) {
                     case TypeSpecifier::FLOAT:
                     case TypeSpecifier::DOUBLE:
-                        // TODO: ABI: 8-byte alignment?
                         stream << (type == TypeSpecifier::FLOAT ? "fsw " : "fsd ")
                                << "fa" << fidx << "," << var.offset << "(s0)" << std::endl;
                         ++fidx;

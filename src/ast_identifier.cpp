@@ -34,9 +34,13 @@ namespace ast {
                     stream << "lui " << destReg << ",%hi(" << identifier_ << ")" << std::endl;
                     stream << "lbu " << destReg << ",%lo(" << identifier_ << ")(" << destReg << ")" << std::endl;
                     break;
+                case TypeSpecifier::ARRAY:
+                    // Load address
+                    stream << "lui " << destReg << ",%hi(" << identifier_ << ")" << std::endl;
+                    stream << "addi " << destReg << "," << destReg << ",%lo(" << identifier_ << ")" << std::endl;
+                    break;
                 case TypeSpecifier::VOID:
                 case TypeSpecifier::STRUCT:
-                case TypeSpecifier::ARRAY: // Unsupported since it is handled in ArrayIndexExpression
                     throw std::runtime_error(
                             "Identifier::EmitRISC() called on an unsupported type");
                     // todo handle these
@@ -62,10 +66,13 @@ namespace ast {
                 case TypeSpecifier::CHAR:
                     stream << "lbu " << destReg << "," << offset << "(s0)" << std::endl;
                     break;
+                case TypeSpecifier::ARRAY:
+                    // Load address, but probably never called in local scope
+                    stream << "addi " << destReg << ",s0," << offset << std::endl;
+                    break;
                 case TypeSpecifier::VOID:
                 case TypeSpecifier::ENUM:
                 case TypeSpecifier::STRUCT:
-                case TypeSpecifier::ARRAY: // Unsupported since it is handled in ArrayIndexExpression
                     throw std::runtime_error(
                             "Identifier::EmitRISC() called on an unsupported type");
                     // todo handle these

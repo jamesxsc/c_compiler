@@ -44,6 +44,8 @@ namespace ast {
                         throw std::runtime_error(
                                 "ArrayIndexExpression::EmitRISC() called on an unsupported array type");
                 }
+                if (useFloat)
+                    context.FreeTemporary(addressTemp);
             } else {
                 const Variable &variable = context.CurrentFrame().bindings.Get(identifier);
                 // Check it is an array
@@ -84,6 +86,8 @@ namespace ast {
                                 "ArrayIndexExpression::EmitRISC() called on an unsupported array type");
                         // todo handle these
                 }
+                if (useFloat)
+                    context.FreeTemporary(addressTemp);
             }
         } else { // Ptr syntax
             if (context.IsGlobal(identifier)) {
@@ -124,6 +128,8 @@ namespace ast {
                 }
                 stream << "lw " << destReg << ",0" << "(" << addressTemp << ")" << std::endl; // here ^
                 context.FreeTemporary(indexReg);
+                if (useFloat)
+                    context.FreeTemporary(addressTemp);
             } else {
                 Variable variable = context.CurrentFrame().bindings.Get(identifier);
                 assert(variable.type == TypeSpecifier::POINTER &&
@@ -159,6 +165,8 @@ namespace ast {
                         // todo handle these
                 }
                 context.FreeTemporary(indexReg);
+                if (useFloat)
+                    context.FreeTemporary(addressTemp);
             }
         }
     }

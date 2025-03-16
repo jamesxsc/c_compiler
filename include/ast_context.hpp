@@ -28,10 +28,11 @@ namespace ast {
     };
 
     // I prefer this, but it may be possible to ditch the deque and just store a counter
-    // TODO just double check that we are storing the args in the correct end of the frame
     class Bindings {
     public:
         // todo we need to get array locations from *(p+1) sorta ops... or handle this arithmetically somehow in assignment
+        // I think the easiest way will be pushing down evaluation of ptrs to identifier
+        // Then simply use address rather than identifier (although we need a way to reverse look up address to get type etc)
         Bindings(int size, int start) : size_(size), start_(start) {};
 
         [[nodiscard]] const Variable &Get(const std::string &identifier) const;

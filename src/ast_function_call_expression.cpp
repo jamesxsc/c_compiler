@@ -4,12 +4,18 @@ namespace ast {
 
     void FunctionCallExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         if (arguments_ != nullptr) {
-            // todo cx what we need to use from function context here and fix mv below
             arguments_->EmitRISC(stream, context, destReg);
         }
         stream << "call " << function_->GetIdentifier() << std::endl;
-        if (destReg != Register::a0)
-            stream << "mv " << destReg << "," << Register::a0 << std::endl; // Assumes single return value in a0
+        if (GetType(context) == TypeSpecifier::VOID) return;
+        if (GetType(context) == TypeSpecifier::FLOAT || GetType(context) == TypeSpecifier::DOUBLE) {
+            if (destReg != Register::fa0 && destReg != Register::zero)
+                stream << (GetType(context) == TypeSpecifier::DOUBLE ? "fmv.d " : "fmv.s ") << destReg << "," << Register::fa0
+                       << std::endl; // Assumes single return value in fa0
+        } else {
+            if (destReg != Register::a0 && destReg != Register::zero)
+                stream << "mv " << destReg << "," << Register::a0 << std::endl; // Assumes single return value in a0
+        }
     }
 
     void FunctionCallExpression::Print(std::ostream &stream) const {

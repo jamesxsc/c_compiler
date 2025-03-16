@@ -106,8 +106,8 @@ namespace ast {
         context.FreeTemporary(tempIntReg);
 
         // Defer memory to the end
-        context.DeferredRISC() << ".align " << (doublePrecision_ ? "3" : "2") << std::endl;
         context.DeferredRISC() << ".section .rodata" << std::endl;
+        context.DeferredRISC() << ".align " << (doublePrecision_ ? "3" : "2") << std::endl;
         context.DeferredRISC() << memoryLabel << ":" << std::endl;
         context.DeferredRISC() << (doublePrecision_ ? ".double " : ".float ")
                                << value_ << std::endl; // todo should we convert to decimal?

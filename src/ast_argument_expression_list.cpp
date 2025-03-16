@@ -5,12 +5,20 @@ namespace ast {
     void ArgumentExpressionList::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         if (arguments_.size() > 8) {
             std::cerr << "More than 8 arguments in a function call is unsupported" << std::endl;
+            // todo support this and equiv in parameter list
             exit(1);
         } else {
-            Register firstReg = Register::a0;
+            Register firstIntegerReg = Register::a0;
+            Register firstFloatReg = Register::fa0;
+            // todo unfold structs
             for (const auto &argument: arguments_) {
-                argument->EmitRISC(stream, context, firstReg);
-                firstReg = static_cast<Register>(static_cast<int>(firstReg) + 1);
+                if (argument->GetType(context) == TypeSpecifier::FLOAT || argument->GetType(context) == TypeSpecifier::DOUBLE) {
+                    argument->EmitRISC(stream, context, firstFloatReg);
+                    firstFloatReg = static_cast<Register>(static_cast<int>(firstFloatReg) + 1);
+                } else {
+                    argument->EmitRISC(stream, context, firstIntegerReg);
+                    firstIntegerReg = static_cast<Register>(static_cast<int>(firstIntegerReg) + 1);
+                }
             }
         }
     }
