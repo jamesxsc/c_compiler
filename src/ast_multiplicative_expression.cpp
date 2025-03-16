@@ -68,21 +68,16 @@ namespace ast {
         return right_->GetIdentifier();
     }
 
-    // These are constants which will always simply be a UnaryPromote
-    int MultiplicativeExpression::GetGlobalValue() const {
-        return right_->GetGlobalValue();
-    }
-
     std::string MultiplicativeExpression::GetGlobalIdentifier() const {
         return right_->GetGlobalIdentifier();
     }
 
-    int MultiplicativeExpression::Evaluate() const {
+    int MultiplicativeExpression::Evaluate(Context &context) const {
         if (op_ == MultiplicativeOperator::UnaryPromote) {
-            return right_->Evaluate();
+            return right_->Evaluate(context);
         } else {
-            int left = left_->Evaluate();
-            int right = right_->Evaluate();
+            int left = left_->Evaluate(context);
+            int right = right_->Evaluate(context);
             switch (op_) {
                 case MultiplicativeOperator::Multiply:
                     return left * right;
@@ -90,6 +85,26 @@ namespace ast {
                     return left / right;
                 case MultiplicativeOperator::Modulo:
                     return left % right;
+                case MultiplicativeOperator::UnaryPromote:
+                    break;
+            }
+        }
+        std::cerr << "Invalid multiplicative operator" << std::endl;
+        exit(1);
+    }
+
+    double MultiplicativeExpression::EvaluateFloat(ast::Context &context) const {
+        if (op_ == MultiplicativeOperator::UnaryPromote) {
+            return right_->EvaluateFloat(context);
+        } else {
+            double left = left_->EvaluateFloat(context);
+            double right = right_->EvaluateFloat(context);
+            switch (op_) {
+                case MultiplicativeOperator::Multiply:
+                    return left * right;
+                case MultiplicativeOperator::Divide:
+                    return left / right;
+                case MultiplicativeOperator::Modulo:
                 case MultiplicativeOperator::UnaryPromote:
                     break;
             }

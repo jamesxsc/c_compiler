@@ -139,24 +139,36 @@ namespace ast {
         return right_->GetGlobalIdentifier();
     }
 
-    int RelationalExpression::GetGlobalValue() const {
-        return right_->GetGlobalValue();
-    }
-
-    int RelationalExpression::Evaluate() const {
+    int RelationalExpression::Evaluate(Context &context) const {
         switch (op_) {
             case RelationalOperator::ShiftPromote:
-                return right_->Evaluate();
+                return right_->Evaluate(context);
             case RelationalOperator::LessThan:
-                return left_->Evaluate() < right_->Evaluate();
+                return left_->Evaluate(context) < right_->Evaluate(context);
             case RelationalOperator::GreaterThan:
-                return left_->Evaluate() > right_->Evaluate();
+                return left_->Evaluate(context) > right_->Evaluate(context);
             case RelationalOperator::LessThanOrEqual:
-                return left_->Evaluate() <= right_->Evaluate();
+                return left_->Evaluate(context) <= right_->Evaluate(context);
             case RelationalOperator::GreaterThanOrEqual:
-                return left_->Evaluate() >= right_->Evaluate();
+                return left_->Evaluate(context) >= right_->Evaluate(context);
         }
         throw std::runtime_error("RelationalExpression::Evaluate() reached end of function");
+    }
+
+    double RelationalExpression::EvaluateFloat(Context &context) const {
+        switch (op_) {
+            case RelationalOperator::ShiftPromote:
+                return right_->EvaluateFloat(context);
+            case RelationalOperator::LessThan:
+                return left_->EvaluateFloat(context) < right_->EvaluateFloat(context);
+            case RelationalOperator::GreaterThan:
+                return left_->EvaluateFloat(context) > right_->EvaluateFloat(context);
+            case RelationalOperator::LessThanOrEqual:
+                return left_->EvaluateFloat(context) <= right_->EvaluateFloat(context);
+            case RelationalOperator::GreaterThanOrEqual:
+                return left_->EvaluateFloat(context) >= right_->EvaluateFloat(context);
+        }
+        throw std::runtime_error("RelationalExpression::EvaluateFloat() reached end of function");
     }
 
 }

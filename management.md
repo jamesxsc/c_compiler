@@ -74,9 +74,9 @@
 * ~~Tests for global floats doubles and pointers if there aren't already any~~
 * ~~Test for calling a function from our test with several arguments of different sizes e.g. char, float, int and calling external~~
   * I want one with just float, double as well to check alignment, both calling from and being called by our compiled code
-*~~ Tests for global/local arrays of different types~~
+* ~~Tests for global/local arrays of different types~~
 * ~~Test for accessing a pointer when the original variable is out of scope (if this is possible without malloc and we think this will be tested; or just when the underlying variable has been shadowed)~~
-* Test returning an array from a function
+* Test returning an array from a function as array and pointer (first not done yet)
 * ~~Test void with and without return~~
 * Test for relational and logical operators on float and double
 * Test to assign to global ptr (not dereferenced)
@@ -86,27 +86,28 @@
 * Test using "unsigned int" type
 * Tests for integral promotion
 * Test for modulo behaviour with signed/unsigned left/right operands
-* Test for sizeof (char + char) should be 4 because of promotion
+* ~~Test for sizeof (char + char) should be 4 because of promotion~~
 * Test for ++ and = x + 1 on arrays (like int a[] not a[index]) and pointers (similar to pointer/arithmetic)
+* Test for chained assignment
 * Check if we need nops anywhere/load delay slots
 * Ternary operator
 * Float/double unary and postfix operators AND pointers/array identifier
 * Char operation byte masking where applicable
+* Enum tests: arithmetic e.g. adding multiplying enums with each other and ints; scoped enums; enum in switch case; initialize global int from enum identifier
 * ~~Floats Eliott & James~~ Mar 10
 * ~~Char type - James~~ Mar 11
 * ~~Global variables - James~~ Mar 9
 * ~~Arrays local or global - James~~ Mar 11
 * ~~Char constant (override same methods as int but accept char or int in constructor; needs work in lexer also) - James~~ Mar 13
 * Float int double char (weird shifting and masking int | char return char eg) conversion pain - but implicit casting isn't tested apparently what about int + float
-* Cerr outputs for all unsupported features
 * Function calls with many arguments and test
 * Register spilling
 * ~~Void type/functions~~ Mar 14
 * ~~Assignment operators impl and testing - James~~ Mar 14
 * Structs
-* Enum
+* ~~Enum~~ Mar 16
 * ~~Sizeof~~
-* Pointer arithmetic 
+* ~~Pointer arithmetic~~ Mar 15 
 
 
 Needs more who did what and collaboration stuff and timelines

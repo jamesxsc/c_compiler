@@ -11,7 +11,7 @@ namespace ast {
         if (isDirect_)
             return; // Nothing to do! This is part of a function or array
 
-        stream << " " << identifier_;
+        stream << identifier_;
     }
 
     const std::string &Declarator::GetIdentifier() const {

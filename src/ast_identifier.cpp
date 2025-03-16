@@ -22,6 +22,7 @@ namespace ast {
                     break;
                 }
                 case TypeSpecifier::POINTER:
+                case TypeSpecifier::ENUM:
                 case TypeSpecifier::INT:
                 case TypeSpecifier::UNSIGNED:
                     assert(!IsFloatRegister(destReg) &&
@@ -34,7 +35,6 @@ namespace ast {
                     stream << "lbu " << destReg << ",%lo(" << identifier_ << ")(" << destReg << ")" << std::endl;
                     break;
                 case TypeSpecifier::VOID:
-                case TypeSpecifier::ENUM:
                 case TypeSpecifier::STRUCT:
                 case TypeSpecifier::ARRAY: // Unsupported since it is handled in ArrayIndexExpression
                     throw std::runtime_error(
@@ -108,12 +108,17 @@ namespace ast {
         return identifier_;
     }
 
-    int Identifier::GetGlobalValue() const {
-        throw std::runtime_error("Identifier::GetGlobalValue() called on a identifier");
+    int Identifier::Evaluate(Context &context) const {
+        // Enums can be used here
+        if (context.IsEnum(identifier_)) {
+            return context.LookupEnum(identifier_);
+        }
+
+        throw std::runtime_error("Identifier::Evaluate() called on a non-enum identifier");
     }
 
-    int Identifier::Evaluate() const {
-        throw std::runtime_error("Identifier::Evaluate() called on a identifier");
+    double Identifier::EvaluateFloat(ast::Context &context) const {
+        throw std::runtime_error("Identifier::EvaluateFloat() called on an identifier");
     }
 
 }

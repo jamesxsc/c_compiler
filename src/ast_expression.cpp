@@ -30,12 +30,12 @@ namespace ast {
         return assignment_->GetGlobalIdentifier();
     }
 
-    int Expression::GetGlobalValue() const {
-        return assignment_->GetGlobalValue();
+    int Expression::Evaluate(Context &context) const {
+        return assignment_->Evaluate(context); // Don't support comma operator in constexpr
     }
 
-    int Expression::Evaluate() const {
-        return assignment_->Evaluate(); // Don't support comma operator in constexpr
+    double Expression::EvaluateFloat(ast::Context &context) const {
+        return assignment_->EvaluateFloat(context);
     }
 
 }

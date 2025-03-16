@@ -21,7 +21,11 @@ namespace ast {
 
         void Print(std::ostream &stream) const override;
 
+<<<<<<< HEAD
         int Evaluate() const override;
+=======
+        [[nodiscard]] int Evaluate(Context &context) const override;
+>>>>>>> aaabd7d9f74208ee579772452eb7f2b51bfa0e1d
 
         bool ContainsFunctionCall() const override;
 
@@ -29,15 +33,21 @@ namespace ast {
 
         std::string GetGlobalIdentifier() const override;
 
+<<<<<<< HEAD
         int GetGlobalValue() const override;
 
         std::string GetIdentifier() const;
+=======
+        [[nodiscard]] std::string GetIdentifier() const;
+>>>>>>> aaabd7d9f74208ee579772452eb7f2b51bfa0e1d
 
         const Expression &GetIndexExpression() const;
 
     private:
         ExpressionPtr index_;
         PostfixExpressionPtr array_;
+
+        double EvaluateFloat(Context &context) const;
     };
 
     using ArrayIndexExpressionPtr = std::unique_ptr<const ArrayIndexExpression>;

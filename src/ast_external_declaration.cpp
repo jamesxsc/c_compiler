@@ -20,7 +20,8 @@ namespace ast {
                 if (initDeclarator->IsPointer())
                     type = TypeSpecifier(TypeSpecifier::POINTER, type);
                 stream << ".globl " << identifier << std::endl;
-                stream << ".align 2" << std::endl; // TODO check directives and what is required for our project
+                stream << (type == TypeSpecifier::DOUBLE ? ".align 3" : ".align 2") << std::endl;
+                // TODO check directives and what is required for our project
                 stream << ".data" << std::endl; // .sdata may be more appropriate (GCC)
                 if (initDeclarator->HasInitializer()) {
                     if (initDeclarator->IsArray()) {
@@ -33,22 +34,22 @@ namespace ast {
                             switch (type) { // Type is element type in array case here
                                 case TypeSpecifier::INT:
                                 case TypeSpecifier::UNSIGNED:
-                                    stream << ".word " << initializer->GetGlobalValue() << std::endl;
+                                case TypeSpecifier::ENUM:
+                                    stream << ".word " << initializer->Evaluate<int>(context) << std::endl;
                                     break;
                                 case TypeSpecifier::CHAR:
-                                    stream << ".byte " << initializer->GetGlobalValue() << std::endl;
+                                    stream << ".byte " << initializer->Evaluate<int>(context) << std::endl;
                                     break;
                                 case TypeSpecifier::POINTER:
                                     stream << ".word " << initializer->GetGlobalIdentifier() << std::endl;
                                     break;
                                 case TypeSpecifier::FLOAT:
-                                    stream << ".float " << initializer->GetGlobalValue() << std::endl;
+                                    stream << ".float " << initializer->Evaluate<double>(context) << std::endl;
                                     break;
                                 case TypeSpecifier::DOUBLE:
-                                    stream << ".double " << initializer->GetGlobalValue() << std::endl;
+                                    stream << ".double " << initializer->Evaluate<double>(context) << std::endl;
                                     break;
                                 case TypeSpecifier::VOID:
-                                case TypeSpecifier::ENUM:
                                 case TypeSpecifier::STRUCT:
                                 case TypeSpecifier::ARRAY:
                                     throw std::runtime_error(
@@ -64,20 +65,20 @@ namespace ast {
                             case TypeSpecifier::INT:
                             case TypeSpecifier::UNSIGNED:
                                 // Can only be a constant (can't be assigned to another global for example)
-                                stream << ".word " << initDeclarator->GetGlobalInitializerValue() << std::endl;
+                                stream << ".word " << initDeclarator->EvaluateInitializer<int>(context) << std::endl;
                                 break;
                             case TypeSpecifier::CHAR:
-                                stream << ".byte " << initDeclarator->GetGlobalInitializerValue() << std::endl;
+                                stream << ".byte " << initDeclarator->EvaluateInitializer<int>(context) << std::endl;
                                 break;
                             case TypeSpecifier::POINTER:
                                 // Simply .word (RHS identifier)
                                 stream << ".word " << initDeclarator->GetGlobalInitializerIdentifier() << std::endl;
                                 break;
                             case TypeSpecifier::FLOAT:
-                                stream << ".float " << initDeclarator->GetGlobalInitializerValue() << std::endl;
+                                stream << ".float " << initDeclarator->EvaluateInitializer<double>(context) << std::endl;
                                 break;
                             case TypeSpecifier::DOUBLE:
-                                stream << ".double " << initDeclarator->GetGlobalInitializerValue() << std::endl;
+                                stream << ".double " << initDeclarator->EvaluateInitializer<double>(context) << std::endl;
                                 break;
                             case TypeSpecifier::VOID:
                             case TypeSpecifier::ENUM:

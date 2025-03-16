@@ -20,7 +20,8 @@ namespace ast {
 
         [[nodiscard]] std::string GetGlobalIdentifier() const;
 
-        [[nodiscard]] int GetGlobalValue() const;
+        template<class T>
+        [[nodiscard]] T Evaluate(Context &context) const;
 
         [[nodiscard]] virtual bool IsList() const;
 

@@ -19,16 +19,16 @@ namespace ast {
         throw std::runtime_error("IntConstant::GetGlobalIdentifier() called on an int constant");
     }
 
-    int IntConstant::GetGlobalValue() const {
-        return value_;
-    }
-
     TypeSpecifier IntConstant::GetType(ast::Context &context) const {
         return TypeSpecifier::INT;
     }
 
-    int IntConstant::Evaluate() const {
+    int IntConstant::Evaluate(Context &context) const {
         return value_;
+    }
+
+    double IntConstant::EvaluateFloat(ast::Context &context) const {
+        return value_; // Allow type conversion in const exprs
     }
 
     void CharConstant::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
@@ -81,10 +81,6 @@ namespace ast {
         return false;
     }
 
-    int CharConstant::GetGlobalValue() const {
-        return value_;
-    }
-
     std::string CharConstant::GetGlobalIdentifier() const {
         throw std::runtime_error("CharConstant::GetGlobalIdentifier() called on an int constant");
     }
@@ -93,8 +89,12 @@ namespace ast {
         return TypeSpecifier::CHAR;
     }
 
-    int CharConstant::Evaluate() const {
+    int CharConstant::Evaluate(Context &context) const {
         return value_;
+    }
+
+    double CharConstant::EvaluateFloat(ast::Context &context) const {
+        return value_; // Allow type conversion in const expr
     }
 
     void FloatConstant::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
@@ -106,6 +106,8 @@ namespace ast {
         context.FreeTemporary(tempIntReg);
 
         // Defer memory to the end
+        context.DeferredRISC() << ".align " << (doublePrecision_ ? "3" : "2") << std::endl;
+        context.DeferredRISC() << ".section .rodata" << std::endl;
         context.DeferredRISC() << memoryLabel << ":" << std::endl;
         context.DeferredRISC() << (doublePrecision_ ? ".double " : ".float ")
                                << value_ << std::endl; // todo should we convert to decimal?
@@ -119,11 +121,6 @@ namespace ast {
         return false;
     }
 
-    int FloatConstant::GetGlobalValue() const {
-        // We don't need to support implicit casting to int
-        throw std::runtime_error("FloatConstant::GetGlobalValue() called on a float constant");
-    }
-
     std::string FloatConstant::GetGlobalIdentifier() const {
         throw std::runtime_error("FloatConstant::GetGlobalIdentifier() called on a float constant");
     }
@@ -132,10 +129,13 @@ namespace ast {
         return TypeSpecifier::FLOAT;
     }
 
-    int FloatConstant::Evaluate() const {
+    int FloatConstant::Evaluate(Context &context) const {
         throw std::runtime_error("Evaluation of float constants is unsupported");
     }
 
+    double FloatConstant::EvaluateFloat(ast::Context &context) const {
+        return value_;
+    }
 
     void StringConstant::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         // Place in stack and load address into destReg
@@ -157,10 +157,6 @@ namespace ast {
         return false;
     }
 
-    int StringConstant::GetGlobalValue() const {
-        throw std::runtime_error("StringConstant::GetGlobalValue() called on a string constant");
-    }
-
     std::string StringConstant::GetGlobalIdentifier() const {
         throw std::runtime_error("StringConstant::GetGlobalIdentifier() called on a string constant");
     }
@@ -169,7 +165,11 @@ namespace ast {
         return {TypeSpecifier(TypeSpecifier::CHAR), static_cast<int>(value_.length())};
     }
 
-    int StringConstant::Evaluate() const {
+    int StringConstant::Evaluate(Context &context) const {
+        throw std::runtime_error("Evaluation of string constants is unsupported");
+    }
+
+    double StringConstant::EvaluateFloat(ast::Context &context) const {
         throw std::runtime_error("Evaluation of string constants is unsupported");
     }
 

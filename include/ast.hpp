@@ -58,6 +58,11 @@
 #include "ast_specifier_qualifier_list.hpp"
 #include "ast_statement.hpp"
 #include "ast_statement_list.hpp"
+#include "ast_struct_declaration.hpp"
+#include "ast_struct_declaration_list.hpp"
+#include "ast_struct_declarator.hpp"
+#include "ast_struct_declarator_list.hpp"
+#include "ast_struct_specifier.hpp"
 #include "ast_type_name.hpp"
 
 ast::NodePtr ParseAST(std::string file_name);

@@ -269,6 +269,7 @@ std::string UnaryExpression::GetIdentifier() const {
     exit(1);
 }
 
+<<<<<<< HEAD
 TypeSpecifier UnaryExpression::GetType(Context &context) const {
     switch (op_) {
         case UnaryOperator::PostfixPromote:
@@ -310,6 +311,17 @@ bool UnaryExpression::ContainsFunctionCall() const {
         case UnaryOperator::SizeofUnary:
         case UnaryOperator::SizeofType:
             return false;
+=======
+    std::string UnaryExpression::GetGlobalIdentifier() const {
+        // For &x both branches will be called
+        if (op_ == UnaryOperator::AddressOf) {
+            return multiplicativeChild_->GetGlobalIdentifier();
+        } else if (op_ == UnaryOperator::PostfixPromote) {
+            return postfixChild_->GetGlobalIdentifier();
+        } else {
+            throw std::runtime_error("UnaryExpression::GetGlobalIdentifier() called on a non &'d global");
+        }
+>>>>>>> aaabd7d9f74208ee579772452eb7f2b51bfa0e1d
     }
     std::cerr << "Invalid unary operator" << std::endl;
     exit(1);
@@ -331,6 +343,7 @@ std::string UnaryExpression::GetGlobalIdentifier() const {
     throw std::runtime_error("UnaryExpression::GetGlobalIdentifier() called on a non &'d global");
 }
 
+<<<<<<< HEAD
 const Expression &UnaryExpression::GetArrayIndexExpression() const {
     return postfixChild_->GetArrayIndexExpression();
 }
@@ -357,10 +370,68 @@ int UnaryExpression::Evaluate() const {
         case UnaryOperator::PrefixDecrement:
         case UnaryOperator::PrefixIncrement:
             break;
+=======
+    int UnaryExpression::Evaluate(Context &context) const {
+        // Probably overkill
+        Context dummy;
+        switch (op_) {
+            case UnaryOperator::PostfixPromote:
+                return postfixChild_->Evaluate(context);
+            case UnaryOperator::Plus:
+                return multiplicativeChild_->Evaluate(context);
+            case UnaryOperator::Minus:
+                return -multiplicativeChild_->Evaluate(context);
+            case UnaryOperator::BitwiseNot:
+                return ~multiplicativeChild_->Evaluate(context);
+            case UnaryOperator::LogicalNot:
+                return !multiplicativeChild_->Evaluate(context);
+            // Accept errors if context is rqd
+            case UnaryOperator::SizeofUnary:
+                return unaryChild_->GetType(dummy).GetTypeSize();
+            case UnaryOperator::SizeofType:
+                return typeNameChild_->GetType(dummy).GetTypeSize();
+            case UnaryOperator::AddressOf:
+            case UnaryOperator::Dereference:
+            case UnaryOperator::PrefixDecrement:
+            case UnaryOperator::PrefixIncrement:
+                break;
+        }
+        throw std::runtime_error("UnaryExpression::Evaluate() called on a non-constant");
+>>>>>>> aaabd7d9f74208ee579772452eb7f2b51bfa0e1d
     }
     throw std::runtime_error("UnaryExpression::Evaluate() called on a non-constant");
 }
 
+<<<<<<< HEAD
 UnaryExpression::~UnaryExpression() = default;
+=======
+    double UnaryExpression::EvaluateFloat(ast::Context &context) const {
+        // Probably overkill
+        Context dummy;
+        switch (op_) {
+            case UnaryOperator::PostfixPromote:
+                return postfixChild_->EvaluateFloat(context);
+            case UnaryOperator::Plus:
+                return multiplicativeChild_->EvaluateFloat(context);
+            case UnaryOperator::Minus:
+                return -multiplicativeChild_->EvaluateFloat(context);
+                // Accept errors if context is rqd
+            case UnaryOperator::SizeofUnary:
+                return unaryChild_->GetType(dummy).GetTypeSize();
+            case UnaryOperator::SizeofType:
+                return typeNameChild_->GetType(dummy).GetTypeSize();
+            case UnaryOperator::Dereference:
+            case UnaryOperator::AddressOf:
+            case UnaryOperator::BitwiseNot:
+            case UnaryOperator::LogicalNot:
+            case UnaryOperator::PrefixDecrement:
+            case UnaryOperator::PrefixIncrement:
+                break;
+        }
+        throw std::runtime_error("UnaryExpression::Evaluate() called on a non-constant");
+    }
+
+    UnaryExpression::~UnaryExpression() = default;
+>>>>>>> aaabd7d9f74208ee579772452eb7f2b51bfa0e1d
 
 } 

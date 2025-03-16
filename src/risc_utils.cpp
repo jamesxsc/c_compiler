@@ -58,9 +58,13 @@ namespace ast::Utils {
             case TypeSpecifier::INT:
             case TypeSpecifier::UNSIGNED:
             case TypeSpecifier::CHAR:
+            case TypeSpecifier::ENUM:
                 stream << "mul " << result << "," << leftReg << "," << rightReg << std::endl;
                 break;
-            default:
+            case TypeSpecifier::POINTER:
+            case TypeSpecifier::ARRAY:
+            case TypeSpecifier::STRUCT:
+            case TypeSpecifier::VOID:
                 throw std::runtime_error("Multiplicative operation attempted on unsupported type.");
         }
 
@@ -87,9 +91,13 @@ namespace ast::Utils {
             case TypeSpecifier::INT:
             case TypeSpecifier::UNSIGNED:
             case TypeSpecifier::CHAR:
+            case TypeSpecifier::ENUM:
                 stream << "div " << result << "," << leftReg << "," << rightReg << std::endl;
                 break;
-            default:
+            case TypeSpecifier::POINTER:
+            case TypeSpecifier::ARRAY:
+            case TypeSpecifier::STRUCT:
+            case TypeSpecifier::VOID:
                 throw std::runtime_error("Multiplicative operation attempted on unsupported type.");
         }
 
@@ -109,6 +117,7 @@ namespace ast::Utils {
 
         switch (type) {
             case TypeSpecifier::INT:
+            case TypeSpecifier::ENUM: // GCC uses remu, but only as an optimisation
                 stream << "rem " << result << "," << leftReg << "," << rightReg << std::endl;
                 break;
             case TypeSpecifier::CHAR: // todo there is masking here, at least when int is result check!
@@ -280,6 +289,7 @@ namespace ast::Utils {
         return {it->second};
     }
 
+    // todo alter this, we're not promoting to int everywhere. that is what should be done, then sw is based on return type? cx assignment
     TypeSpecifier BinaryResultType(const TypeSpecifier &leftType, const TypeSpecifier &rightType) {
         // Choose wider type, and choose unsigned if equal
         if (leftType.GetTypeSize() > rightType.GetTypeSize()) {

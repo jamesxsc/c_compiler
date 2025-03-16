@@ -31,6 +31,7 @@ namespace ast {
     // TODO just double check that we are storing the args in the correct end of the frame
     class Bindings {
     public:
+        // todo we need to get array locations from *(p+1) sorta ops... or handle this arithmetically somehow in assignment
         Bindings(int size, int start) : size_(size), start_(start) {};
 
         [[nodiscard]] const Variable &Get(const std::string &identifier) const;
@@ -55,7 +56,7 @@ namespace ast {
     // This probably overkill class is in case we need to iterate over enumerators anywhere
     class Enums {
     public:
-        void Insert(const std::string &identifier, const std::map<std::string, int>& values);
+        void Insert(const std::string &identifier, const std::map<std::string, int> &values);
 
         [[nodiscard]] std::map<std::string, int> GetEnum(const std::string &identifier) const;
 
@@ -68,11 +69,26 @@ namespace ast {
         std::unordered_map<std::string, int> lookup_{};
     };
 
+    // Again, overkill but may need to include size logic here
+    class Structs {
+    public:
+        void Insert(const std::string &identifier, const std::vector<std::pair<std::string, TypeSpecifier>> &members);
+
+        [[nodiscard]] std::vector<std::pair<std::string, TypeSpecifier>> GetStruct(const std::string &identifier) const;
+
+        bool Contains(const std::string &identifier) const;
+
+    private:
+        std::unordered_map<std::string, std::vector<std::pair<std::string, TypeSpecifier>>> structs_{};
+    };
+
     struct StackFrame {
         int size;
         // Inefficient but would be effort to change
         Bindings bindings;
         Enums enums{};
+        Structs structs{};
+
         std::bitset<12> usedIntegerPersistentRegisters{1}; // s0 is always used
         std::bitset<12> usedFloatPersistentRegisters{};
 
@@ -119,11 +135,17 @@ namespace ast {
 
         [[nodiscard]] TypeSpecifier GetGlobalType(const std::string &identifier) const;
 
-        void InsertGlobalEnum(const std::string &identifier, const std::map<std::string, int>& values);
+        void InsertGlobalEnum(const std::string &identifier, const std::map<std::string, int> &values);
 
         [[nodiscard]] bool IsEnum(const std::string &identifier);
 
         [[nodiscard]] int LookupEnum(const std::string &identifier);
+
+        void InsertGlobalStruct(const std::string &identifier, const std::vector<std::pair<std::string, TypeSpecifier>> &members);
+
+        [[nodiscard]] std::vector<std::pair<std::string, TypeSpecifier>> GetStruct(const std::string &identifier);
+
+        [[nodiscard]] bool IsStruct(const std::string &identifier);
 
         std::ostream &DeferredRISC();
 
@@ -138,7 +160,8 @@ namespace ast {
         std::vector<StackFrame> stack_;
         // Globals are not stored on the stack so do not require the bindings class/ offsets
         std::unordered_map<std::string, TypeSpecifier> globals_;
-        Enums globalEnums{};
+        Enums globalEnums_{};
+        Structs globalStructs_{};
         std::unordered_map<std::string, Function> functions_;
 
         std::stringstream deferredRISC_{};

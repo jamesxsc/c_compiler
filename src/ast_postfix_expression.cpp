@@ -116,6 +116,7 @@ void PostfixExpression::Print(std::ostream &stream) const {
     }
 }
 
+<<<<<<< HEAD
 TypeSpecifier PostfixExpression::GetType(Context &context) const {
     return child_->GetType(context);
 }
@@ -169,6 +170,10 @@ const Expression& PostfixExpression::GetArrayIndexExpression() const {
     auto arrIdx = dynamic_cast<const ArrayIndexExpression*>(child_.get());
     if (!arrIdx) {
         throw std::runtime_error("GetArrayIndexExpression() called but child is not ArrayIndexExpression");
+=======
+    std::string PostfixExpression::GetGlobalIdentifier() const {
+        return child_->GetGlobalIdentifier();
+>>>>>>> aaabd7d9f74208ee579772452eb7f2b51bfa0e1d
     }
     return arrIdx->GetIndexExpression();
 }
@@ -180,4 +185,22 @@ int PostfixExpression::Evaluate() const {
     return child_->Evaluate();
 }
 
+<<<<<<< HEAD
 } 
+=======
+    int PostfixExpression::Evaluate(Context &context) const {
+        if (op_ != PostfixOperator::PrimaryPromote)
+            throw std::runtime_error("PostfixExpression::Evaluate() called on non-primary expression");
+
+        return child_->Evaluate(context);
+    }
+
+    double PostfixExpression::EvaluateFloat(ast::Context &context) const {
+        if (op_ != PostfixOperator::PrimaryPromote)
+            throw std::runtime_error("PostfixExpression::EvaluateFloat() called on non-primary expression");
+
+        return child_->EvaluateFloat(context);
+    }
+
+} // namespace ast
+>>>>>>> aaabd7d9f74208ee579772452eb7f2b51bfa0e1d

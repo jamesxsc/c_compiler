@@ -50,8 +50,19 @@ namespace ast {
         return initializer_->GetGlobalIdentifier();
     }
 
-    int InitDeclarator::GetGlobalInitializerValue() const {
-        return initializer_->GetGlobalValue();
+    template<class T>
+    T InitDeclarator::EvaluateInitializer(Context &context) const {
+        throw std::runtime_error("InitDeclarator::EvaluateInitializer() called on an unsupported type");
+    }
+
+    template<>
+    int InitDeclarator::EvaluateInitializer<int>(Context &context) const {
+        return initializer_->Evaluate<int>(context);
+    }
+
+    template<>
+    double InitDeclarator::EvaluateInitializer<double>(Context &context) const {
+        return initializer_->Evaluate<double>(context);
     }
 
     const Initializer &InitDeclarator::GetInitializer() const {

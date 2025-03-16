@@ -37,8 +37,6 @@ namespace ast {
                     case TypeSpecifier::Type::VOID:
                         throw std::runtime_error("EqualityExpression::EmitRISC() called on an unsupported type");
                 }
-                stream << "sub " << destReg << "," << leftReg << "," << rightReg << std::endl;
-                stream << "seqz " << destReg << "," << destReg << std::endl;
                 break;
             case EqualityOperator::Inequality:
                 switch (type) {
@@ -110,20 +108,28 @@ namespace ast {
         return right_->GetGlobalIdentifier();
     }
 
-    int EqualityExpression::GetGlobalValue() const {
-        return right_->GetGlobalValue();
-    }
-
-    int EqualityExpression::Evaluate() const {
+    int EqualityExpression::Evaluate(Context &context) const {
         switch (op_) {
             case EqualityOperator::RelationalPromote:
-                return right_->Evaluate();
+                return right_->Evaluate(context);
             case EqualityOperator::Equality:
-                return left_->Evaluate() == right_->Evaluate();
+                return left_->Evaluate(context) == right_->Evaluate(context);
             case EqualityOperator::Inequality:
-                return left_->Evaluate() != right_->Evaluate();
+                return left_->Evaluate(context) != right_->Evaluate(context);
         }
         throw std::runtime_error("EqualityExpression::Evaluate() reached end of function");
+    }
+
+    double EqualityExpression::EvaluateFloat(ast::Context &context) const {
+        switch (op_) {
+            case EqualityOperator::RelationalPromote:
+                return right_->EvaluateFloat(context);
+            case EqualityOperator::Equality:
+                return left_->EvaluateFloat(context) == right_->EvaluateFloat(context);
+            case EqualityOperator::Inequality:
+                return left_->EvaluateFloat(context) != right_->EvaluateFloat(context);
+        }
+        throw std::runtime_error("EqualityExpression::EvaluateFloat() reached end of function");
     }
 
 }

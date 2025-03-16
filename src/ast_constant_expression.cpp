@@ -18,15 +18,15 @@ namespace ast {
         return expression_->GetType(context);
     }
 
-    int ConstantExpression::GetGlobalValue() const {
-        return expression_->GetGlobalValue();
-    }
-
     std::string ConstantExpression::GetGlobalIdentifier() const {
         return expression_->GetGlobalIdentifier();
     }
 
-    int ConstantExpression::Evaluate() const {
-        return expression_->Evaluate();
+    int ConstantExpression::Evaluate(Context &context) const {
+        return expression_->Evaluate(context);
+    }
+
+    double ConstantExpression::EvaluateFloat(ast::Context &context) const {
+        return expression_->EvaluateFloat(context);
     }
 }

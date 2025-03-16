@@ -37,16 +37,20 @@ namespace ast {
         return right_->GetGlobalIdentifier();
     }
 
-    int InclusiveOrExpression::GetGlobalValue() const {
-        return right_->GetGlobalValue();
-    }
-
-    int InclusiveOrExpression::Evaluate() const {
+    int InclusiveOrExpression::Evaluate(Context &context) const {
         if (left_ == nullptr) {
-            return right_->Evaluate();
+            return right_->Evaluate(context);
         }
 
-        return left_->Evaluate() | right_->Evaluate();
+        return left_->Evaluate(context) | right_->Evaluate(context);
+    }
+
+    double InclusiveOrExpression::EvaluateFloat(ast::Context &context) const {
+        if (left_ == nullptr) {
+            return right_->EvaluateFloat(context);
+        }
+
+        throw std::runtime_error("InclusiveOrExpression::EvaluateFloat() Bitwise OR cannot be performed on floats");
     }
 
 }

@@ -17,7 +17,7 @@ namespace ast {
 
         void PushBack(EnumeratorPtr enumerator);
 
-        [[nodiscard]] std::map<std::string, int> GetEnumerators() const;
+        [[nodiscard]] std::map<std::string, int> GetEnumerators(Context &context) const;
 
     private:
         std::vector<EnumeratorPtr> enumerators_;

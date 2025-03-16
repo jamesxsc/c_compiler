@@ -23,7 +23,9 @@ namespace ast {
 
         void Print(std::ostream &stream) const override;
 
-        [[nodiscard]] int Evaluate() const override;
+        [[nodiscard]] double EvaluateFloat(Context &context) const override;
+
+        [[nodiscard]] int Evaluate(Context &context) const override;
 
         [[nodiscard]] bool ContainsFunctionCall() const override;
 
@@ -33,8 +35,6 @@ namespace ast {
         [[nodiscard]] const Expression& GetArrayIndexExpression() const;
 
         TypeSpecifier GetType(Context &context) const override;
-
-        [[nodiscard]] int GetGlobalValue() const override;
 
         [[nodiscard]] std::string GetGlobalIdentifier() const override;
 

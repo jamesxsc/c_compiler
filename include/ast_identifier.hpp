@@ -19,7 +19,8 @@ namespace ast {
 
         void Print(std::ostream &stream) const override;
 
-        [[nodiscard]] int Evaluate() const override;
+        [[nodiscard]] double EvaluateFloat(Context &context) const override;
+        [[nodiscard]] int Evaluate(Context &context) const override;
 
         [[nodiscard]] bool ContainsFunctionCall() const override;
 
@@ -27,7 +28,6 @@ namespace ast {
 
         [[nodiscard]] std::string GetGlobalIdentifier() const override;
 
-        [[nodiscard]] int GetGlobalValue() const override;
     };
 
 } // namespace ast

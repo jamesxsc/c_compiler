@@ -52,6 +52,7 @@ namespace ast {
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
         void Print(std::ostream &stream) const override;
+<<<<<<< HEAD
         int Evaluate() const override;
         bool ContainsFunctionCall() const override;
         std::string GetIdentifier() const;
@@ -60,6 +61,25 @@ namespace ast {
         const Expression &GetArrayIndexExpression() const;
         int GetGlobalValue() const override;
         std::string GetGlobalIdentifier() const override;
+=======
+
+        [[nodiscard]] int Evaluate(Context &context) const override;
+
+        [[nodiscard]] double EvaluateFloat(Context &context) const override;
+
+        [[nodiscard]] bool ContainsFunctionCall() const override;
+
+        // This should only be called in a context where we know it is an lvalue (identifier)
+        [[nodiscard]] std::string GetIdentifier() const;
+
+        TypeSpecifier GetType(Context &context) const override;
+
+        [[nodiscard]] bool IsPointerDereference() const;
+
+        [[nodiscard]] const Expression &GetArrayIndexExpression() const;
+
+        [[nodiscard]] std::string GetGlobalIdentifier() const override;
+>>>>>>> aaabd7d9f74208ee579772452eb7f2b51bfa0e1d
 
     private:
         PostfixExpressionPtr postfixChild_ = nullptr;
@@ -81,11 +101,24 @@ namespace ast {
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
         void Print(std::ostream &stream) const override;
+<<<<<<< HEAD
         int Evaluate() const override;
         std::string GetIdentifier() const;
         bool ContainsFunctionCall() const override;
         int GetGlobalValue() const override;
         std::string GetGlobalIdentifier() const override;
+=======
+
+        [[nodiscard]] int Evaluate(Context &context) const override;
+
+        [[nodiscard]] double EvaluateFloat(Context &context) const override;
+
+        [[nodiscard]] std::string GetIdentifier() const;
+
+        [[nodiscard]] bool ContainsFunctionCall() const override;
+
+        [[nodiscard]] std::string GetGlobalIdentifier() const override;
+>>>>>>> aaabd7d9f74208ee579772452eb7f2b51bfa0e1d
 
     private:
         MultiplicativeExpressionPtr left_;

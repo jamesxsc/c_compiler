@@ -11,12 +11,10 @@ namespace ast {
                                                          enumeratorsValuesMap_() {};
 
         explicit EnumSpecifier(EnumeratorListPtr enumerators)
-                : identifier_(std::nullopt), enumerators_(std::move(enumerators)),
-                  enumeratorsValuesMap_(enumerators_->GetEnumerators()) {};
+                : identifier_(std::nullopt), enumerators_(std::move(enumerators)) {};
 
         EnumSpecifier(std::string identifier, EnumeratorListPtr enumerators)
-                : identifier_(std::move(identifier)), enumerators_(std::move(enumerators)),
-                  enumeratorsValuesMap_(enumerators_->GetEnumerators()) {};
+                : identifier_(std::move(identifier)), enumerators_(std::move(enumerators)) {};
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
 
@@ -33,7 +31,7 @@ namespace ast {
     private:
         std::optional<std::string> identifier_;
         EnumeratorListPtr enumerators_;
-        std::map<std::string, int> enumeratorsValuesMap_;
+        mutable std::map<std::string, int> enumeratorsValuesMap_{};
         bool isGlobal_{false};
     };
     using EnumSpecifierPtr = std::unique_ptr<EnumSpecifier>;
