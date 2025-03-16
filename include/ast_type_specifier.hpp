@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <vector>
 #include <memory>
+#include <optional>
 #include <unordered_map>
 
 namespace ast {
@@ -45,10 +46,10 @@ namespace ast {
         // Implicit construction to support old TypeSpecifier::TYPE syntax
         TypeSpecifier(int value) : type_(static_cast<Type>(value)) {}
 
-        // Complex type constructors
-        TypeSpecifier(Type type, TypeSpecifier pointee): type_(POINTER), pointeeType_(std::make_shared<TypeSpecifier>(pointee)) {} // Type rqd to avoid making copy constructor
+        // Complex type constructors, would probably be better as a factory tbh
+        TypeSpecifier(Type type, TypeSpecifier pointee): type_(POINTER), pointeeType_(std::make_shared<TypeSpecifier>(pointee)) {} // Type rqd to avoid overloading copy constructor
         TypeSpecifier(TypeSpecifier arrayType, int size): type_(ARRAY), arrayType_(std::make_shared<TypeSpecifier>(arrayType)), arraySize_(size) {}
-        explicit TypeSpecifier(std::string identifier): type_(ENUM), enumIdentifier_(std::move(identifier)) {}
+        explicit TypeSpecifier(std::string identifier, bool isStruct): type_(isStruct ? STRUCT : ENUM), enumIdentifier_(std::move(identifier)), structIdentifier_(enumIdentifier_) {}
 
         ~TypeSpecifier() = default;
 
@@ -62,9 +63,11 @@ namespace ast {
 
         [[nodiscard]] bool IsStruct() const;
 
-        bool IsSigned() const;
+        [[nodiscard]] bool IsSigned() const;
 
-        int GetTypeSize() const;
+        [[nodiscard]] int GetTypeSize() const;
+
+        void SetMembers(std::vector<std::pair<std::string, TypeSpecifier>> members);
 
         // Getters
         [[nodiscard]] const TypeSpecifier &GetPointeeType() const;
@@ -75,8 +78,7 @@ namespace ast {
 
         [[nodiscard]] const std::string &GetEnumIdentifier() const;
 
-        // Probably ditch this like for enum, use ctx, this would have been nice, but v hard to construct for type_specifier in parser before we have context
-        [[nodiscard]] const std::vector<std::pair<std::string, TypeSpecifierPtr>> &GetStructMembers() const;
+        [[nodiscard]] const std::vector<std::pair<std::string, TypeSpecifier>> &GetStructMembers() const;
 
         [[nodiscard]] const std::string &GetStructIdentifier() const;
 
@@ -87,11 +89,9 @@ namespace ast {
         TypeSpecifierPtr arrayType_{nullptr};
         int arraySize_{0};
         std::string enumIdentifier_{};
-        std::vector<std::pair<std::string, TypeSpecifierPtr>> structMembers_{};
+        std::optional<std::vector<std::pair<std::string, TypeSpecifier>>> structMembers_{};
         std::string structIdentifier_{};
     };
-
-    // will probably have to store struct and enum names in context, but also here for print if nothing else
 
     // This is now recursive
     template<typename LogStream>

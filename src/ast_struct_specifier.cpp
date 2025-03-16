@@ -19,6 +19,8 @@ namespace ast {
         // through context or otherwise this needs to be stored in typespecifier for getting size
         // or maybe we just somehow intercept calls to GetContext that return that... how much stuff holds a typespecifier?
         //  declaration specifiers and specifier qualifier list... hmmm
+        // so i imagine we just have to set it in bindings wherever we create/insert vars
+        // no, just lower down, resolve type alias works best
     }
 
     void StructSpecifier::Print(std::ostream &stream) const {

@@ -18,7 +18,7 @@ namespace ast {
     }
 
     TypeSpecifier SpecifierQualifierList::GetType(Context &context) const {
-        return Utils::ResolveTypeAlias(specifiers_);
+        return context.ResolveTypeAlias(specifiers_);
     }
 
 }

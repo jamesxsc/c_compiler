@@ -5,6 +5,7 @@
 #include <string>
 #include <sstream>
 #include <unordered_map>
+#include <set>
 #include <map>
 #include <memory>
 #include <deque>
@@ -151,6 +152,8 @@ namespace ast {
         std::ostream &DeferredRISC();
 
         void EmitDeferredRISC(std::ostream &stream);
+
+        TypeSpecifier ResolveTypeAlias(std::vector<TypeSpecifier> specifiers);
 
     private:
         std::bitset<7> integerTemporaries_; // using t0... notation for contiguous numbering

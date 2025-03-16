@@ -45,9 +45,13 @@ namespace ast {
                             case TypeSpecifier::CHAR:
                                 stream << "sb " << tempReg << "," << array.offset + idx * type.GetTypeSize() << "(s0)" << std::endl;
                                 break;
-                            case TypeSpecifier::VOID:
                             case TypeSpecifier::STRUCT:
-                            case TypeSpecifier::ARRAY:
+                                for (const auto &member: type.GetStructMembers()) {
+                                    // todo impl here and below, put offset in typespec somehow
+                                }
+                                break;
+                            case TypeSpecifier::ARRAY: // todo multidim
+                            case TypeSpecifier::VOID:
                                 throw std::runtime_error(
                                         "Declaration::EmitRISC() called on an unsupported array type");
                                 // todo handle these
@@ -67,6 +71,7 @@ namespace ast {
                         case TypeSpecifier::INT:
                         case TypeSpecifier::POINTER:
                         case TypeSpecifier::UNSIGNED:
+                        case TypeSpecifier::ENUM:
                             stream << "sw " << tempReg << "," << var.offset << "(s0)" << std::endl;
                             break;
                         case TypeSpecifier::FLOAT:
@@ -78,10 +83,13 @@ namespace ast {
                         case TypeSpecifier::CHAR:
                             stream << "sb " << tempReg << "," << var.offset << "(s0)" << std::endl;
                             break;
-                        case TypeSpecifier::VOID:
-                        case TypeSpecifier::ENUM:
                         case TypeSpecifier::STRUCT:
-                        case TypeSpecifier::ARRAY:
+                            for (const auto &member: type.GetStructMembers()) {
+                                // todo impl here and above, put offset in typespec somehow
+                            }
+                            break;
+                        case TypeSpecifier::VOID:
+                        case TypeSpecifier::ARRAY: // Should never get here
                             throw std::runtime_error(
                                     "ArrayIndexExpression::EmitRISC() called on an unsupported type");
                             // todo handle these

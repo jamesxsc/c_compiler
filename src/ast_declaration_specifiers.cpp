@@ -29,7 +29,7 @@ namespace ast {
     }
 
     TypeSpecifier DeclarationSpecifiers::GetType(Context &context) const {
-        return Utils::ResolveTypeAlias(typeSpecifiers_);
+        return context.ResolveTypeAlias(typeSpecifiers_);
     }
 
 

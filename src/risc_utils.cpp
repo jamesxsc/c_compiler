@@ -273,18 +273,6 @@ namespace ast::Utils {
         leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg);
     }
 
-    TypeSpecifier ResolveTypeAlias(std::vector<TypeSpecifier> specifiers) {
-        if (specifiers.size() == 1) {
-            return {specifiers.front()};
-        }
-        std::set<TypeSpecifier::Type> typeSet{specifiers.begin(), specifiers.end()};
-        auto it = aliasMap.find(typeSet);
-        if (it == aliasMap.end()) {
-            throw std::runtime_error("Unsupported type alias");
-        }
-        return {it->second};
-    }
-
     // This is good enough unless we get failures as a direct result
     TypeSpecifier BinaryResultType(const TypeSpecifier &leftType, const TypeSpecifier &rightType) {
         // Choose wider type, and choose unsigned if equal

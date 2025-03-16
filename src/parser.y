@@ -219,7 +219,7 @@ postfix_expression
 	: primary_expression { $$ = new PostfixExpression(ExpressionBasePtr($1), PostfixOperator::PrimaryPromote); }
     | array_index_expression { $$ = new PostfixExpression(ExpressionBasePtr($1), PostfixOperator::ArrayIndexPromote); }
 	| function_call_expression { $$ = new PostfixExpression(ExpressionBasePtr($1), PostfixOperator::FunctionCallPromote); }
-	| postfix_expression '.' IDENTIFIER
+	| postfix_expression '.' IDENTIFIER // todo struct access type with bool for ptr. then integrate this with whatever assignment changes we make to keep it clean, basically if its dereferenced, it will be the address... but global vs etc will be a pain
 	| postfix_expression PTR_OP IDENTIFIER
 	| postfix_expression INC_OP { $$ = new PostfixExpression(PostfixExpressionPtr($1), PostfixOperator::PostfixIncrement); }
 	| postfix_expression DEC_OP { $$ = new PostfixExpression(PostfixExpressionPtr($1), PostfixOperator::PostfixDecrement); }
@@ -402,8 +402,8 @@ type_specifier
 	| DOUBLE { $$ = new TypeSpecifier(TypeSpecifier::DOUBLE); }
 	| SIGNED { $$ = new TypeSpecifier(TypeSpecifier::INT); }
 	| UNSIGNED { $$ = new TypeSpecifier(TypeSpecifier::UNSIGNED); }
-    | struct_specifier { $$ = new TypeSpecifier($1->GetIdentifier()); }
-	| enum_specifier { $$ = new TypeSpecifier($1->GetIdentifier()); }
+    | struct_specifier { $$ = new TypeSpecifier($1->GetIdentifier(), true); }
+	| enum_specifier { $$ = new TypeSpecifier($1->GetIdentifier(), false); }
 	| TYPE_NAME { $$ = new TypeSpecifier(typedefs.at(*$1)); delete $1; }
 	;
 
@@ -472,7 +472,7 @@ direct_declarator
 	}
 	| '(' declarator ')' { $$ = $2; $$->Direct(); }
 	| direct_declarator '[' constant_expression ']' { $$ = new ArrayDeclarator(DeclaratorPtr($1), ConstantExpressionPtr($3)); }
-	| direct_declarator '[' ']' { std::cerr << "Need to support empty array declarations?" << std::endl; exit(1); }
+	| direct_declarator '[' ']' { std::cerr << "Need to support empty array declarations?" << std::endl; exit(1); } // todo is this required for array param?
 	| direct_declarator '(' parameter_list ')' { $$ = new FunctionDeclarator(DeclaratorPtr($1), ParameterListPtr($3)); }
 	| direct_declarator '(' identifier_list ')' {
 	    std::cerr << "Need to support identifier_list in direct_declarator" << std::endl;
@@ -483,7 +483,7 @@ direct_declarator
 
 pointer
 	: '*'
-	| '*' pointer
+	| '*' pointer // todo double ptr?
 	;
 
 parameter_list

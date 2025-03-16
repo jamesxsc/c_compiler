@@ -313,4 +313,33 @@ namespace ast {
         return structs_.find(identifier) != structs_.end();
     }
 
+    static std::map<std::set<TypeSpecifier::Type>, TypeSpecifier::Type> aliasMap{
+            {{TypeSpecifier::UNSIGNED, TypeSpecifier::INT},  TypeSpecifier::UNSIGNED},
+            {{TypeSpecifier::INT,      TypeSpecifier::INT},  TypeSpecifier::INT}, // signed int
+            {{TypeSpecifier::UNSIGNED, TypeSpecifier::CHAR}, TypeSpecifier::CHAR},
+    };
+
+    TypeSpecifier Context::ResolveTypeAlias(std::vector<TypeSpecifier> specifiers) {
+        if (specifiers.size() == 1) {
+            TypeSpecifier type = specifiers.front(); // Must copy
+            if (type.IsStruct()) {
+                type.SetMembers(GetStruct(type.GetStructIdentifier()));
+            }
+            return type;
+        }
+        std::set<TypeSpecifier::Type> typeSet{specifiers.begin(), specifiers.end()};
+        auto it = aliasMap.find(typeSet);
+        if (it == aliasMap.end()) {
+            throw std::runtime_error("Unsupported type alias");
+        }
+        TypeSpecifier type = it->second; // Must copy
+        if (type.IsStruct()) {
+            type.SetMembers(GetStruct(type.GetStructIdentifier()));
+        }
+        return type;
+    }
+
+    // TODO if we have time split this up somewhat
+
+
 }
