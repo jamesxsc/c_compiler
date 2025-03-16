@@ -315,6 +315,32 @@ namespace ast {
         throw std::runtime_error("UnaryExpression::Evaluate() called on a non-constant");
     }
 
+    double UnaryExpression::EvaluateFloat(ast::Context &context) const {
+        // Probably overkill
+        Context dummy;
+        switch (op_) {
+            case UnaryOperator::PostfixPromote:
+                return postfixChild_->EvaluateFloat(context);
+            case UnaryOperator::Plus:
+                return multiplicativeChild_->EvaluateFloat(context);
+            case UnaryOperator::Minus:
+                return -multiplicativeChild_->EvaluateFloat(context);
+                // Accept errors if context is rqd
+            case UnaryOperator::SizeofUnary:
+                return unaryChild_->GetType(dummy).GetTypeSize();
+            case UnaryOperator::SizeofType:
+                return typeNameChild_->GetType(dummy).GetTypeSize();
+            case UnaryOperator::Dereference:
+            case UnaryOperator::AddressOf:
+            case UnaryOperator::BitwiseNot:
+            case UnaryOperator::LogicalNot:
+            case UnaryOperator::PrefixDecrement:
+            case UnaryOperator::PrefixIncrement:
+                break;
+        }
+        throw std::runtime_error("UnaryExpression::Evaluate() called on a non-constant");
+    }
+
     UnaryExpression::~UnaryExpression() = default;
 
 } // namespace ast

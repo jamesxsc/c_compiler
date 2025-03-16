@@ -59,4 +59,12 @@ namespace ast {
         }
     }
 
+    double ConditionalExpression::EvaluateFloat(ast::Context &context) const {
+        if (ternary_) {
+            return left_->EvaluateFloat(context) ? middle_->EvaluateFloat(context) : right_->EvaluateFloat(context);
+        } else {
+            return left_->EvaluateFloat(context);
+        }
+    }
+
 }

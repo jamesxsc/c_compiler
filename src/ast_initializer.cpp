@@ -16,8 +16,19 @@ namespace ast {
         return expression_->GetGlobalIdentifier();
     }
 
-    int Initializer::Evaluate(Context &context) const {
+    template<class T>
+    T Initializer::Evaluate(Context& context) const {
+        throw std::runtime_error("Initializer::Evaluate() called on an unsupported type");
+    }
+
+    template<>
+    int Initializer::Evaluate<int>(Context &context) const {
         return expression_->Evaluate(context);
+    }
+
+    template<>
+    double Initializer::Evaluate<double>(Context &context) const {
+        return expression_->EvaluateFloat(context);
     }
 
     bool Initializer::IsList() const {

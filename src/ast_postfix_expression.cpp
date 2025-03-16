@@ -110,4 +110,11 @@ namespace ast {
         return child_->Evaluate(context);
     }
 
+    double PostfixExpression::EvaluateFloat(ast::Context &context) const {
+        if (op_ != PostfixOperator::PrimaryPromote)
+            throw std::runtime_error("PostfixExpression::EvaluateFloat() called on non-primary expression");
+
+        return child_->EvaluateFloat(context);
+    }
+
 } // namespace ast

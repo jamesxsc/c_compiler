@@ -15,6 +15,8 @@ namespace ast {
 
         [[nodiscard]] int Evaluate(Context &context) const override;
 
+        [[nodiscard]] double EvaluateFloat(Context &context) const override;
+
         [[nodiscard]] bool ContainsFunctionCall() const override;
 
         TypeSpecifier GetType(Context &context) const override;

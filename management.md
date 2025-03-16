@@ -74,9 +74,9 @@
 * ~~Tests for global floats doubles and pointers if there aren't already any~~
 * ~~Test for calling a function from our test with several arguments of different sizes e.g. char, float, int and calling external~~
   * I want one with just float, double as well to check alignment, both calling from and being called by our compiled code
-*~~ Tests for global/local arrays of different types~~
+* ~~Tests for global/local arrays of different types~~
 * ~~Test for accessing a pointer when the original variable is out of scope (if this is possible without malloc and we think this will be tested; or just when the underlying variable has been shadowed)~~
-* Test returning an array from a function
+* Test returning an array from a function as array and pointer (first not done yet)
 * ~~Test void with and without return~~
 * Test for relational and logical operators on float and double
 * Test to assign to global ptr (not dereferenced)

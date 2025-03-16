@@ -56,6 +56,8 @@ namespace ast {
 
         [[nodiscard]] int Evaluate(Context &context) const override;
 
+        [[nodiscard]] double EvaluateFloat(Context &context) const override;
+
         [[nodiscard]] bool ContainsFunctionCall() const override;
 
         // This should only be called in a context where we know it is an lvalue (identifier)
@@ -94,6 +96,8 @@ namespace ast {
         void Print(std::ostream &stream) const override;
 
         [[nodiscard]] int Evaluate(Context &context) const override;
+
+        [[nodiscard]] double EvaluateFloat(Context &context) const override;
 
         [[nodiscard]] std::string GetIdentifier() const;
 

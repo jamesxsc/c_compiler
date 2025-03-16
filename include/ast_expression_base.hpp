@@ -17,7 +17,7 @@ namespace ast {
         // These are for global variables where we need a shortcut to initialize them
         // Calling these methods assume that the programmer is good
         virtual std::string GetGlobalIdentifier() const = 0;
-        // TODO need a float version of this
+        [[nodiscard]] virtual double EvaluateFloat(Context &context) const = 0;
         [[nodiscard]] virtual int Evaluate(Context &context) const = 0;
     };
 

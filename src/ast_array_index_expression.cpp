@@ -199,4 +199,8 @@ namespace ast {
         throw std::runtime_error("ArrayIndexExpression::Evaluate() called on an array index expression");
     }
 
+    double ArrayIndexExpression::EvaluateFloat(ast::Context &context) const {
+        throw std::runtime_error("ArrayIndexExpression::EvaluateFloat() called on an array index expression");
+    }
+
 }

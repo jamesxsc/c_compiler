@@ -30,6 +30,8 @@ namespace ast {
     private:
         ExpressionPtr index_;
         PostfixExpressionPtr array_;
+
+        double EvaluateFloat(Context &context) const;
     };
 
     using ArrayIndexExpressionPtr = std::unique_ptr<const ArrayIndexExpression>;

@@ -289,6 +289,7 @@ namespace ast::Utils {
         return {it->second};
     }
 
+    // todo alter this, we're not promoting to int everywhere. that is what should be done, then sw is based on return type? cx assignment
     TypeSpecifier BinaryResultType(const TypeSpecifier &leftType, const TypeSpecifier &rightType) {
         // Choose wider type, and choose unsigned if equal
         if (leftType.GetTypeSize() > rightType.GetTypeSize()) {

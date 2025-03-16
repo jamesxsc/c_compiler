@@ -93,4 +93,24 @@ namespace ast {
         exit(1);
     }
 
+    double MultiplicativeExpression::EvaluateFloat(ast::Context &context) const {
+        if (op_ == MultiplicativeOperator::UnaryPromote) {
+            return right_->EvaluateFloat(context);
+        } else {
+            double left = left_->EvaluateFloat(context);
+            double right = right_->EvaluateFloat(context);
+            switch (op_) {
+                case MultiplicativeOperator::Multiply:
+                    return left * right;
+                case MultiplicativeOperator::Divide:
+                    return left / right;
+                case MultiplicativeOperator::Modulo:
+                case MultiplicativeOperator::UnaryPromote:
+                    break;
+            }
+        }
+        std::cerr << "Invalid multiplicative operator" << std::endl;
+        exit(1);
+    }
+
 }

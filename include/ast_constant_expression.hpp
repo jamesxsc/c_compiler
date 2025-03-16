@@ -24,6 +24,8 @@ namespace ast {
 
     private:
         ConditionalExpressionPtr expression_;
+
+        double EvaluateFloat(Context &context) const;
     };
     using ConstantExpressionPtr = std::unique_ptr<const ConstantExpression>;
 

@@ -35,7 +35,8 @@ namespace ast {
 
         [[nodiscard]] std::string GetGlobalInitializerIdentifier() const;
 
-        [[nodiscard]] int EvaluateInitializer(Context &context) const;
+        template<class T>
+        [[nodiscard]] T EvaluateInitializer(Context &context) const;
 
     private:
         DeclaratorPtr declarator_;

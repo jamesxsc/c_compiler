@@ -356,4 +356,11 @@ namespace ast {
         throw std::runtime_error("AssignmentExpression::Evaluate() called on an assignment expression");
     }
 
+    double AssignmentExpression::EvaluateFloat(ast::Context &context) const {
+        if (op_ == AssignmentOperator::ConditionalPromote) {
+            return conditional_->EvaluateFloat(context);
+        }
+        throw std::runtime_error("AssignmentExpression::EvaluateFloat() called on an assignment expression");
+    }
+
 }

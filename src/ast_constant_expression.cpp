@@ -25,4 +25,8 @@ namespace ast {
     int ConstantExpression::Evaluate(Context &context) const {
         return expression_->Evaluate(context);
     }
+
+    double ConstantExpression::EvaluateFloat(ast::Context &context) const {
+        return expression_->EvaluateFloat(context);
+    }
 }

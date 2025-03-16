@@ -27,6 +27,10 @@ namespace ast {
         return value_;
     }
 
+    double IntConstant::EvaluateFloat(ast::Context &context) const {
+        return value_; // Allow type conversion in const exprs
+    }
+
     void CharConstant::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         stream << "li " << destReg << "," << value_ << std::endl;
     }
@@ -89,6 +93,10 @@ namespace ast {
         return value_;
     }
 
+    double CharConstant::EvaluateFloat(ast::Context &context) const {
+        return value_; // Allow type conversion in const expr
+    }
+
     void FloatConstant::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         std::string memoryLabel = context.MakeLabel(".LC");
         Register tempIntReg = context.AllocateTemporary();
@@ -98,6 +106,8 @@ namespace ast {
         context.FreeTemporary(tempIntReg);
 
         // Defer memory to the end
+        context.DeferredRISC() << ".align " << (doublePrecision_ ? "3" : "2") << std::endl;
+        context.DeferredRISC() << ".section .rodata" << std::endl;
         context.DeferredRISC() << memoryLabel << ":" << std::endl;
         context.DeferredRISC() << (doublePrecision_ ? ".double " : ".float ")
                                << value_ << std::endl; // todo should we convert to decimal?
@@ -123,6 +133,9 @@ namespace ast {
         throw std::runtime_error("Evaluation of float constants is unsupported");
     }
 
+    double FloatConstant::EvaluateFloat(ast::Context &context) const {
+        return value_;
+    }
 
     void StringConstant::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         // Place in stack and load address into destReg
@@ -153,6 +166,10 @@ namespace ast {
     }
 
     int StringConstant::Evaluate(Context &context) const {
+        throw std::runtime_error("Evaluation of string constants is unsupported");
+    }
+
+    double StringConstant::EvaluateFloat(ast::Context &context) const {
         throw std::runtime_error("Evaluation of string constants is unsupported");
     }
 

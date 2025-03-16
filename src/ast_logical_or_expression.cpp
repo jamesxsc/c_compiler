@@ -61,4 +61,12 @@ namespace ast {
         return left_->Evaluate(context) || right_->Evaluate(context);
     }
 
+    double LogicalOrExpression::EvaluateFloat(ast::Context &context) const {
+        if (left_ == nullptr) {
+            return right_->EvaluateFloat(context);
+        }
+
+        return static_cast<bool>(left_->EvaluateFloat(context)) || static_cast<bool>(right_->EvaluateFloat(context));
+    }
+
 }

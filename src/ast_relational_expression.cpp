@@ -155,4 +155,20 @@ namespace ast {
         throw std::runtime_error("RelationalExpression::Evaluate() reached end of function");
     }
 
+    double RelationalExpression::EvaluateFloat(Context &context) const {
+        switch (op_) {
+            case RelationalOperator::ShiftPromote:
+                return right_->EvaluateFloat(context);
+            case RelationalOperator::LessThan:
+                return left_->EvaluateFloat(context) < right_->EvaluateFloat(context);
+            case RelationalOperator::GreaterThan:
+                return left_->EvaluateFloat(context) > right_->EvaluateFloat(context);
+            case RelationalOperator::LessThanOrEqual:
+                return left_->EvaluateFloat(context) <= right_->EvaluateFloat(context);
+            case RelationalOperator::GreaterThanOrEqual:
+                return left_->EvaluateFloat(context) >= right_->EvaluateFloat(context);
+        }
+        throw std::runtime_error("RelationalExpression::EvaluateFloat() reached end of function");
+    }
+
 }

@@ -27,4 +27,9 @@ namespace ast {
     int ParenthesisedExpression::Evaluate(Context &context) const {
         return expression_->Evaluate(context);
     }
+
+    double ParenthesisedExpression::EvaluateFloat(ast::Context &context) const {
+        return expression_->EvaluateFloat(context);
+    }
+
 }

@@ -44,4 +44,12 @@ namespace ast {
         return left_->Evaluate(context) & right_->Evaluate(context);
     }
 
+    double AndExpression::EvaluateFloat(Context &context) const {
+        if (left_ == nullptr) {
+            return right_->EvaluateFloat(context);
+        }
+
+        throw std::runtime_error("AndExpression::EvaluateFloat() Cannot bitwise AND floats.");
+    }
+
 }

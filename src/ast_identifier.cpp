@@ -117,4 +117,8 @@ namespace ast {
         throw std::runtime_error("Identifier::Evaluate() called on a non-enum identifier");
     }
 
+    double Identifier::EvaluateFloat(ast::Context &context) const {
+        throw std::runtime_error("Identifier::EvaluateFloat() called on an identifier");
+    }
+
 }

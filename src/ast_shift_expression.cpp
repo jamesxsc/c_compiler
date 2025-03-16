@@ -73,4 +73,12 @@ namespace ast {
         throw std::runtime_error("ShiftExpression::Evaluate() reached end of function");
     }
 
+    double ShiftExpression::EvaluateFloat(ast::Context &context) const {
+        if (op_ == ShiftOperator::AdditivePromote) {
+            return right_->EvaluateFloat(context);
+        }
+
+        throw std::runtime_error("ShiftExpression::EvaluateFloat() Cannot shift floats");
+    }
+
 }

@@ -46,4 +46,12 @@ namespace ast {
         return left_->Evaluate(context) ^ right_->Evaluate(context);
     }
 
+    double ExclusiveOrExpression::EvaluateFloat(ast::Context &context) const {
+        if (left_ == nullptr) {
+            return right_->EvaluateFloat(context);
+        }
+
+        throw std::runtime_error("ExclusiveOrExpression::EvaluateFloat() Bitwise OR cannot be performed on floats");
+    }
+
 }

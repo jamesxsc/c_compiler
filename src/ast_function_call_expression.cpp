@@ -37,4 +37,8 @@ namespace ast {
         throw std::runtime_error("FunctionCallExpression::Evaluate() called on a function call");
     }
 
+    double FunctionCallExpression::EvaluateFloat(Context &context) const {
+        throw std::runtime_error("FunctionCallExpression::EvaluateFloat() called on a function call");
+    }
+
 }
