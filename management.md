@@ -67,22 +67,22 @@
 * ~~Multiple functions in a translation unit/ file - James~~
 * ~~Break/switch/continue - James~~
 * ~~Stack frame structure - how is size determined exactly - see related comments~~
-* Tests for break, switch, continue
-* Tests for unary/postfix operators (pointers done)
-* Tests for null statements
-* Test for nested switch
-* Tests for global floats doubles and pointers if there aren't already any
-* Test for calling a function from our test with several arguments of different sizes e.g. char, float, int and calling external
+* ~~Tests for break, switch, continue~~
+* ~~Tests for unary/postfix operators (pointers done)~~
+* ~~Tests for null statements~~
+* ~~Test for nested switch~~
+* ~~Tests for global floats doubles and pointers if there aren't already any~~
+* ~~Test for calling a function from our test with several arguments of different sizes e.g. char, float, int and calling external~~
   * I want one with just float, double as well to check alignment, both calling from and being called by our compiled code
-* Tests for global/local arrays of different types
-* Test for accessing a pointer when the original variable is out of scope (if this is possible without malloc and we think this will be tested; or just when the underlying variable has been shadowed)
+*~~ Tests for global/local arrays of different types~~
+* ~~Test for accessing a pointer when the original variable is out of scope (if this is possible without malloc and we think this will be tested; or just when the underlying variable has been shadowed)~~
 * Test returning an array from a function
-* Test void with and without return
+* ~~Test void with and without return~~
 * Test for relational and logical operators on float and double
 * Test to assign to global ptr (not dereferenced)
 * Test for if (f) and while/for where f is a float or double to be implicitly converted. Same for pointer and char
 * Test for multidimensional arrays
-* Test for float equality e.g. f == 2.0f or d == 2.0d
+* ~~Test for float equality e.g. f == 2.0f or d == 2.0d~~
 * Test using "unsigned int" type
 * Tests for integral promotion
 * Test for modulo behaviour with signed/unsigned left/right operands
