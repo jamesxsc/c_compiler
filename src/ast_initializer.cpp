@@ -16,8 +16,8 @@ namespace ast {
         return expression_->GetGlobalIdentifier();
     }
 
-    int Initializer::GetGlobalValue() const {
-        return expression_->GetGlobalValue();
+    int Initializer::Evaluate(Context &context) const {
+        return expression_->Evaluate(context);
     }
 
     bool Initializer::IsList() const {

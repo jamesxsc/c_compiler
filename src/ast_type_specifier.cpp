@@ -31,13 +31,12 @@ namespace ast {
             case TypeSpecifier::POINTER:
             case TypeSpecifier::UNSIGNED:
             case TypeSpecifier::FLOAT:
+            case TypeSpecifier::Type::ENUM:
                 return 4;
             case TypeSpecifier::DOUBLE:
                 return 8;
             case TypeSpecifier::Type::VOID:
                 return 0;
-            case TypeSpecifier::Type::ENUM:
-                return 4; // Enums are always ints
             case TypeSpecifier::Type::STRUCT:
                 return std::accumulate(structMembers_.begin(), structMembers_.end(), 0,
                                        [](int acc, const auto &member) { return acc + member.second->GetTypeSize(); });

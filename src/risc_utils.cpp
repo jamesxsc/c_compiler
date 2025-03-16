@@ -58,9 +58,13 @@ namespace ast::Utils {
             case TypeSpecifier::INT:
             case TypeSpecifier::UNSIGNED:
             case TypeSpecifier::CHAR:
+            case TypeSpecifier::ENUM:
                 stream << "mul " << result << "," << leftReg << "," << rightReg << std::endl;
                 break;
-            default:
+            case TypeSpecifier::POINTER:
+            case TypeSpecifier::ARRAY:
+            case TypeSpecifier::STRUCT:
+            case TypeSpecifier::VOID:
                 throw std::runtime_error("Multiplicative operation attempted on unsupported type.");
         }
 
@@ -87,9 +91,13 @@ namespace ast::Utils {
             case TypeSpecifier::INT:
             case TypeSpecifier::UNSIGNED:
             case TypeSpecifier::CHAR:
+            case TypeSpecifier::ENUM:
                 stream << "div " << result << "," << leftReg << "," << rightReg << std::endl;
                 break;
-            default:
+            case TypeSpecifier::POINTER:
+            case TypeSpecifier::ARRAY:
+            case TypeSpecifier::STRUCT:
+            case TypeSpecifier::VOID:
                 throw std::runtime_error("Multiplicative operation attempted on unsupported type.");
         }
 
@@ -109,6 +117,7 @@ namespace ast::Utils {
 
         switch (type) {
             case TypeSpecifier::INT:
+            case TypeSpecifier::ENUM: // GCC uses remu, but only as an optimisation
                 stream << "rem " << result << "," << leftReg << "," << rightReg << std::endl;
                 break;
             case TypeSpecifier::CHAR: // todo there is masking here, at least when int is result check!

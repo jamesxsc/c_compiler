@@ -20,15 +20,11 @@ namespace ast {
         return expression_->GetType(context);
     }
 
-    int ParenthesisedExpression::GetGlobalValue() const {
-        return expression_->GetGlobalValue();
-    }
-
     std::string ParenthesisedExpression::GetGlobalIdentifier() const {
         return expression_->GetGlobalIdentifier();
     }
 
-    int ParenthesisedExpression::Evaluate() const {
-        return expression_->Evaluate();
+    int ParenthesisedExpression::Evaluate(Context &context) const {
+        return expression_->Evaluate(context);
     }
 }

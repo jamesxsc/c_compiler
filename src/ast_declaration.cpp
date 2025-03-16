@@ -33,6 +33,7 @@ namespace ast {
                             case TypeSpecifier::INT:
                             case TypeSpecifier::UNSIGNED:
                             case TypeSpecifier::POINTER:
+                            case TypeSpecifier::ENUM:
                                 stream << "sw " << tempReg << "," << array.offset + idx * type.GetTypeSize() << "(s0)" << std::endl;
                                 break;
                             case TypeSpecifier::FLOAT:
@@ -45,7 +46,6 @@ namespace ast {
                                 stream << "sb " << tempReg << "," << array.offset + idx * type.GetTypeSize() << "(s0)" << std::endl;
                                 break;
                             case TypeSpecifier::VOID:
-                            case TypeSpecifier::ENUM:
                             case TypeSpecifier::STRUCT:
                             case TypeSpecifier::ARRAY:
                                 throw std::runtime_error(

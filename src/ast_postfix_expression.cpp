@@ -94,10 +94,6 @@ namespace ast {
         return child_->ContainsFunctionCall();
     }
 
-    int PostfixExpression::GetGlobalValue() const {
-        return child_->GetGlobalValue();
-    }
-
     std::string PostfixExpression::GetGlobalIdentifier() const {
         return child_->GetGlobalIdentifier();
     }
@@ -107,11 +103,11 @@ namespace ast {
         return dynamic_cast<const ArrayIndexExpression *>(child_.get())->GetIndexExpression();
     }
 
-    int PostfixExpression::Evaluate() const {
+    int PostfixExpression::Evaluate(Context &context) const {
         if (op_ != PostfixOperator::PrimaryPromote)
             throw std::runtime_error("PostfixExpression::Evaluate() called on non-primary expression");
 
-        return child_->Evaluate();
+        return child_->Evaluate(context);
     }
 
 } // namespace ast

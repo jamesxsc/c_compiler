@@ -29,15 +29,11 @@ namespace ast {
         return true;
     }
 
-    int FunctionCallExpression::GetGlobalValue() const {
-        throw std::runtime_error("FunctionCallExpression::GetGlobalValue() called on a function call");
-    }
-
     std::string FunctionCallExpression::GetGlobalIdentifier() const {
         throw std::runtime_error("FunctionCallExpression::GetGlobalIdentifier() called on a function call");
     }
 
-    int FunctionCallExpression::Evaluate() const {
+    int FunctionCallExpression::Evaluate(Context &context) const {
         throw std::runtime_error("FunctionCallExpression::Evaluate() called on a function call");
     }
 

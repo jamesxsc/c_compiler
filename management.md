@@ -88,10 +88,12 @@
 * Test for modulo behaviour with signed/unsigned left/right operands
 * Test for sizeof (char + char) should be 4 because of promotion
 * Test for ++ and = x + 1 on arrays (like int a[] not a[index]) and pointers (similar to pointer/arithmetic)
+* Test for chained assignment
 * Check if we need nops anywhere/load delay slots
 * Ternary operator
 * Float/double unary and postfix operators AND pointers/array identifier
 * Char operation byte masking where applicable
+* Enum tests: arithmetic e.g. adding multiplying enums with each other and ints; scoped enums; enum in switch case; initialize global int from enum identifier
 * ~~Floats Eliott & James~~ Mar 10
 * ~~Char type - James~~ Mar 11
 * ~~Global variables - James~~ Mar 9

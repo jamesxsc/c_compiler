@@ -33,22 +33,22 @@ namespace ast {
                             switch (type) { // Type is element type in array case here
                                 case TypeSpecifier::INT:
                                 case TypeSpecifier::UNSIGNED:
-                                    stream << ".word " << initializer->GetGlobalValue() << std::endl;
+                                case TypeSpecifier::ENUM:
+                                    stream << ".word " << initializer->Evaluate(context) << std::endl;
                                     break;
                                 case TypeSpecifier::CHAR:
-                                    stream << ".byte " << initializer->GetGlobalValue() << std::endl;
+                                    stream << ".byte " << initializer->Evaluate(context) << std::endl;
                                     break;
                                 case TypeSpecifier::POINTER:
                                     stream << ".word " << initializer->GetGlobalIdentifier() << std::endl;
                                     break;
                                 case TypeSpecifier::FLOAT:
-                                    stream << ".float " << initializer->GetGlobalValue() << std::endl;
+                                    stream << ".float " << initializer->EvaluateFloat(context) << std::endl;
                                     break;
                                 case TypeSpecifier::DOUBLE:
-                                    stream << ".double " << initializer->GetGlobalValue() << std::endl;
+                                    stream << ".double " << initializer->EvaluateFloat(context) << std::endl;
                                     break;
                                 case TypeSpecifier::VOID:
-                                case TypeSpecifier::ENUM:
                                 case TypeSpecifier::STRUCT:
                                 case TypeSpecifier::ARRAY:
                                     throw std::runtime_error(
@@ -64,20 +64,20 @@ namespace ast {
                             case TypeSpecifier::INT:
                             case TypeSpecifier::UNSIGNED:
                                 // Can only be a constant (can't be assigned to another global for example)
-                                stream << ".word " << initDeclarator->GetGlobalInitializerValue() << std::endl;
+                                stream << ".word " << initDeclarator->EvaluateInitializer(context) << std::endl;
                                 break;
                             case TypeSpecifier::CHAR:
-                                stream << ".byte " << initDeclarator->GetGlobalInitializerValue() << std::endl;
+                                stream << ".byte " << initDeclarator->EvaluateInitializer(context) << std::endl;
                                 break;
                             case TypeSpecifier::POINTER:
                                 // Simply .word (RHS identifier)
                                 stream << ".word " << initDeclarator->GetGlobalInitializerIdentifier() << std::endl;
                                 break;
                             case TypeSpecifier::FLOAT:
-                                stream << ".float " << initDeclarator->GetGlobalInitializerValue() << std::endl;
+                                stream << ".float " << initDeclarator->EvaluateFloatInitializer(context) << std::endl;
                                 break;
                             case TypeSpecifier::DOUBLE:
-                                stream << ".double " << initDeclarator->GetGlobalInitializerValue() << std::endl;
+                                stream << ".double " << initDeclarator->EvaluateFloatInitializer(context) << std::endl;
                                 break;
                             case TypeSpecifier::VOID:
                             case TypeSpecifier::ENUM:

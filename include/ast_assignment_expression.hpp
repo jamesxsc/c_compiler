@@ -46,13 +46,11 @@ namespace ast {
 
         void Print(std::ostream &stream) const override;
 
-        [[nodiscard]] int Evaluate() const override;
+        [[nodiscard]] int Evaluate(Context &context) const override;
 
         [[nodiscard]] bool ContainsFunctionCall() const override;
 
         [[nodiscard]] std::string GetGlobalIdentifier() const override;
-
-        [[nodiscard]] int GetGlobalValue() const override;
 
     private:
         AssignmentOperator op_;

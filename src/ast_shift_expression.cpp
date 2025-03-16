@@ -61,18 +61,14 @@ namespace ast {
         return right_->GetGlobalIdentifier();
     }
 
-    int ShiftExpression::GetGlobalValue() const {
-        return right_->GetGlobalValue();
-    }
-
-    int ShiftExpression::Evaluate() const {
+    int ShiftExpression::Evaluate(Context &context) const {
         switch (op_) {
             case ShiftOperator::AdditivePromote:
-                return right_->Evaluate();
+                return right_->Evaluate(context);
             case ShiftOperator::Left: // May not be watertight if theres something with stupid types
-                return left_->Evaluate() << right_->Evaluate();
+                return left_->Evaluate(context) << right_->Evaluate(context);
             case ShiftOperator::Right:
-                return left_->Evaluate() >> right_->Evaluate();
+                return left_->Evaluate(context) >> right_->Evaluate(context);
         }
         throw std::runtime_error("ShiftExpression::Evaluate() reached end of function");
     }

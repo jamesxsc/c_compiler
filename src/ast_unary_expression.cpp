@@ -268,15 +268,6 @@ namespace ast {
         exit(1);
     }
 
-    // These are where it gets complicated because for pointers we need the variable being &'d (can't be *'d or anything else)
-    int UnaryExpression::GetGlobalValue() const {
-        if (op_ == UnaryOperator::PostfixPromote) {
-            return postfixChild_->GetGlobalValue();
-        } else {
-            throw std::runtime_error("UnaryExpression::GetGlobalValue() called on a non constant");
-        }
-    }
-
     std::string UnaryExpression::GetGlobalIdentifier() const {
         // For &x both branches will be called
         if (op_ == UnaryOperator::AddressOf) {
@@ -296,20 +287,20 @@ namespace ast {
         return op_ == UnaryOperator::Dereference;
     }
 
-    int UnaryExpression::Evaluate() const {
+    int UnaryExpression::Evaluate(Context &context) const {
         // Probably overkill
         Context dummy;
         switch (op_) {
             case UnaryOperator::PostfixPromote:
-                return postfixChild_->Evaluate();
+                return postfixChild_->Evaluate(context);
             case UnaryOperator::Plus:
-                return multiplicativeChild_->Evaluate();
+                return multiplicativeChild_->Evaluate(context);
             case UnaryOperator::Minus:
-                return -multiplicativeChild_->Evaluate();
+                return -multiplicativeChild_->Evaluate(context);
             case UnaryOperator::BitwiseNot:
-                return ~multiplicativeChild_->Evaluate();
+                return ~multiplicativeChild_->Evaluate(context);
             case UnaryOperator::LogicalNot:
-                return !multiplicativeChild_->Evaluate();
+                return !multiplicativeChild_->Evaluate(context);
             // Accept errors if context is rqd
             case UnaryOperator::SizeofUnary:
                 return unaryChild_->GetType(dummy).GetTypeSize();

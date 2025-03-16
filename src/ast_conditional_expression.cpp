@@ -51,15 +51,11 @@ namespace ast {
         return left_->GetGlobalIdentifier();
     }
 
-    int ConditionalExpression::GetGlobalValue() const {
-        return left_->GetGlobalValue();
-    }
-
-    int ConditionalExpression::Evaluate() const {
+    int ConditionalExpression::Evaluate(Context &context) const {
         if (ternary_) {
-            return left_->Evaluate() ? middle_->Evaluate() : right_->Evaluate();
+            return left_->Evaluate(context) ? middle_->Evaluate(context) : right_->Evaluate(context);
         } else {
-            return left_->Evaluate();
+            return left_->Evaluate(context);
         }
     }
 

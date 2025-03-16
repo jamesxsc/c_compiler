@@ -53,16 +53,12 @@ namespace ast {
         return right_->GetGlobalIdentifier();
     }
 
-    int LogicalOrExpression::GetGlobalValue() const {
-        return right_->GetGlobalValue();
-    }
-
-    int LogicalOrExpression::Evaluate() const {
+    int LogicalOrExpression::Evaluate(Context &context) const {
         if (left_ == nullptr) {
-            return right_->Evaluate();
+            return right_->Evaluate(context);
         }
 
-        return left_->Evaluate() || right_->Evaluate();
+        return left_->Evaluate(context) || right_->Evaluate(context);
     }
 
 }

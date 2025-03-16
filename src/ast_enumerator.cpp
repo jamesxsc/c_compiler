@@ -23,8 +23,8 @@ namespace ast {
         return value_ != nullptr;
     }
 
-    int Enumerator::GetValue() const {
-        return value_->Evaluate();
+    int Enumerator::GetValue(Context &context) const {
+        return value_->Evaluate(context);
     }
 
 }

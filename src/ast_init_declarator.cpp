@@ -50,8 +50,8 @@ namespace ast {
         return initializer_->GetGlobalIdentifier();
     }
 
-    int InitDeclarator::GetGlobalInitializerValue() const {
-        return initializer_->GetGlobalValue();
+    int InitDeclarator::EvaluateInitializer(Context &context) const {
+        return initializer_->Evaluate(context);
     }
 
     const Initializer &InitDeclarator::GetInitializer() const {

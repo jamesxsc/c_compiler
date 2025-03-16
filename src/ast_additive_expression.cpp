@@ -62,18 +62,14 @@ namespace ast {
         return right_->GetGlobalIdentifier();
     }
 
-    int AdditiveExpression::GetGlobalValue() const {
-        return right_->GetGlobalValue();
-    }
-
-    int AdditiveExpression::Evaluate() const {
+    int AdditiveExpression::Evaluate(Context &context) const {
         switch (op_) {
             case AdditiveOperator::MultiplicativePromote:
-                return right_->Evaluate();
+                return right_->Evaluate(context);
             case AdditiveOperator::Add:
-                return left_->Evaluate() + right_->Evaluate();
+                return left_->Evaluate(context) + right_->Evaluate(context);
             case AdditiveOperator::Subtract:
-                return left_->Evaluate() - right_->Evaluate();
+                return left_->Evaluate(context) - right_->Evaluate(context);
         }
         throw std::runtime_error("AdditiveExpression::Evaluate() reached end of function");
     }

@@ -18,7 +18,7 @@ namespace ast {
     }
 
     Variable ArrayDeclarator::BuildArray(TypeSpecifier type, Context &context) const {
-        TypeSpecifier arrayType = {type, size_->Evaluate()};
+        TypeSpecifier arrayType = {type, size_->Evaluate(context)};
         return {
                 .size = arrayType.GetTypeSize(),
                 .type = arrayType,

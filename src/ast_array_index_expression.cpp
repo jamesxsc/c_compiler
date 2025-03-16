@@ -26,6 +26,7 @@ namespace ast {
                 switch (array.GetArrayType()) {
                     case TypeSpecifier::UNSIGNED:
                     case TypeSpecifier::INT:
+                    case TypeSpecifier::ENUM:
                         stream << "lw " << destReg << ",0(" << addressTemp << ")" << std::endl;
                         break;
                     case TypeSpecifier::FLOAT:
@@ -39,7 +40,6 @@ namespace ast {
                         break;
                     case TypeSpecifier::POINTER:
                     case TypeSpecifier::VOID:
-                    case TypeSpecifier::ENUM:
                     case TypeSpecifier::STRUCT:
                     case TypeSpecifier::ARRAY:
                         throw std::runtime_error(
@@ -102,6 +102,7 @@ namespace ast {
                 switch (GetType(context)) { // Already unwrapped
                     case TypeSpecifier::UNSIGNED:
                     case TypeSpecifier::INT:
+                    case TypeSpecifier::ENUM:
                         stream << "lw " << destReg << ",0(" << addressTemp << ")" << std::endl;
                         break;
                     case TypeSpecifier::FLOAT:
@@ -115,7 +116,7 @@ namespace ast {
                         break;
                     case TypeSpecifier::POINTER:
                     case TypeSpecifier::VOID:
-                    case TypeSpecifier::ENUM:
+
                     case TypeSpecifier::STRUCT:
                     case TypeSpecifier::ARRAY:
                         throw std::runtime_error(
@@ -186,10 +187,6 @@ namespace ast {
         return array_->GetGlobalIdentifier();
     }
 
-    int ArrayIndexExpression::GetGlobalValue() const {
-        throw std::runtime_error("ArrayIndexExpression::GetGlobalValue() called on an array index expression");
-    }
-
     std::string ArrayIndexExpression::GetIdentifier() const {
         return array_->GetIdentifier();
     }
@@ -198,7 +195,7 @@ namespace ast {
         return *index_;
     }
 
-    int ArrayIndexExpression::Evaluate() const {
+    int ArrayIndexExpression::Evaluate(Context &context) const {
         throw std::runtime_error("ArrayIndexExpression::Evaluate() called on an array index expression");
     }
 

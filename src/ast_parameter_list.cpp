@@ -26,6 +26,7 @@ namespace ast {
                         break;
                     case TypeSpecifier::POINTER:
                     case TypeSpecifier::INT:
+                    case TypeSpecifier::ENUM:
                     case TypeSpecifier::UNSIGNED:
                         stream << "sw a" << iidx << "," << var.offset << "(s0)" << std::endl;
                         ++iidx;
@@ -35,7 +36,6 @@ namespace ast {
                         ++iidx;
                         break;
                     case TypeSpecifier::VOID:
-                    case TypeSpecifier::ENUM:
                     case TypeSpecifier::STRUCT:
                     case TypeSpecifier::ARRAY:
                         throw std::runtime_error(

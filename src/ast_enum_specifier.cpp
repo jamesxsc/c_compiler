@@ -7,6 +7,10 @@ namespace ast {
 
     // Only called for a definition
     void EnumSpecifier::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
+        for (const auto &enumerator : enumerators_->GetEnumerators(context)) {
+            enumeratorsValuesMap_.emplace(enumerator.first, enumerator.second);
+        }
+
         if (isGlobal_) {
             context.InsertGlobalEnum(GetIdentifier(), enumeratorsValuesMap_);
         } else {

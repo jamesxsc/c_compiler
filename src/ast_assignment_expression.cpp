@@ -85,6 +85,7 @@ namespace ast {
                 switch (type) {
                     case TypeSpecifier::UNSIGNED:
                     case TypeSpecifier::INT:
+                    case TypeSpecifier::ENUM:
                         stream << "sw " << result << ",0(" << addrReg << ")" << std::endl;
                         break;
                     case TypeSpecifier::FLOAT:
@@ -98,7 +99,6 @@ namespace ast {
                         break;
                     case TypeSpecifier::POINTER:
                     case TypeSpecifier::VOID:
-                    case TypeSpecifier::ENUM:
                     case TypeSpecifier::STRUCT:
                     case TypeSpecifier::ARRAY:
                         throw std::runtime_error(
@@ -163,6 +163,7 @@ namespace ast {
                         break;
                     case TypeSpecifier::UNSIGNED:
                     case TypeSpecifier::INT:
+                    case TypeSpecifier::ENUM:
                         stream << "sw " << result << ",0(" << addrReg << ")" << std::endl;
                         break;
                     case TypeSpecifier::CHAR:
@@ -170,7 +171,6 @@ namespace ast {
                         break;
                     case TypeSpecifier::POINTER:
                     case TypeSpecifier::VOID:
-                    case TypeSpecifier::ENUM:
                     case TypeSpecifier::STRUCT:
                     case TypeSpecifier::ARRAY:
                         throw std::runtime_error("Unsupported type for assignment");
@@ -232,6 +232,7 @@ namespace ast {
                         break;
                     case TypeSpecifier::UNSIGNED:
                     case TypeSpecifier::INT:
+                    case TypeSpecifier::ENUM:
                         stream << "sw " << result << "," << lhsVariable.offset << "(s0)" << std::endl;
                         break;
                     case TypeSpecifier::CHAR:
@@ -243,7 +244,6 @@ namespace ast {
                         break;
                     }
                     case TypeSpecifier::VOID:
-                    case TypeSpecifier::ENUM:
                     case TypeSpecifier::STRUCT:
                     case TypeSpecifier::ARRAY:
                         throw std::runtime_error("Unsupported type for assignment");
@@ -349,11 +349,10 @@ namespace ast {
         return conditional_->GetGlobalIdentifier();
     }
 
-    int AssignmentExpression::GetGlobalValue() const {
-        return conditional_->GetGlobalValue();
-    }
-
-    int AssignmentExpression::Evaluate() const {
+    int AssignmentExpression::Evaluate(Context &context) const {
+        if (op_ == AssignmentOperator::ConditionalPromote) {
+            return conditional_->Evaluate(context);
+        }
         throw std::runtime_error("AssignmentExpression::Evaluate() called on an assignment expression");
     }
 
