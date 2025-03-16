@@ -4,30 +4,36 @@
 #include "ast_postfix_expression.hpp"
 #include "ast_expression.hpp"
 
+// If Register or Context aren't recognized, also include their headers:
+// #include "register.hpp"
+// #include "context.hpp"
+
 namespace ast {
 
     class ArrayIndexExpression : public ExpressionBase {
     public:
-        ArrayIndexExpression(PostfixExpressionPtr array, ExpressionPtr index) : index_(std::move(index)),
-                                                                                array_(std::move(array)) {}
+        ArrayIndexExpression(PostfixExpressionPtr array, ExpressionPtr index)
+            : index_(std::move(index)), array_(std::move(array)) {}
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
 
+        Register EmitAddressRISC(std::ostream &stream, Context &context) const;
+
         void Print(std::ostream &stream) const override;
 
-        [[nodiscard]] int Evaluate() const override;
+        int Evaluate() const override;
 
-        [[nodiscard]] bool ContainsFunctionCall() const override;
+        bool ContainsFunctionCall() const override;
 
         TypeSpecifier GetType(Context &context) const override;
 
-        [[nodiscard]] std::string GetGlobalIdentifier() const override;
+        std::string GetGlobalIdentifier() const override;
 
-        [[nodiscard]] int GetGlobalValue() const override;
+        int GetGlobalValue() const override;
 
-        [[nodiscard]] std::string GetIdentifier() const;
+        std::string GetIdentifier() const;
 
-        [[nodiscard]] const Expression &GetIndexExpression() const;
+        const Expression &GetIndexExpression() const;
 
     private:
         ExpressionPtr index_;
@@ -36,4 +42,4 @@ namespace ast {
 
     using ArrayIndexExpressionPtr = std::unique_ptr<const ArrayIndexExpression>;
 
-}
+} // namespace ast
