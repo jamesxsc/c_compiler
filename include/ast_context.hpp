@@ -151,6 +151,8 @@ namespace ast {
 
         void EmitDeferredRISC(std::ostream &stream);
 
+        TypeSpecifier UnifyTypes(const TypeSpecifier &a, const TypeSpecifier &b) const;
+
     private:
         std::bitset<7> integerTemporaries_; // using t0... notation for contiguous numbering
         std::bitset<12> integerPersistent_; // using s0... notation for contiguous numbering
