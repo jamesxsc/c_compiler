@@ -73,13 +73,14 @@
 * ~~Test for nested switch~~
 * ~~Tests for global floats doubles and pointers if there aren't already any~~
 * ~~Test for calling a function from our test with several arguments of different sizes e.g. char, float, int and calling external~~
-  * I want one with just float, double as well to check alignment, both calling from and being called by our compiled code
+  * ~~I want one with just float, double as well to check alignment, both calling from and being called by our compiled code~~
 * ~~Tests for global/local arrays of different types~~
 * ~~Test for accessing a pointer when the original variable is out of scope (if this is possible without malloc and we think this will be tested; or just when the underlying variable has been shadowed)~~
 * Test returning an array from a function as array and pointer (first not done yet)
 * ~~Test void with and without return~~
-* Test for relational and logical operators on float and double
-* Test to assign to global ptr (not dereferenced)
+* ~~Test for relational operators on float and double~~
+* Test for logical operators on float and double
+* ~~Test to assign to global ptr (not dereferenced)~~
 * Test for if (f) and while/for where f is a float or double to be implicitly converted. Same for pointer and char
 * Test for multidimensional arrays
 * ~~Test for float equality e.g. f == 2.0f or d == 2.0d~~
@@ -91,7 +92,8 @@
 * Test for chained assignment
 * Check if we need nops anywhere/load delay slots
 * Ternary operator
-* Float/double unary and postfix operators AND pointers/array identifier
+* Test with multiply where right hand is dereferenced pointer e.g. int *p = &x; int y = 2 * *p;
+* Float/double unary and postfix operators AND for pointers/array identifier e.g. float++ --float float[0]++ --float[0], globals and local ideally
 * Char operation byte masking where applicable
 * Enum tests: arithmetic e.g. adding multiplying enums with each other and ints; scoped enums; enum in switch case; initialize global int from enum identifier
 * ~~Floats Eliott & James~~ Mar 10

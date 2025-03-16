@@ -11,10 +11,12 @@ namespace ast {
                 postfixChild_->EmitRISC(stream, context, destReg);
                 break;
             case UnaryOperator::PrefixIncrement:
-            case UnaryOperator::PrefixDecrement: {
+            case UnaryOperator::PrefixDecrement: { // todo float etc
                 // To an extent this assumes child unary is an lvalue
                 std::string identifier = unaryChild_->GetIdentifier();
                 if (context.IsGlobal(identifier)) {
+                    // ballache have to handle derefence/non dereference case
+                    // check this in postfix too - type gets unwrapped, but never considers de ref right?
                     Register tempReg = context.AllocateTemporary();
                     Register tempReg2 = hasDestination ? destReg : context.AllocateTemporary();
                     stream << "lui " << tempReg2 << ",%hi(" << identifier << ")" << std::endl;
@@ -58,7 +60,6 @@ namespace ast {
             }
             case UnaryOperator::Dereference: {
                 std::string identifier = multiplicativeChild_->GetIdentifier();
-                // todo maybe the first load should be delegated to child
                 if (context.IsGlobal(identifier)) {
                     TypeSpecifier type = context.GetGlobalType(identifier).GetPointeeType();
                     switch (type) {
@@ -86,7 +87,7 @@ namespace ast {
                             break;
                         }
                         case TypeSpecifier::Type::VOID:
-                        case TypeSpecifier::Type::STRUCT:
+                        case TypeSpecifier::Type::STRUCT: // todo both of these should be supported
                         case TypeSpecifier::Type::ARRAY:
                             throw std::runtime_error("Unsupported type for dereference");
                     }
@@ -117,7 +118,7 @@ namespace ast {
                             break;
                         }
                         case TypeSpecifier::Type::VOID:
-                        case TypeSpecifier::Type::STRUCT:
+                        case TypeSpecifier::Type::STRUCT: // todo both of these should be supported
                         case TypeSpecifier::Type::ARRAY:
                             throw std::runtime_error("Unsupported type for dereference");
                     }
@@ -128,10 +129,30 @@ namespace ast {
                 // Does nothing
                 multiplicativeChild_->EmitRISC(stream, context, destReg);
                 break;
-            case UnaryOperator::Minus:
+            case UnaryOperator::Minus: {
                 multiplicativeChild_->EmitRISC(stream, context, destReg);
-                stream << "neg " << destReg << "," << destReg << std::endl;
+                TypeSpecifier type = multiplicativeChild_->GetType(context);
+                switch (type) {
+                    case TypeSpecifier::Type::INT:
+                    case TypeSpecifier::Type::CHAR:
+                    case TypeSpecifier::Type::UNSIGNED:
+                    case TypeSpecifier::Type::ENUM:
+                        stream << "neg " << destReg << "," << destReg << std::endl;
+                        break;
+                    case TypeSpecifier::Type::FLOAT:
+                        stream << "fneg.s " << destReg << "," << destReg << std::endl;
+                        break;
+                    case TypeSpecifier::Type::DOUBLE:
+                        stream << "fneg.d " << destReg << "," << destReg << std::endl;
+                        break;
+                    case TypeSpecifier::Type::VOID:
+                    case TypeSpecifier::Type::POINTER:
+                    case TypeSpecifier::Type::STRUCT:
+                    case TypeSpecifier::Type::ARRAY:
+                        throw std::runtime_error("Unary minus attempted on unsupported type");
+                }
                 break;
+            }
             case UnaryOperator::BitwiseNot:
                 multiplicativeChild_->EmitRISC(stream, context, destReg);
                 stream << "not " << destReg << "," << destReg << std::endl;

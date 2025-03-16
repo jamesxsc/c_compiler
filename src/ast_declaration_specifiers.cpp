@@ -11,10 +11,8 @@ namespace ast {
         if (storageClassSpecifier_ != StorageClassSpecifier::None) {
             stream << storageClassSpecifier_ << " ";
         }
-        for (auto it = typeSpecifiers_.begin(); it != typeSpecifiers_.end(); ++it) {
-            stream << *it;
-            if (it != --typeSpecifiers_.end())
-                stream << " ";
+        for (const auto &typeSpecifier : typeSpecifiers_) {
+            stream << typeSpecifier << " ";
         }
     }
 

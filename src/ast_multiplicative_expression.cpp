@@ -51,8 +51,8 @@ namespace ast {
                 return right_->GetType(context);
         }
 
-        // todo handle unary deref in here // make another method // test
-        return Utils::BinaryResultType(left_->GetType(context), right_->GetType(context));
+        TypeSpecifier right = right_->IsPointerDereference() ? right_->GetType(context).GetPointeeType() : right_->GetType(context);
+        return Utils::BinaryResultType(left_->GetType(context), right);
     }
 
     bool MultiplicativeExpression::ContainsFunctionCall() const {

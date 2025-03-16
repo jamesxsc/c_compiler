@@ -121,11 +121,12 @@ namespace ast {
             case TypeSpecifier::Type::ENUM:
                 ls << "enum " << type.GetEnumIdentifier();
                 break;
+                // The below will probably never be called but are included for completeness
             case TypeSpecifier::Type::STRUCT:
                 ls << "struct " << type.GetStructIdentifier();
                 break;
             case TypeSpecifier::Type::ARRAY:
-                ls << type.GetArrayType() << "[" << type.GetArraySize() << "]"; // todo is this ever called?
+                ls << type.GetArrayType() << "[" << type.GetArraySize() << "]";
                 break;
         }
         return ls;

@@ -74,9 +74,7 @@ namespace ast {
                 Register indexReg = context.AllocateTemporary();
                 // todo ughhh do we want to change order to match gcc more closely? probably cba
                 unary_->GetArrayIndexExpression().EmitRISC(stream, context, indexReg);
-                int logSize = static_cast<int>(std::log2(type.GetTypeSize())); // todo will this break for structs
-                if (logSize != 0) // Save an instruction if it's a char array
-                    stream << "slli " << indexReg << "," << indexReg << "," << logSize << std::endl;
+                Utils::EmitIndexToAddressOffset(stream, indexReg, context, type);
                 Register addrReg = context.AllocateTemporary();
                 stream << "lui " << addrReg << ",%hi(" << identifier << ")" << std::endl;
                 stream << "addi " << addrReg << "," << addrReg << ",%lo(" << identifier << ")" << std::endl;
@@ -143,11 +141,6 @@ namespace ast {
                 context.FreeTemporary(addrReg);
             }
         } else if (unary_->IsPointerDereference()) { // Type is already unfolded
-            // replaces the deref'd check inside pointer case - that will only be reassigning a pointer or ptr to ptr
-            // this is actually a really nice way to avoid nested switches and capture different underlying type stores
-            // am i missing something - where else do we do this? nowehere?
-            // its not the same as de ref because that's reading not writing
-            // use temp reg to obtain address - should be common to global/non global
             if (context.IsGlobal(identifier)) {
                 // todo global ptrs
             } else {

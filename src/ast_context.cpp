@@ -152,9 +152,6 @@ namespace ast {
         stack_.end()[-2].usedIntegerPersistentRegisters |= CurrentFrame().usedIntegerPersistentRegisters;
 
         stack_.pop_back();
-
-        // todo do we need to store anything
-        // and restore registers? unclear
     }
 
     void Context::PopFrame() {

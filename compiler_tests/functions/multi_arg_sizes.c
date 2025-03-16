@@ -1,8 +1,9 @@
-char g1(char c, int i, float f) {
-    int sum = c + i + (int)f;
-    return sum;
-}
+int g1(char c, int i, double d);
 
 int f() {
-    return g1('A', 10, 3.5f);
+    return g1('A', 10, 3.5);
+}
+
+double callee(double a, int b, double c) {
+    return a + c;
 }

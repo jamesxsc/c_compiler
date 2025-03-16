@@ -1,6 +1,7 @@
 #include <cassert>
 #include <cmath>
 #include "ast_array_index_expression.hpp"
+#include "risc_utils.hpp"
 
 namespace ast {
 
@@ -15,9 +16,7 @@ namespace ast {
                        "ArrayIndexExpression::EmitRISC() destReg array type mismatch");
                 Register indexReg = context.AllocateTemporary();
                 index_->EmitRISC(stream, context, indexReg);
-                int logSize = static_cast<int>(std::log2(array.GetArrayType().GetTypeSize())); // todo will this break for structs
-                if (logSize != 0) // Save an instruction if it's a char array
-                    stream << "slli " << indexReg << "," << indexReg << "," << logSize << std::endl;
+                Utils::EmitIndexToAddressOffset(stream, indexReg, context, array.GetArrayType());
                 Register addressTemp = useFloat ? context.AllocateTemporary() : destReg;
                 stream << "lui " << addressTemp << ", %hi(" << identifier << ")" << std::endl;
                 stream << "addi " << addressTemp << "," << addressTemp << ",%lo(" << identifier << ")" << std::endl;

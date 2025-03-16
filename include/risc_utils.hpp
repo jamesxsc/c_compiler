@@ -56,4 +56,8 @@ namespace ast::Utils {
 
     TypeSpecifier BinarySubtractionResultType(const TypeSpecifier& leftType, const TypeSpecifier& rightType);
 
+    void EmitIndexToAddressOffset(std::ostream &stream, Register sizeReg, Context &context, const TypeSpecifier& type);
+
+    void EmitAddressToIndexOffset(std::ostream &stream, Register sizeReg, Context &context, const TypeSpecifier& type);
+
 }

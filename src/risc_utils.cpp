@@ -37,7 +37,6 @@ namespace ast::Utils {
         }
     }
 
-    // todo nice to have : extract a binaryexpression class to handle common logic
     void EmitMultiply(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
                       const ExpressionBase &right) {
         TypeSpecifier type = BinaryResultType(left.GetType(context), right.GetType(context));
@@ -151,13 +150,10 @@ namespace ast::Utils {
             case TypeSpecifier::POINTER:
             case TypeSpecifier::ARRAY: {
                 // We are guaranteed here that only one is a pointer
-                int logSize = static_cast<int>(std::log2(type.GetPointeeType().GetTypeSize()));
                 if (left.GetType(context).IsPointer()) {
-                    // todo wont work for structs
-                    // logsize != 0 etc... but can maybe extract this as it will actually be pretty long to stay efficient
-                    stream << "slli " << rightReg << "," << rightReg << "," << logSize << std::endl;
+                    Utils::EmitIndexToAddressOffset(stream, rightReg, context, left.GetType(context).GetPointeeType());
                 } else {
-                    stream << "slli " << leftReg << "," << leftReg << "," << logSize << std::endl;
+                    Utils::EmitIndexToAddressOffset(stream, leftReg, context, right.GetType(context).GetPointeeType());
                 }
                 stream << "add " << result << "," << leftReg << "," << rightReg << std::endl;
                 break;
@@ -195,10 +191,8 @@ namespace ast::Utils {
             case TypeSpecifier::ARRAY:
             case TypeSpecifier::POINTER: {
                 // We are guaranteed here that both are ptrs
-                int logSize = static_cast<int>(std::log2(left.GetType(context).GetPointeeType().GetTypeSize()));
-                // todo wont work for structs
                 stream << "sub " << result << "," << leftReg << "," << rightReg << std::endl;
-                stream << "srai " << result << "," << result << "," << logSize << std::endl;
+                Utils::EmitAddressToIndexOffset(stream, result, context, left.GetType(context).GetPointeeType());
                 break;
             }
             case TypeSpecifier::INT:
@@ -289,7 +283,7 @@ namespace ast::Utils {
         return {it->second};
     }
 
-    // todo alter this, we're not promoting to int everywhere. that is what should be done, then sw is based on return type? cx assignment
+    // This is good enough unless we get failures as a direct result
     TypeSpecifier BinaryResultType(const TypeSpecifier &leftType, const TypeSpecifier &rightType) {
         // Choose wider type, and choose unsigned if equal
         if (leftType.GetTypeSize() > rightType.GetTypeSize()) {
@@ -298,7 +292,8 @@ namespace ast::Utils {
             if (leftType.IsSigned() && !rightType.IsSigned())
                 return rightType;
             else
-                return leftType;
+                // Always promote
+                return leftType == TypeSpecifier::CHAR ? TypeSpecifier{TypeSpecifier::UNSIGNED} : leftType;
         } else {
             return rightType;
         }
@@ -334,6 +329,37 @@ namespace ast::Utils {
         }
 
         return BinaryResultType(leftType, rightType);
+    }
+
+    // Quite efficient, and works for structs
+    void EmitIndexToAddressOffset(std::ostream &stream, Register sizeReg, Context &context, const TypeSpecifier& type) {
+        int elementSize = type.GetTypeSize();
+        if (elementSize == 1) return;
+        bool pow2 = (elementSize & (elementSize - 1)) == 0;
+        if (pow2) {
+            int logSize = static_cast<int>(std::log2(elementSize));
+            stream << "slli " << sizeReg << "," << sizeReg << "," << logSize << std::endl;
+        } else {
+            Register temp = context.AllocateTemporary();
+            stream << "li " << temp << "," << elementSize << std::endl;
+            stream << "mul " << sizeReg << "," << sizeReg << "," << temp << std::endl;
+            context.FreeTemporary(temp);
+        }
+    }
+
+    void EmitAddressToIndexOffset(std::ostream &stream, Register sizeReg, Context &context, const TypeSpecifier& type) {
+        int elementSize = type.GetTypeSize();
+        if (elementSize == 1) return;
+        bool pow2 = (elementSize & (elementSize - 1)) == 0;
+        if (pow2) {
+            int logSize = static_cast<int>(std::log2(elementSize));
+            stream << "srai " << sizeReg << "," << sizeReg << "," << logSize << std::endl;
+        } else {
+            Register temp = context.AllocateTemporary();
+            stream << "li " << temp << "," << elementSize << std::endl;
+            stream << "div " << sizeReg << "," << sizeReg << "," << temp << std::endl;
+            context.FreeTemporary(temp);
+        }
     }
 
 }
