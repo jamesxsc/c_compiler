@@ -222,7 +222,7 @@ namespace ast {
     }
 
     void Context::InsertGlobalEnum(const std::string &identifier, const std::map<std::string, int> &values) {
-        globalEnums.Insert(identifier, values);
+        globalEnums_.Insert(identifier, values);
     }
 
     // Some duplication in finding where it is but it's ok
@@ -233,7 +233,7 @@ namespace ast {
                 return CurrentFrame().enums.Lookup(identifier);
             }
         }
-        return globalEnums.Lookup(identifier); // Will throw if not found
+        return globalEnums_.Lookup(identifier); // Will throw if not found
     }
 
     bool Context::IsEnum(const std::string &identifier) {
@@ -242,14 +242,42 @@ namespace ast {
                 return true;
             }
         }
-        return globalEnums.Contains(identifier);
+        return globalEnums_.Contains(identifier);
     }
 
-    void Enums::Insert(const std::string &identifier, const std::map<std::string, int>& values) {
+    void Context::InsertGlobalStruct(const std::string &identifier,
+                                     const std::vector<std::pair<std::string, TypeSpecifier>> &members) {
+        globalStructs_.Insert(identifier, members);
+    }
+
+    std::vector<std::pair<std::string, TypeSpecifier>> Context::GetStruct(const std::string &identifier) {
+        // Try in local scope first
+        if (!stack_.empty()) {
+            if (CurrentFrame().structs.Contains(identifier)) {
+                return CurrentFrame().structs.GetStruct(identifier);
+            }
+        }
+        return globalStructs_.GetStruct(identifier); // Will throw if not found
+    }
+
+    bool Context::IsStruct(const std::string &identifier) {
+        if (!stack_.empty()) {
+            if (CurrentFrame().structs.Contains(identifier)) {
+                return true;
+            }
+        }
+        return globalStructs_.Contains(identifier);
+    }
+
+    void Enums::Insert(const std::string &identifier, const std::map<std::string, int> &values) {
+        // Overwrite if already exists
+        if (enums_.find(identifier) != enums_.end()) {
+            enums_.erase(identifier);
+        }
         enums_.emplace(identifier, values);
-        for (const auto &pair : values) {
+        for (const auto &pair: values) {
             if (lookup_.find(pair.first) != lookup_.end()) {
-                throw std::runtime_error("Enums::Insert Enum identifier already exists in scope");
+                lookup_.erase(pair.first);
             }
             lookup_.emplace(pair.first, pair.second);
         }
@@ -267,6 +295,25 @@ namespace ast {
 
     bool Enums::Contains(const std::string &identifier) const {
         return lookup_.find(identifier) != lookup_.end();
+    }
+
+    void
+    Structs::Insert(const std::string &identifier, const std::vector<std::pair<std::string, TypeSpecifier>> &members) {
+        // Overwrite if already exists
+        if (structs_.find(identifier) != structs_.end()) {
+            structs_.erase(identifier);
+        }
+        structs_.emplace(identifier, members);
+    }
+
+    std::vector<std::pair<std::string, TypeSpecifier>> Structs::GetStruct(const std::string &identifier) const {
+        auto it = structs_.find(identifier);
+        if (it != structs_.end()) return it->second;
+        throw std::runtime_error("Structs::GetStruct Struct not found in context");
+    }
+
+    bool Structs::Contains(const std::string &identifier) const {
+        return structs_.find(identifier) != structs_.end();
     }
 
 } // namespace ast

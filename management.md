@@ -86,7 +86,7 @@
 * Test using "unsigned int" type
 * Tests for integral promotion
 * Test for modulo behaviour with signed/unsigned left/right operands
-* Test for sizeof (char + char) should be 4 because of promotion
+* ~~Test for sizeof (char + char) should be 4 because of promotion~~
 * Test for ++ and = x + 1 on arrays (like int a[] not a[index]) and pointers (similar to pointer/arithmetic)
 * Test for chained assignment
 * Check if we need nops anywhere/load delay slots
@@ -100,15 +100,14 @@
 * ~~Arrays local or global - James~~ Mar 11
 * ~~Char constant (override same methods as int but accept char or int in constructor; needs work in lexer also) - James~~ Mar 13
 * Float int double char (weird shifting and masking int | char return char eg) conversion pain - but implicit casting isn't tested apparently what about int + float
-* Cerr outputs for all unsupported features
 * Function calls with many arguments and test
 * Register spilling
 * ~~Void type/functions~~ Mar 14
 * ~~Assignment operators impl and testing - James~~ Mar 14
 * Structs
-* Enum
+* ~~Enum~~ Mar 16
 * ~~Sizeof~~
-* Pointer arithmetic 
+* ~~Pointer arithmetic~~ Mar 15 
 
 
 Needs more who did what and collaboration stuff and timelines

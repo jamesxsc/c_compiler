@@ -5,11 +5,15 @@ namespace ast {
     void AggregateTypeDefinition::EmitRISC(std::ostream &stream, ast::Context &context, ast::Register destReg) const {
         if (enumSpecifier_)
             enumSpecifier_->EmitRISC(stream, context, destReg);
+        if (structSpecifier_)
+            structSpecifier_->EmitRISC(stream, context, destReg);
     }
 
     void AggregateTypeDefinition::Print(std::ostream &stream) const {
         if (enumSpecifier_)
             enumSpecifier_->Print(stream);
+        if (structSpecifier_)
+            structSpecifier_->Print(stream);
         stream << ";" << std::endl;
     }
 
@@ -19,9 +23,11 @@ namespace ast {
 
     void AggregateTypeDefinition::SetGlobal() {
         isGlobal_ = true;
-        if (enumSpecifier_) {
+        if (enumSpecifier_)
             enumSpecifier_->SetGlobal();
-        }
+        if (structSpecifier_)
+            structSpecifier_->SetGlobal();
+
     }
 
 }

@@ -64,6 +64,11 @@
   Enumerator* enumerator;
   EnumeratorList* enumerator_list;
   EnumSpecifier* enum_specifier;
+  StructDeclarator* struct_declarator;
+  StructDeclaratorList* struct_declarator_list;
+  StructDeclaration* struct_declaration;
+  StructDeclarationList* struct_declaration_list;
+  StructSpecifier* struct_specifier;
   int          	number_int;
   double       	number_float;
   std::string* 	string;
@@ -84,9 +89,7 @@
 // Unchanged types
 %type <node_list> translation_unit
 %type <node> external_declaration function_definition
-%type <expression_base> primary_expression
-%type <node> struct_specifier struct_declaration_list struct_declaration struct_declarator_list
-%type <node> struct_declarator pointer
+%type <node> pointer
 %type <node> identifier_list abstract_declarator direct_abstract_declarator
 
 // Statement types
@@ -111,6 +114,7 @@
 %nterm <parameter_declaration> parameter_declaration
 
 // Expression hierarchy
+%type <expression_base> primary_expression
 %nterm <postfix_expression> postfix_expression
 %nterm <function_call_expression> function_call_expression
 %nterm <array_index_expression> array_index_expression
@@ -140,6 +144,13 @@
 %nterm <enumerator> enumerator
 %nterm <enumerator_list> enumerator_list
 %nterm <enum_specifier> enum_specifier
+
+// Structs
+%nterm <struct_declarator> struct_declarator
+%nterm <struct_declarator_list> struct_declarator_list
+%nterm <struct_declaration> struct_declaration
+%nterm <struct_declaration_list> struct_declaration_list
+%nterm <struct_specifier> struct_specifier
 
 %type <number_int> INT_CONSTANT CHAR_CONSTANT
 %type <number_float> FLOAT_CONSTANT DOUBLE_CONSTANT
@@ -343,6 +354,7 @@ constant_expression
 declaration
 	: declaration_specifiers ';' // We modified the grammar so don't use this, allows a different type for usage as type specifier and definition
 	| enum_specifier ';' { $$ = new AggregateTypeDefinition(EnumSpecifierPtr($1)); }
+	| struct_specifier ';' { $$ = new AggregateTypeDefinition(StructSpecifierPtr($1)); }
 	| declaration_specifiers init_declarator_list ';' {
 	    $$ = new Declaration(DeclarationSpecifiersPtr($1), InitDeclaratorListPtr($2));
 	    Context dummy; // Not required
@@ -390,24 +402,24 @@ type_specifier
 	| DOUBLE { $$ = new TypeSpecifier(TypeSpecifier::DOUBLE); }
 	| SIGNED { $$ = new TypeSpecifier(TypeSpecifier::INT); }
 	| UNSIGNED { $$ = new TypeSpecifier(TypeSpecifier::UNSIGNED); }
-    | struct_specifier
+    | struct_specifier { $$ = new TypeSpecifier($1->GetIdentifier()); }
 	| enum_specifier { $$ = new TypeSpecifier($1->GetIdentifier()); }
 	| TYPE_NAME { $$ = new TypeSpecifier(typedefs.at(*$1)); delete $1; }
 	;
 
 struct_specifier
-	: STRUCT IDENTIFIER '{' struct_declaration_list '}'
-	| STRUCT '{' struct_declaration_list '}'
-	| STRUCT IDENTIFIER
+	: STRUCT IDENTIFIER '{' struct_declaration_list '}' { $$ = new StructSpecifier(*$2, StructDeclarationListPtr($4)); delete $2; }
+	| STRUCT '{' struct_declaration_list '}' { $$ = new StructSpecifier(StructDeclarationListPtr($3)); }
+	| STRUCT IDENTIFIER { $$ = new StructSpecifier(*$2); delete $2; }
 	;
 
 struct_declaration_list
-	: struct_declaration
-	| struct_declaration_list struct_declaration
+	: struct_declaration { $$ = new StructDeclarationList(StructDeclarationPtr($1)); }
+	| struct_declaration_list struct_declaration { $1->PushBack(StructDeclarationPtr($2)); $$=$1; }
 	;
 
 struct_declaration
-	: specifier_qualifier_list struct_declarator_list ';'
+	: specifier_qualifier_list struct_declarator_list ';' { $$ = new StructDeclaration(SpecifierQualifierListPtr($1), StructDeclaratorListPtr($2)); }
 	;
 
 specifier_qualifier_list
@@ -416,13 +428,12 @@ specifier_qualifier_list
 	;
 
 struct_declarator_list
-	: struct_declarator
-	| struct_declarator_list ',' struct_declarator
+	: struct_declarator { $$ = new StructDeclaratorList(StructDeclaratorPtr($1)); }
+	| struct_declarator_list ',' struct_declarator { $1->PushBack(StructDeclaratorPtr($3)); $$=$1; }
 	;
 
-// hmmm undecided if we keep this type
 struct_declarator
-	: declarator
+	: declarator { $$ = new StructDeclarator(DeclaratorPtr($1)); }
 	| ':' constant_expression { throw std::runtime_error("Struct bitfields are not supported."); }
 	| declarator ':' constant_expression { throw std::runtime_error("Struct bitfields are not supported."); }
 	;

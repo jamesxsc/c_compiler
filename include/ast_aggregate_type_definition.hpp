@@ -2,6 +2,7 @@
 
 #include "ast_declaration.hpp"
 #include "ast_enum_specifier.hpp"
+#include "ast_struct_specifier.hpp"
 
 namespace ast {
 
@@ -9,6 +10,9 @@ namespace ast {
     public:
         explicit AggregateTypeDefinition(EnumSpecifierPtr enumSpecifier) : Declaration(nullptr, nullptr),
                                                                            enumSpecifier_(std::move(enumSpecifier)) {}
+
+        explicit AggregateTypeDefinition(StructSpecifierPtr structSpecifier) : Declaration(nullptr, nullptr),
+                                                                              structSpecifier_(std::move(structSpecifier)) {}
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
 
@@ -20,6 +24,7 @@ namespace ast {
 
     private:
         EnumSpecifierPtr enumSpecifier_;
+        StructSpecifierPtr structSpecifier_;
         bool isGlobal_{false};
     };
 
