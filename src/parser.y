@@ -10,7 +10,7 @@
     extern int yylineno;
     extern char* yytext;
     extern Node* g_root;
-    extern std::unordered_map<std::string, TypeSpecifier> typedefs;
+    extern std::unordered_map<std::string, TypeSpecifier> typedefs; // todo make scoped if we have time
     extern FILE* yyin;
     int yylex(void);
     void yyerror(const char*);
@@ -162,7 +162,10 @@ translation_unit
 
 external_declaration
 	: function_definition { $$ = $1; }
-	| declaration { $$ = $1 ? new ExternalDeclaration(DeclarationPtr($1)) : nullptr; }
+	| declaration {
+	    AggregateTypeDefinition* agg = dynamic_cast<AggregateTypeDefinition*>($1);
+	    if (agg != nullptr) { agg->SetGlobal(); $$ = agg; } else $$ = new ExternalDeclaration(DeclarationPtr($1));
+	}
 	;
 
 function_definition
@@ -338,7 +341,8 @@ constant_expression
 	;
 
 declaration
-	: declaration_specifiers ';' { $$ = nullptr; } // Aggregate definition - there is actually no RISC to emit
+	: declaration_specifiers ';' // We modified the grammar so don't use this, allows a different type for usage as type specifier and definition
+	| enum_specifier ';' { $$ = new AggregateTypeDefinition(EnumSpecifierPtr($1)); }
 	| declaration_specifiers init_declarator_list ';' {
 	    $$ = new Declaration(DeclarationSpecifiersPtr($1), InitDeclaratorListPtr($2));
 	    Context dummy; // Not required
@@ -387,7 +391,7 @@ type_specifier
 	| SIGNED { $$ = new TypeSpecifier(TypeSpecifier::INT); }
 	| UNSIGNED { $$ = new TypeSpecifier(TypeSpecifier::UNSIGNED); }
     | struct_specifier
-	| enum_specifier { $$ = new TypeSpecifier($1->GetTypeSpecifier()); }
+	| enum_specifier { $$ = new TypeSpecifier($1->GetIdentifier()); }
 	| TYPE_NAME { $$ = new TypeSpecifier(typedefs.at(*$1)); delete $1; }
 	;
 

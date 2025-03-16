@@ -15,8 +15,7 @@ namespace ast {
     }
 
     void DeclarationList::PushBack(DeclarationPtr item) {
-        if (item)
-            declarations_.push_back(std::move(item));
+        declarations_.push_back(std::move(item));
     }
 
     size_t DeclarationList::Size() const {

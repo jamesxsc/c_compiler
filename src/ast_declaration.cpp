@@ -112,4 +112,8 @@ namespace ast {
         return declarationSpecifiers_->GetStorageClassSpecifier() == StorageClassSpecifier::Typedef;
     }
 
+    bool Declaration::IsAggregateTypeDefinition() const {
+        return false;
+    }
+
 }

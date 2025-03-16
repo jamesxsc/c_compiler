@@ -5,9 +5,13 @@
 
 namespace ast {
 
+    // Only called for a definition
     void EnumSpecifier::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-        // Nothing to do
-        // Not even put in context since typespecifier contains the definition
+        if (isGlobal_) {
+            context.InsertGlobalEnum(GetIdentifier(), enumeratorsValuesMap_);
+        } else {
+            context.CurrentFrame().enums.Insert(GetIdentifier(), enumeratorsValuesMap_);
+        }
     }
 
     void EnumSpecifier::Print(std::ostream &stream) const {
@@ -16,7 +20,7 @@ namespace ast {
             stream << GetIdentifier();
         }
         if (HasEnumerators()) {
-            stream << " { ";
+            stream << " {" << std::endl;
             enumerators_->Print(stream);
             stream << "}";
         }
@@ -34,30 +38,8 @@ namespace ast {
         return enumerators_ != nullptr;
     }
 
-    static std::unordered_map<std::string, TypeSpecifier> definedEnums{};
-
-    // Called by parser in type_name rule
-    TypeSpecifier EnumSpecifier::GetTypeSpecifier() const {
-        // Order matters, so don't populate in constructor
-        // I'd rather put this here than clutter the parser
-        // No definition
-        if (!HasEnumerators()) {
-            assert(HasIdentifier() &&
-                   "EnumSpecifier::GetTypeSpecifier() called on an enum without enumerators or identifier");
-            if (definedEnums.find(GetIdentifier()) != definedEnums.end())
-                return definedEnums.at(*identifier_);
-            else
-                throw std::runtime_error("EnumSpecifier::GetTypeSpecifier() called on an undefined enum");
-        }
-
-        // Definition
-        TypeSpecifier typeSpecifier{GetIdentifier(), enumerators_->GetEnumerators()};
-
-        // Store for future usages
-        if (HasIdentifier())
-            definedEnums.emplace(GetIdentifier(), typeSpecifier);
-
-        return typeSpecifier;
+    void EnumSpecifier::SetGlobal() {
+        isGlobal_ = true;
     }
 
 }

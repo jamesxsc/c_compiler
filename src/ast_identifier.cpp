@@ -4,6 +4,7 @@
 
 namespace ast {
 
+
     void Identifier::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         // Variable identifier
         if (context.IsGlobal(identifier_)) {
@@ -69,9 +70,12 @@ namespace ast {
                             "Identifier::EmitRISC() called on an unsupported type");
                     // todo handle these
             }
+        } else if (context.IsEnum(identifier_)) { // Enumerator identifier
+            int value = context.LookupEnum(identifier_);
+            stream << "li " << destReg << "," << value << std::endl;
+        } else {
+            throw std::runtime_error("Identifier::EmitRISC() called on an undeclared identifier");
         }
-        // Enumerator identifier
-
     }
 
     void Identifier::Print(std::ostream &stream) const {
@@ -85,9 +89,14 @@ namespace ast {
     TypeSpecifier Identifier::GetType(Context &context) const {
         if (context.IsGlobal(identifier_)) {
             return context.GetGlobalType(identifier_);
-        } else {
+        } else if (context.CurrentFrame().bindings.Contains(identifier_)) {
             Variable var = context.CurrentFrame().bindings.Get(identifier_);
             return var.type;
+        } else if (context.IsEnum(identifier_)) {
+            return TypeSpecifier{identifier_};
+        } else {
+            // Nice no more sigfaults
+            throw std::runtime_error("Identifier::GetType() called on an undeclared identifier");
         }
     }
 

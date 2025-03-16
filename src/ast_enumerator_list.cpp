@@ -16,15 +16,14 @@ namespace ast {
         enumerators_.push_back(std::move(enumerator));
     }
 
-    std::unordered_map<std::string, int> EnumeratorList::GetEnumerators() const {
-        std::unordered_map<std::string, int> values{};
-        int nextValue = 0;
+    std::map<std::string, int> EnumeratorList::GetEnumerators() const {
+        std::map<std::string, int> values{};
         for (const auto &enumerator : enumerators_) {
             if (enumerator->HasValue()) {
                 values.emplace(enumerator->GetIdentifier(), enumerator->GetValue());
-                nextValue = enumerator->GetValue() + 1;
             } else {
-                values.emplace(enumerator->GetIdentifier(), nextValue++);
+                int nextValue = values.empty() ? 0 : values.rbegin()->second + 1;
+                values.emplace(enumerator->GetIdentifier(), nextValue);
             }
         }
         return values;

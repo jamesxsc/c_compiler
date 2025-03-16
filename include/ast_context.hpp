@@ -5,6 +5,7 @@
 #include <string>
 #include <sstream>
 #include <unordered_map>
+#include <map>
 #include <memory>
 #include <deque>
 #include <optional>
@@ -51,9 +52,27 @@ namespace ast {
         std::unordered_map<std::string, const VariablePtr> bindingsMap_;
     };
 
+    // This probably overkill class is in case we need to iterate over enumerators anywhere
+    class Enums {
+    public:
+        void Insert(const std::string &identifier, const std::map<std::string, int>& values);
+
+        [[nodiscard]] std::map<std::string, int> GetEnum(const std::string &identifier) const;
+
+        int Lookup(const std::string &identifier) const;
+
+        bool Contains(const std::string &identifier) const;
+
+    private:
+        std::unordered_map<std::string, std::map<std::string, int>> enums_{};
+        std::unordered_map<std::string, int> lookup_{};
+    };
+
     struct StackFrame {
         int size;
+        // Inefficient but would be effort to change
         Bindings bindings;
+        Enums enums{};
         std::bitset<12> usedIntegerPersistentRegisters{1}; // s0 is always used
         std::bitset<12> usedFloatPersistentRegisters{};
 
@@ -100,6 +119,12 @@ namespace ast {
 
         [[nodiscard]] TypeSpecifier GetGlobalType(const std::string &identifier) const;
 
+        void InsertGlobalEnum(const std::string &identifier, const std::map<std::string, int>& values);
+
+        [[nodiscard]] bool IsEnum(const std::string &identifier);
+
+        [[nodiscard]] int LookupEnum(const std::string &identifier);
+
         std::ostream &DeferredRISC();
 
         void EmitDeferredRISC(std::ostream &stream);
@@ -113,6 +138,7 @@ namespace ast {
         std::vector<StackFrame> stack_;
         // Globals are not stored on the stack so do not require the bindings class/ offsets
         std::unordered_map<std::string, TypeSpecifier> globals_;
+        Enums globalEnums{};
         std::unordered_map<std::string, Function> functions_;
 
         std::stringstream deferredRISC_{};

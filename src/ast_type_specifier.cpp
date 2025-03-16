@@ -9,13 +9,13 @@ namespace ast {
             case TypeSpecifier::INT:
             case TypeSpecifier::FLOAT:
             case TypeSpecifier::DOUBLE:
+            case TypeSpecifier::ENUM:
                 return true;
             case TypeSpecifier::CHAR: // Implementation defined, but required unsigned for RISCV ABI
             case TypeSpecifier::UNSIGNED:
                 return false;
             case TypeSpecifier::POINTER:
             case TypeSpecifier::VOID:
-            case TypeSpecifier::ENUM:
             case TypeSpecifier::STRUCT:
             case TypeSpecifier::ARRAY:
                 throw std::runtime_error("Attempted to get sign of non-numeric type");
@@ -76,11 +76,6 @@ namespace ast {
     int TypeSpecifier::GetArraySize() const {
         assert(IsArray() && "TypeSpecifier::GetArraySize() called on non-array type");
         return arraySize_;
-    }
-
-    const std::unordered_map<std::string, int> &TypeSpecifier::GetEnumValues() const {
-        assert(IsEnum() && "TypeSpecifier::GetEnumValues() called on non-enum type");
-        return enumValues_;
     }
 
     const std::string &TypeSpecifier::GetEnumIdentifier() const {

@@ -48,7 +48,7 @@ namespace ast {
         // Complex type constructors
         TypeSpecifier(Type type, TypeSpecifier pointee): type_(POINTER), pointeeType_(std::make_shared<TypeSpecifier>(pointee)) {} // Type rqd to avoid making copy constructor
         TypeSpecifier(TypeSpecifier arrayType, int size): type_(ARRAY), arrayType_(std::make_shared<TypeSpecifier>(arrayType)), arraySize_(size) {}
-        TypeSpecifier(std::string identifier, std::unordered_map<std::string, int> values): type_(ENUM), enumValues_(std::move(values)), enumIdentifier_(std::move(identifier)) {}
+        explicit TypeSpecifier(std::string identifier): type_(ENUM), enumIdentifier_(std::move(identifier)) {}
 
         ~TypeSpecifier() = default;
 
@@ -73,10 +73,9 @@ namespace ast {
 
         [[nodiscard]] int GetArraySize() const;
 
-        [[nodiscard]] const std::unordered_map<std::string, int> &GetEnumValues() const;
-
         [[nodiscard]] const std::string &GetEnumIdentifier() const;
 
+        // Probably ditch this like for enum, use ctx, this would have been nice, but v hard to construct for type_specifier in parser before we have context
         [[nodiscard]] const std::vector<std::pair<std::string, TypeSpecifierPtr>> &GetStructMembers() const;
 
         [[nodiscard]] const std::string &GetStructIdentifier() const;
@@ -87,8 +86,6 @@ namespace ast {
         TypeSpecifierPtr pointeeType_{nullptr};
         TypeSpecifierPtr arrayType_{nullptr};
         int arraySize_{0};
-        // Copying these may get expensive but I don't have all night
-        std::unordered_map<std::string, int> enumValues_{};
         std::string enumIdentifier_{};
         std::vector<std::pair<std::string, TypeSpecifierPtr>> structMembers_{};
         std::string structIdentifier_{};

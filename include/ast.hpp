@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "ast_additive_expression.hpp"
+#include "ast_aggregate_type_definition.hpp"
 #include "ast_and_expression.hpp"
 #include "ast_argument_expression_list.hpp"
 #include "ast_array_declarator.hpp"

@@ -221,4 +221,52 @@ namespace ast {
         throw std::runtime_error("Context::GetGlobalType Global not found in context");
     }
 
+    void Context::InsertGlobalEnum(const std::string &identifier, const std::map<std::string, int> &values) {
+        globalEnums.Insert(identifier, values);
+    }
+
+    // Some duplication in finding where it is but it's ok
+    int Context::LookupEnum(const std::string &identifier) {
+        // Try in scope first
+        if (!stack_.empty()) {
+            if (CurrentFrame().enums.Contains(identifier)) {
+                return CurrentFrame().enums.Lookup(identifier);
+            }
+        }
+        return globalEnums.Lookup(identifier); // Will throw if not found
+    }
+
+    bool Context::IsEnum(const std::string &identifier) {
+        if (!stack_.empty()) {
+            if (CurrentFrame().enums.Contains(identifier)) {
+                return true;
+            }
+        }
+        return globalEnums.Contains(identifier);
+    }
+
+    void Enums::Insert(const std::string &identifier, const std::map<std::string, int>& values) {
+        enums_.emplace(identifier, values);
+        for (const auto &pair : values) {
+            if (lookup_.find(pair.first) != lookup_.end()) {
+                throw std::runtime_error("Enums::Insert Enum identifier already exists in scope");
+            }
+            lookup_.emplace(pair.first, pair.second);
+        }
+    }
+
+    std::map<std::string, int> Enums::GetEnum(const std::string &identifier) const {
+        auto it = enums_.find(identifier);
+        if (it != enums_.end()) return it->second;
+        throw std::runtime_error("Enums::GetEnum Enum not found in context");
+    }
+
+    int Enums::Lookup(const std::string &identifier) const {
+        return lookup_.at(identifier);
+    }
+
+    bool Enums::Contains(const std::string &identifier) const {
+        return lookup_.find(identifier) != lookup_.end();
+    }
+
 } // namespace ast

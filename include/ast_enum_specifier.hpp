@@ -7,13 +7,16 @@ namespace ast {
 
     class EnumSpecifier : public Node {
     public:
-        explicit EnumSpecifier(std::string identifier) : identifier_(std::move(identifier)), enumerators_(nullptr) {};
+        explicit EnumSpecifier(std::string identifier) : identifier_(std::move(identifier)), enumerators_(nullptr),
+                                                         enumeratorsValuesMap_() {};
 
-        explicit EnumSpecifier(EnumeratorListPtr enumerators) : identifier_(std::nullopt),
-                                                                enumerators_(std::move(enumerators)) {};
+        explicit EnumSpecifier(EnumeratorListPtr enumerators)
+                : identifier_(std::nullopt), enumerators_(std::move(enumerators)),
+                  enumeratorsValuesMap_(enumerators_->GetEnumerators()) {};
 
         EnumSpecifier(std::string identifier, EnumeratorListPtr enumerators)
-                : identifier_(std::move(identifier)), enumerators_(std::move(enumerators)) {};
+                : identifier_(std::move(identifier)), enumerators_(std::move(enumerators)),
+                  enumeratorsValuesMap_(enumerators_->GetEnumerators()) {};
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
 
@@ -25,11 +28,14 @@ namespace ast {
 
         [[nodiscard]] bool HasEnumerators() const;
 
-        [[nodiscard]] TypeSpecifier GetTypeSpecifier() const;
+        void SetGlobal();
 
     private:
         std::optional<std::string> identifier_;
         EnumeratorListPtr enumerators_;
+        std::map<std::string, int> enumeratorsValuesMap_;
+        bool isGlobal_{false};
     };
+    using EnumSpecifierPtr = std::unique_ptr<EnumSpecifier>;
 
 }

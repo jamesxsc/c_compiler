@@ -16,10 +16,11 @@ namespace ast {
 
         explicit Declaration(DeclarationPtr other): declarationSpecifiers_(std::move(other->declarationSpecifiers_)), initDeclaratorList_(std::move(other->initDeclaratorList_)) {}
 
-        void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
+        virtual void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
         void Print(std::ostream &stream) const override;
 
         [[nodiscard]] bool IsTypedef() const;
+        [[nodiscard]] virtual bool IsAggregateTypeDefinition() const;
 
     protected:
         DeclarationSpecifiersPtr declarationSpecifiers_;

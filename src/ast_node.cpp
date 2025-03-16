@@ -3,8 +3,7 @@
 namespace ast {
 
     void NodeList::PushBack(NodePtr item) {
-        if (item)
-            nodes_.push_back(std::move(item));
+        nodes_.push_back(std::move(item));
     }
 
     void NodeList::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
