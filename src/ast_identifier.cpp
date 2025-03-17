@@ -96,10 +96,25 @@ namespace ast {
                 case TypeSpecifier::STRUCT: { // Should only ever be called in return
                     assert(destReg == Register::a0 && "Structs identifier called in non-return context");
                     const std::vector<std::pair<std::string, TypeSpecifier>> &structMembers = type.GetStructMembers();
-                    bool useStack = structMembers.size() > 2; // Doesn't handle nested structs
                     // I think this is best placed here because I can't think where else we want it
-                    if (useStack) {
-                        // todo store large structs
+                    if (type.UseStack()) {
+                        // Get hidden pointer
+                        int address = context.CurrentFrame().bindings.Get("#hiddenpointer").offset;
+                        Register addressReg = context.AllocateTemporary();
+                        stream << "lw " << addressReg << "," << address << "(s0)" << std::endl;
+
+                        // Store members, don't care about types, keep padding
+                        int size = type.GetTypeSize();
+                        Register tempReg = context.AllocateTemporary();
+                        for (int i = 0; i < size; i += 4) {
+                            stream << "lw " << tempReg << "," << offset + i << "(s0)" << std::endl;
+                            stream << "sw " << tempReg << "," << i << "(" << addressReg << ")" << std::endl;
+                        }
+                        context.FreeTemporary(tempReg);
+
+                        // Return address
+                        stream << "mv a0," << addressReg << std::endl;
+                        context.FreeTemporary(addressReg);
                     } else {
                         Register floatReg = Register::fa0;
                         Register intReg = Register::a0;

@@ -17,4 +17,5 @@ int main() {
     if (s.b != 2.0) {
         return 2;
     }
+    return 0;
 }

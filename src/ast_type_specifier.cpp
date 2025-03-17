@@ -99,4 +99,9 @@ namespace ast {
         return structIdentifier_;
     }
 
+    bool TypeSpecifier::UseStack() const {
+        // Conveniently seems that sames rules apply to params and return
+        return IsStruct() && structMembers_.has_value() && structMembers_->size() > 2; // Doesn't handle nested structs
+    }
+
 }

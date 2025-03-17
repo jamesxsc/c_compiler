@@ -30,6 +30,7 @@ namespace ast {
 
         // Execute the declarator and function body without emitting it to determine which registers need to be saved
         std::stringstream bodyStream;
+        if (GetType(context).UseStack()) declarator_->SetHiddenPointerReturn();
         if (compound_statement_) {
             declarator_->EmitRISC(bodyStream, context, destReg); // Parameters
             compound_statement_->EmitRISC(bodyStream, context, destReg);

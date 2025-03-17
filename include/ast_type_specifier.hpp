@@ -69,6 +69,8 @@ namespace ast {
 
         void SetMembers(std::vector<std::pair<std::string, TypeSpecifier>> members);
 
+        [[nodiscard]] bool UseStack() const;
+
         // Getters
         [[nodiscard]] const TypeSpecifier &GetPointeeType() const;
 

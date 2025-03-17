@@ -31,6 +31,7 @@ namespace ast {
                 if (totalSize % alignment != 0) {
                     for (int i = 0; i < alignment - (totalSize % alignment); i++)
                         members.emplace_back("#padding", TypeSpecifier(TypeSpecifier::CHAR));
+                    totalSize += alignment - (totalSize % alignment);
                     // # will never be a valid identifier, char is a bit of a hack
                 }
                 members.emplace_back(declarator->GetIdentifier(), declaration->GetType(context));
