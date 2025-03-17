@@ -12,14 +12,14 @@ namespace ast {
                 stream << "lui " << destReg << ",%hi(" << identifier_ << ")" << std::endl;
                 stream << "addi " << destReg << "," << destReg << ",%lo(" << identifier_ << ")" << std::endl;
 
-                if (GetType(context) == TypeSpecifier::POINTER) { // todo array?
+                if (GetType(context) == TypeSpecifier::POINTER && context.dereference) { // todo array?
                     stream << "lw " << destReg << ",0(" << destReg << ")" << std::endl;
                 }
             } else if (context.CurrentFrame().bindings.Contains(identifier_)) {
                 int offset = context.CurrentFrame().bindings.Get(identifier_).offset;
                 stream << "addi " << destReg << ",s0," << offset << std::endl;
 
-                if (GetType(context) == TypeSpecifier::POINTER) {
+                if (GetType(context) == TypeSpecifier::POINTER && context.dereference) {
                     stream << "lw " << destReg << ",0(" << destReg << ")" << std::endl;
                 }
             } else {

@@ -9,7 +9,9 @@ namespace ast {
     // Lvalue asserts are in GetIdentifier impls
     void UnaryExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         if (context.emitLHS && op_ == UnaryOperator::Dereference) {
+            context.dereference = true;
             multiplicativeChild_->EmitRISC(stream, context, destReg);
+            context.dereference = false;
             return;
         }
 
@@ -36,6 +38,7 @@ namespace ast {
                 break;
             }
             case UnaryOperator::Dereference: {
+                context.dereference = true;
                 TypeSpecifier pointeeType = multiplicativeChild_->GetType(context).GetPointeeType();
                 switch (pointeeType) {
                     case TypeSpecifier::Type::INT:
@@ -63,6 +66,7 @@ namespace ast {
                     case TypeSpecifier::Type::VOID:
                         throw std::runtime_error("Unsupported type for dereference right now, sorry");
                 }
+                context.dereference = false;
                 break;
             }
             case UnaryOperator::Plus:
