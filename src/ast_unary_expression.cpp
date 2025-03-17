@@ -19,44 +19,8 @@ namespace ast {
                 break;
             case UnaryOperator::PrefixIncrement:
             case UnaryOperator::PrefixDecrement: {
-
-                Utils::EmitIncrementDecrement(stream, context, destReg, *unaryChild_, op_ == UnaryOperator::PrefixDecrement, false);
-
-
-
-
-
-//                std::string identifier = unaryChild_->GetIdentifier();
-//                if (context.IsGlobal(identifier)) {
-//                    // ballache have to handle derefence/non dereference case
-//                    // check this in postfix too - type gets unwrapped, but never considers de ref right? . use unary child -> EmtiAddressRisc, youre welcome
-//                    Register tempReg = context.AllocateTemporary();
-//                    Register tempReg2 = hasDestination ? destReg : context.AllocateTemporary();
-//                    stream << "lui " << tempReg2 << ",%hi(" << identifier << ")" << std::endl;
-//                    stream << "lw " << tempReg2 << ",%lo(" << identifier << ")(" << tempReg2 << ")" << std::endl;
-//                    stream << "addi " << tempReg << "," << tempReg2 << ","
-//                           << (op_ == UnaryOperator::PrefixIncrement ? "1" : "-1") << std::endl;
-//                    stream << "lui " << tempReg2 << ",%hi(" << identifier << ")" << std::endl;
-//                    stream << "sw " << tempReg << ",%lo(" << identifier << ")(" << tempReg2 << ")" << std::endl;
-//                    context.FreeTemporary(tempReg);
-//                    if (!hasDestination)
-//                        context.FreeTemporary(tempReg2);
-//                    // Store the incremented/decremented value in the destination register
-//                    if (destReg != Register::zero)
-//                        unaryChild_->EmitRISC(stream, context, destReg);
-//                } else {
-//                    Variable var = context.CurrentFrame().bindings.Get(identifier);
-//                    Register tempReg = hasDestination ? destReg : context.AllocateTemporary();
-//                    stream << "lw " << tempReg << "," << var.offset << "(s0)" << std::endl;
-//                    stream << "addi " << tempReg << "," << tempReg << ","
-//                           << (op_ == UnaryOperator::PrefixIncrement ? "1" : "-1") << std::endl;
-//                    stream << "sw " << tempReg << "," << var.offset << "(s0)" << std::endl;
-//                    if (!hasDestination)
-//                        context.FreeTemporary(tempReg);
-//                    // Store the incremented/decremented value in the destination register
-//                    if (destReg != Register::zero)
-//                        unaryChild_->EmitRISC(stream, context, destReg);
-//                }
+                Utils::EmitIncrementDecrement(stream, context, destReg, *unaryChild_,
+                                              op_ == UnaryOperator::PrefixDecrement, false);
                 break;
             }
                 // Below all multiplicative child expression
@@ -72,26 +36,7 @@ namespace ast {
                 break;
             }
             case UnaryOperator::Dereference: {
-                // todo cx that adding to pointer and passing through promote is maintained...
-
-                // next im going to try and use this address in assignment, hopefully ditching use of identifiers.
-                // however, storing to globals might be a special case
-
-                // however need to distinguish this (RHS) and getting address (LHS)
-
-                // assignment gettype assumes identifier - problem, need to ensure we pass up correct pointer thru all arith
-
-                // all of this is sort of delegating much better, and postfix/unary ops can probably leverage this approach
-
-                // deepcopying etc may be quote important
-
-                // let's try implementing lhs risc along whole chain, and then we can use that in assignment and postfix/here
-                // or lhs bool might do the trick...
-
                 TypeSpecifier pointeeType = multiplicativeChild_->GetType(context).GetPointeeType();
-
-                // What we foolishly didn't consider is we already have emitted the load address in pointer/identifier!
-
                 switch (pointeeType) {
                     case TypeSpecifier::Type::INT:
                     case TypeSpecifier::Type::UNSIGNED:
@@ -118,75 +63,6 @@ namespace ast {
                     case TypeSpecifier::Type::VOID:
                         throw std::runtime_error("Unsupported type for dereference right now, sorry");
                 }
-
-//
-//
-//                std::string identifier = multiplicativeChild_->GetIdentifier();
-//                if (context.IsGlobal(identifier)) {
-//                    TypeSpecifier type = context.GetGlobalType(identifier).GetPointeeType();
-//                    switch (type) {
-//                        case TypeSpecifier::Type::INT:
-//                        case TypeSpecifier::Type::UNSIGNED:
-//                        case TypeSpecifier::Type::ENUM:
-//                        case TypeSpecifier::Type::POINTER:
-//                            stream << "lui " << destReg << ",%hi(" << identifier << ")" << std::endl;
-//                            stream << "lw " << destReg << ",%lo(" << identifier << ")(" << destReg << ")" << std::endl;
-//                            stream << "lw " << destReg << ",0(" << destReg << ")" << std::endl;
-//                            break;
-//                        case TypeSpecifier::Type::CHAR:
-//                            stream << "lui " << destReg << ",%hi(" << identifier << ")" << std::endl;
-//                            stream << "lw " << destReg << ",%lo(" << identifier << ")(" << destReg << ")" << std::endl;
-//                            stream << "lbu " << destReg << ",0(" << destReg << ")" << std::endl;
-//                            break;
-//                        case TypeSpecifier::Type::FLOAT:
-//                        case TypeSpecifier::Type::DOUBLE: {
-//                            Register tempReg = context.AllocateTemporary();
-//                            stream << "lui " << tempReg << ",%hi(" << identifier << ")" << std::endl;
-//                            stream << "lw " << tempReg << ",%lo(" << identifier << ")(" << tempReg << ")" << std::endl;
-//                            stream << (type == TypeSpecifier::Type::FLOAT ? "flw " : "fld ") << destReg << ",0("
-//                                   << tempReg
-//                                   << ")" << std::endl;
-//                            context.FreeTemporary(tempReg);
-//                            break;
-//                        }
-//                        case TypeSpecifier::Type::VOID:
-//                        case TypeSpecifier::Type::STRUCT: // todo both of these should be supported
-//                        case TypeSpecifier::Type::ARRAY:
-//                            throw std::runtime_error("Unsupported type for dereference");
-//                    }
-//                } else {
-//                    // Variable is a pointer - get value at address in variable
-//                    // This should only be called for RHS
-//                    Variable ptr = context.CurrentFrame().bindings.Get(identifier);
-//                    TypeSpecifier type = ptr.type.GetPointeeType();
-//                    switch (type) {
-//                        case TypeSpecifier::Type::INT:
-//                        case TypeSpecifier::Type::UNSIGNED:
-//                        case TypeSpecifier::Type::ENUM:
-//                        case TypeSpecifier::Type::POINTER:
-//                            stream << "lw " << destReg << "," << ptr.offset << "(s0)" << std::endl;
-//                            stream << "lw " << destReg << ",0(" << destReg << ")" << std::endl;
-//                            break;
-//                        case TypeSpecifier::Type::CHAR:
-//                            stream << "lw " << destReg << "," << ptr.offset << "(s0)" << std::endl;
-//                            stream << "lbu " << destReg << ",0(" << destReg << ")" << std::endl;
-//                            break;
-//                        case TypeSpecifier::Type::FLOAT:
-//                        case TypeSpecifier::Type::DOUBLE: {
-//                            Register tempReg = context.AllocateTemporary();
-//                            stream << "lw " << tempReg << "," << ptr.offset << "(s0)" << std::endl;
-//                            stream << (type == TypeSpecifier::Type::FLOAT ? "flw " : "fld ") << destReg << ",0("
-//                                   << tempReg
-//                                   << ")" << std::endl;
-//                            context.FreeTemporary(tempReg);
-//                            break;
-//                        }
-//                        case TypeSpecifier::Type::VOID:
-//                        case TypeSpecifier::Type::STRUCT: // todo both of these should be supported
-//                        case TypeSpecifier::Type::ARRAY:
-//                            throw std::runtime_error("Unsupported type for dereference");
-//                    }
-//                }
                 break;
             }
             case UnaryOperator::Plus:
@@ -427,12 +303,21 @@ namespace ast {
     }
 
     UnaryExpression::UnaryExpression(PostfixExpressionPtr child) : postfixChild_(std::move(child)),
+                                                                   unaryChild_(nullptr),
+                                                                   multiplicativeChild_(nullptr),
+                                                                   typeNameChild_(nullptr),
                                                                    op_(UnaryOperator::PostfixPromote) {}
 
-    UnaryExpression::UnaryExpression(TypeNamePtr child) : typeNameChild_(std::move(child)),
+    UnaryExpression::UnaryExpression(TypeNamePtr child) : postfixChild_(nullptr),
+                                                          unaryChild_(nullptr),
+                                                          multiplicativeChild_(nullptr),
+                                                          typeNameChild_(std::move(child)),
                                                           op_(UnaryOperator::SizeofType) {}
 
-    UnaryExpression::UnaryExpression(UnaryExpressionPtr child, UnaryOperator op) : unaryChild_(std::move(child)),
+    UnaryExpression::UnaryExpression(UnaryExpressionPtr child, UnaryOperator op) : postfixChild_(nullptr),
+                                                                                   unaryChild_(std::move(child)),
+                                                                                   multiplicativeChild_(nullptr),
+                                                                                   typeNameChild_(nullptr),
                                                                                    op_(op) {}
 
     UnaryExpression::UnaryExpression(MultiplicativeExpressionPtr child, UnaryOperator op)

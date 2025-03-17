@@ -44,6 +44,7 @@ namespace ast {
         return child_->GetType(context);
     }
 
+    // todo look to deprecate this
     std::string PostfixExpression::GetIdentifier() const {
         switch (op_) {
             case PostfixOperator::PrimaryPromote:

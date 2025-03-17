@@ -1,6 +1,5 @@
 #include <cmath>
 #include "risc_utils.hpp"
-#include "ast_unary_expression.hpp"
 
 namespace ast::Utils {
 
@@ -323,7 +322,7 @@ namespace ast::Utils {
     }
 
     // Quite efficient, and works for structs
-    void EmitIndexToAddressOffset(std::ostream &stream, Register sizeReg, Context &context, const TypeSpecifier& type) {
+    void EmitIndexToAddressOffset(std::ostream &stream, Register sizeReg, Context &context, const TypeSpecifier &type) {
         int elementSize = type.GetTypeSize();
         if (elementSize == 1) return;
         bool pow2 = (elementSize & (elementSize - 1)) == 0;
@@ -338,7 +337,7 @@ namespace ast::Utils {
         }
     }
 
-    void EmitAddressToIndexOffset(std::ostream &stream, Register sizeReg, Context &context, const TypeSpecifier& type) {
+    void EmitAddressToIndexOffset(std::ostream &stream, Register sizeReg, Context &context, const TypeSpecifier &type) {
         int elementSize = type.GetTypeSize();
         if (elementSize == 1) return;
         bool pow2 = (elementSize & (elementSize - 1)) == 0;
@@ -353,272 +352,93 @@ namespace ast::Utils {
         }
     }
 
-    void EmitIncrementDecrement(std::ostream &stream, Context &context, Register destReg, const UnaryExpression &child,
+    void EmitIncrementDecrement(std::ostream &stream, Context &context, Register destReg, const ExpressionBase &child,
                                 bool decrement, bool postfix) {
-        // todo handle postfix
-        context.emitLHS = true;
+        context.emitLHS = true; // Get raw address
         TypeSpecifier lhsType = child.GetType(context);
+        Register addrReg = context.AllocateTemporary();
+        TypeSpecifier type = child.GetType(context);
+        child.EmitRISC(stream, context, addrReg);
         context.emitLHS = false;
-        if (lhsType == TypeSpecifier::POINTER) { // todo is this reliable for p++ to distinguish from (*p)++ or p[0]++?
-            Register addrReg = context.AllocateTemporary();
-            context.emitLHS = true; // Get raw address
-            TypeSpecifier type = child.GetType(context);
-            child.EmitRISC(stream, context, addrReg);
-            context.emitLHS = false;
 
-            if (destReg != Register::zero)
-                child.EmitRISC(stream, context, destReg);
+        if (destReg != Register::zero && postfix)
+            child.EmitRISC(stream, context, destReg);
 
-            // Now safely increment
-            const TypeSpecifier &pointeeType = type.GetPointeeType();
-            switch (pointeeType) {
-                case TypeSpecifier::Type::INT:
-                case TypeSpecifier::Type::CHAR:
-                case TypeSpecifier::Type::UNSIGNED:
-                case TypeSpecifier::Type::ENUM: {
-                    Register tempReg = context.AllocateTemporary();
-                    stream << (pointeeType == TypeSpecifier::CHAR ? "lbu " : "lw ") << tempReg << ","
-                           << "0(" << addrReg << ")" << std::endl;
-                    stream << "addi " << tempReg << "," << tempReg << ","
-                           << (decrement ? -1 : 1) << std::endl;
-                    stream << (pointeeType == TypeSpecifier::CHAR ? "sb " : "sw ") << tempReg << ","
-                           << "0(" << addrReg << ")" << std::endl;
-                    context.FreeTemporary(tempReg);
-                    break;
-                }
-                case TypeSpecifier::Type::FLOAT:
-                case TypeSpecifier::Type::DOUBLE: {
-                    Register tempFloatReg = context.AllocateTemporary(true);
-                    stream << (pointeeType == TypeSpecifier::FLOAT ? "flw " : "fld ") << tempFloatReg
-                           << ","
-                           << "0(" << addrReg << ")" << std::endl;
-                    std::string constantMemoryLabel = context.MakeLabel("POSTFIX_CONSTANT");
-                    Register tempReg = context.AllocateTemporary();
-                    Register tempFloatReg2 = context.AllocateTemporary(true);
-                    stream << "lui " << tempReg << ",%hi(" << constantMemoryLabel << ")" << std::endl;
-                    stream << (pointeeType == TypeSpecifier::FLOAT ? "flw " : "fld ") << tempFloatReg2
-                           << ",%lo("
-                           << constantMemoryLabel << ")(" << tempReg << ")" << std::endl;
-                    if (!decrement) {
-                        stream << (pointeeType == TypeSpecifier::FLOAT ? "fadd.s " : "fadd.d ")
-                               << tempFloatReg
-                               << "," << tempFloatReg << "," << tempFloatReg2 << std::endl;
-                    } else {
-                        stream << (pointeeType == TypeSpecifier::FLOAT ? "fsubd.s " : "fsub.d ")
-                               << tempFloatReg
-                               << "," << tempFloatReg << "," << tempFloatReg2 << std::endl;
-                    }
-                    stream << (pointeeType == TypeSpecifier::FLOAT ? "fsw " : "fsd ") << tempFloatReg
-                           << ","
-                           << "0(" << addrReg << ")" << std::endl;
-                    context.FreeTemporary(tempReg);
-                    context.FreeTemporary(tempFloatReg);
-                    context.FreeTemporary(tempFloatReg2);
-
-                    context.DeferredRISC() << ".section .rodata" << std::endl;
-                    context.DeferredRISC() << ".align "
-                                           << (pointeeType == TypeSpecifier::Type::FLOAT ? 2 : 3)
-                                           << std::endl;
-                    context.DeferredRISC() << constantMemoryLabel << ":" << std::endl;
-                    context.DeferredRISC()
-                            << (pointeeType == TypeSpecifier::Type::FLOAT ? ".float " : ".double ")
-                            << (decrement ? -1.0 : 1.0)
-                            << std::endl;
-                    break;
-                }
-                case TypeSpecifier::Type::POINTER:
-                case TypeSpecifier::Type::ARRAY: {
-                    const TypeSpecifier &pointeePointeeType = pointeeType.GetPointeeType();
-                    Register tempReg = context.AllocateTemporary();
-                    stream << "lw " << tempReg << "," << "0(" << addrReg << ")" << std::endl;
-                    int size = pointeePointeeType.GetTypeSize();
-                    stream << "addi " << tempReg << "," << tempReg << ","
-                           << (decrement ? -size : size) << std::endl;
-                    stream << "sw " << tempReg << "," << "0(" << addrReg << ")" << std::endl;
-                    context.FreeTemporary(tempReg);
-                    break;
-                }
-                case TypeSpecifier::Type::VOID:
-                case TypeSpecifier::Type::STRUCT:
-                    throw std::runtime_error(
-                            "PostfixExpression::EmitRISC() attempted to increment unsupported type");
+        // Now safely increment
+        bool ptr = type.IsPointer();
+        if (ptr) type = type.GetPointeeType();
+        bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
+        Register tempReg = (postfix || destReg == Register::zero) ? context.AllocateTemporary(useFloat) : destReg;
+        switch (type) {
+            case TypeSpecifier::Type::INT:
+            case TypeSpecifier::Type::CHAR:
+            case TypeSpecifier::Type::UNSIGNED:
+            case TypeSpecifier::Type::ENUM: {
+                stream << (type == TypeSpecifier::CHAR ? "lbu " : "lw ") << tempReg << ","
+                       << "0(" << addrReg << ")" << std::endl;
+                stream << "addi " << tempReg << "," << tempReg << ","
+                       << (decrement ? -1 : 1) << std::endl;
+                stream << (type == TypeSpecifier::CHAR ? "sb " : "sw ") << tempReg << ","
+                       << "0(" << addrReg << ")" << std::endl;
+                break;
             }
-            context.FreeTemporary(addrReg);
+            case TypeSpecifier::Type::FLOAT:
+            case TypeSpecifier::Type::DOUBLE: {
+                stream << (type == TypeSpecifier::FLOAT ? "flw " : "fld ") << tempReg
+                       << ","
+                       << "0(" << addrReg << ")" << std::endl;
+                std::string constantMemoryLabel = context.MakeLabel("POSTFIX_CONSTANT");
+                Register tempAddrReg = context.AllocateTemporary();
+                Register tempFloatReg2 = context.AllocateTemporary(true);
+                stream << "lui " << tempAddrReg << ",%hi(" << constantMemoryLabel << ")" << std::endl;
+                stream << (type == TypeSpecifier::FLOAT ? "flw " : "fld ") << tempFloatReg2
+                       << ",%lo("
+                       << constantMemoryLabel << ")(" << tempAddrReg << ")" << std::endl;
+                if (!decrement) {
+                    stream << (type == TypeSpecifier::FLOAT ? "fadd.s " : "fadd.d ")
+                           << tempReg
+                           << "," << tempReg << "," << tempFloatReg2 << std::endl;
+                } else {
+                    stream << (type == TypeSpecifier::FLOAT ? "fsubd.s " : "fsub.d ")
+                           << tempReg
+                           << "," << tempReg << "," << tempFloatReg2 << std::endl;
+                }
+                stream << (type == TypeSpecifier::FLOAT ? "fsw " : "fsd ") << tempReg
+                       << ","
+                       << "0(" << addrReg << ")" << std::endl;
+                context.FreeTemporary(tempAddrReg);
+                context.FreeTemporary(tempFloatReg2);
+
+                context.DeferredRISC() << ".section .rodata" << std::endl;
+                context.DeferredRISC() << ".align "
+                                       << (type == TypeSpecifier::Type::FLOAT ? 2 : 3)
+                                       << std::endl;
+                context.DeferredRISC() << constantMemoryLabel << ":" << std::endl;
+                context.DeferredRISC()
+                        << (type == TypeSpecifier::Type::FLOAT ? ".float " : ".double ")
+                        << (decrement ? -1.0 : 1.0)
+                        << std::endl;
+                break;
+            }
+            case TypeSpecifier::Type::POINTER:
+            case TypeSpecifier::Type::ARRAY: {
+                const TypeSpecifier &pointeePointeeType = type.GetPointeeType();
+                stream << "lw " << tempReg << "," << "0(" << addrReg << ")" << std::endl;
+                int size = pointeePointeeType.GetTypeSize();
+                stream << "addi " << tempReg << "," << tempReg << ","
+                       << (decrement ? -size : size) << std::endl;
+                stream << "sw " << tempReg << "," << "0(" << addrReg << ")" << std::endl;
+                break;
+            }
+            case TypeSpecifier::Type::VOID:
+            case TypeSpecifier::Type::STRUCT:
+                throw std::runtime_error(
+                        "PostfixExpression::EmitRISC() attempted to increment unsupported type");
         }
-        else {
-            std::string identifier = child.GetIdentifier();
-            if (context.IsGlobal(identifier)) {
-                // Note this is slightly different from GCC because I want to delegate to child
-                // Store the incremented/decremented value in the destination register
-                if (destReg != Register::zero)
-                    child.EmitRISC(stream, context, destReg);
-                TypeSpecifier type = context.GetGlobalType(identifier);
-                switch (type) {
-                    case TypeSpecifier::Type::INT:
-                    case TypeSpecifier::Type::UNSIGNED:
-                    case TypeSpecifier::Type::ENUM:
-                    case TypeSpecifier::Type::CHAR: {
-                        Register tempReg = context.AllocateTemporary();
-                        Register tempReg2 = context.AllocateTemporary();
-                        stream << "lui " << tempReg2 << ",%hi(" << identifier << ")" << std::endl;
-                        stream << (type == TypeSpecifier::CHAR ? "lbu " : "lw ") << tempReg2 << ",%lo("
-                               << identifier << ")(" << tempReg2 << ")" << std::endl;
-                        stream << "addi " << tempReg << "," << tempReg2 << ","
-                               << (decrement ? "-1" : "1") << std::endl;
-                        stream << "lui " << tempReg2 << ",%hi(" << identifier << ")" << std::endl;
-                        stream << (type == TypeSpecifier::CHAR ? "sb " : "sw ") << tempReg << ",%lo("
-                               << identifier
-                               << ")(" << tempReg2 << ")" << std::endl;
-                        context.FreeTemporary(tempReg);
-                        context.FreeTemporary(tempReg2);
-                        break;
-                    }
-                    case TypeSpecifier::Type::FLOAT:
-                    case TypeSpecifier::Type::DOUBLE: {
-                        Register tempReg = context.AllocateTemporary();
-                        Register tempFloatReg = context.AllocateTemporary(true);
-                        stream << "lui " << tempReg << ",%hi(" << identifier << ")" << std::endl;
-                        stream << (type == TypeSpecifier::Type::FLOAT ? "flw " : "fld ") << tempFloatReg
-                               << ",0("
-                               << tempReg
-                               << ")" << std::endl;
-                        Register tempFloatReg2 = context.AllocateTemporary(true);
-                        std::string constantMemoryLabel = context.MakeLabel("POSTFIX_CONSTANT");
-                        stream << "lui " << tempReg << ",%hi(" << constantMemoryLabel << ")" << std::endl;
-                        stream << (type == TypeSpecifier::Type::FLOAT ? "flw " : "fld ") << tempFloatReg2
-                               << ",%lo("
-                               << constantMemoryLabel << ")(" << tempReg << ")" << std::endl;
-                        if (!decrement) {
-                            stream << (type == TypeSpecifier::Type::FLOAT ? "fadd.s " : "fadd.d ")
-                                   << tempFloatReg
-                                   << ","
-                                   << tempFloatReg << "," << tempFloatReg2 << std::endl;
-                        } else {
-                            stream << (type == TypeSpecifier::Type::FLOAT ? "fsubd.s " : "fsub.d ")
-                                   << tempFloatReg
-                                   << ","
-                                   << tempFloatReg << "," << tempFloatReg2 << std::endl;
-                        }
-                        stream << "lui " << tempReg << ",%hi(" << identifier << ")" << std::endl;
-                        stream << (type == TypeSpecifier::Type::FLOAT ? "fsw " : "fsd ") << tempFloatReg
-                               << ",0("
-                               << tempReg
-                               << ")" << std::endl;
-                        context.FreeTemporary(tempReg);
-                        context.FreeTemporary(tempFloatReg);
-                        context.FreeTemporary(tempFloatReg2);
-
-                        context.DeferredRISC() << ".section .rodata" << std::endl;
-                        context.DeferredRISC() << ".align " << (type == TypeSpecifier::Type::FLOAT ? 2 : 3)
-                                               << std::endl;
-                        context.DeferredRISC() << constantMemoryLabel << ":" << std::endl;
-                        context.DeferredRISC() << (type == TypeSpecifier::FLOAT ? ".float " : ".double ")
-                                               << (decrement ? -1.0 : 1.0)
-                                               << std::endl;
-                        break;
-                    }
-                    case TypeSpecifier::Type::POINTER:
-                    case TypeSpecifier::Type::ARRAY: {
-                        const TypeSpecifier &pointeeType = type.GetPointeeType();
-                        Register tempReg = context.AllocateTemporary();
-                        Register tempReg2 = context.AllocateTemporary();
-                        stream << "lui " << tempReg2 << ",%hi(" << identifier << ")" << std::endl;
-                        stream << "lw " << tempReg2 << ",%lo(" << identifier << ")(" << tempReg2 << ")"
-                               << std::endl;
-                        int size = pointeeType.GetTypeSize();
-                        stream << "addi " << tempReg << "," << tempReg2 << ","
-                               << (decrement ? -size : size) << std::endl;
-                        stream << "lui " << tempReg2 << ",%hi(" << identifier << ")" << std::endl;
-                        stream << "sw " << tempReg << ",%lo(" << identifier << ")(" << tempReg2 << ")"
-                               << std::endl;
-                        context.FreeTemporary(tempReg);
-                        context.FreeTemporary(tempReg2);
-                        break;
-                    }
-                    case TypeSpecifier::Type::VOID:
-                    case TypeSpecifier::Type::STRUCT:
-                        throw std::runtime_error(
-                                "PostfixExpression::EmitRISC() attempted to increment unsupported type");
-                }
-            } else {
-                Variable variable = context.CurrentFrame().bindings.Get(GetIdentifier());
-                // Store the pre-inc/dec value in the destination register
-                if (destReg != Register::zero)
-                    child.EmitRISC(stream, context, destReg);
-
-                switch (variable.type) {
-                    case TypeSpecifier::Type::INT:
-                    case TypeSpecifier::Type::CHAR:
-                    case TypeSpecifier::Type::UNSIGNED:
-                    case TypeSpecifier::Type::ENUM: {
-                        Register tempReg = context.AllocateTemporary();
-                        stream << (variable.type == TypeSpecifier::CHAR ? "lbu " : "lw ") << tempReg << ","
-                               << variable.offset << "(s0)" << std::endl;
-                        stream << "addi " << tempReg << "," << tempReg << ","
-                               << (decrement ? -1 : 1) << std::endl;
-                        stream << (variable.type == TypeSpecifier::CHAR ? "sb " : "sw ") << tempReg << ","
-                               << variable.offset << "(s0)" << std::endl;
-                        context.FreeTemporary(tempReg);
-                        break;
-                    }
-                    case TypeSpecifier::Type::FLOAT:
-                    case TypeSpecifier::Type::DOUBLE: {
-                        Register tempFloatReg = context.AllocateTemporary(true);
-                        stream << (variable.type == TypeSpecifier::FLOAT ? "flw " : "fld ") << tempFloatReg
-                               << ","
-                               << variable.offset << "(s0)" << std::endl;
-                        std::string constantMemoryLabel = context.MakeLabel("POSTFIX_CONSTANT");
-                        Register tempReg = context.AllocateTemporary();
-                        Register tempFloatReg2 = context.AllocateTemporary(true);
-                        stream << "lui " << tempReg << ",%hi(" << constantMemoryLabel << ")" << std::endl;
-                        stream << (variable.type == TypeSpecifier::FLOAT ? "flw " : "fld ") << tempFloatReg2
-                               << ",%lo("
-                               << constantMemoryLabel << ")(" << tempReg << ")" << std::endl;
-                        if (!decrement) {
-                            stream << (variable.type == TypeSpecifier::FLOAT ? "fadd.s " : "fadd.d ")
-                                   << tempFloatReg
-                                   << "," << tempFloatReg << "," << tempFloatReg2 << std::endl;
-                        } else {
-                            stream << (variable.type == TypeSpecifier::FLOAT ? "fsubd.s " : "fsub.d ")
-                                   << tempFloatReg
-                                   << "," << tempFloatReg << "," << tempFloatReg2 << std::endl;
-                        }
-                        stream << (variable.type == TypeSpecifier::FLOAT ? "fsw " : "fsd ") << tempFloatReg
-                               << ","
-                               << variable.offset << "(s0)" << std::endl;
-                        context.FreeTemporary(tempReg);
-                        context.FreeTemporary(tempFloatReg);
-                        context.FreeTemporary(tempFloatReg2);
-
-                        context.DeferredRISC() << ".section .rodata" << std::endl;
-                        context.DeferredRISC() << ".align "
-                                               << (variable.type == TypeSpecifier::Type::FLOAT ? 2 : 3)
-                                               << std::endl;
-                        context.DeferredRISC() << constantMemoryLabel << ":" << std::endl;
-                        context.DeferredRISC()
-                                << (variable.type == TypeSpecifier::Type::FLOAT ? ".float " : ".double ")
-                                << (decrement ? -1.0 : 1.0)
-                                << std::endl;
-                        break;
-                    }
-                    case TypeSpecifier::Type::POINTER:
-                    case TypeSpecifier::Type::ARRAY: {
-                        const TypeSpecifier &pointeeType = variable.type.GetPointeeType();
-                        Register tempReg = context.AllocateTemporary();
-                        stream << "lw " << tempReg << "," << variable.offset << "(s0)" << std::endl;
-                        int size = pointeeType.GetTypeSize();
-                        stream << "addi " << tempReg << "," << tempReg << ","
-                               << (decrement ? -size : size) << std::endl;
-                        stream << "sw " << tempReg << "," << variable.offset << "(s0)" << std::endl;
-                        context.FreeTemporary(tempReg);
-                        break;
-                    }
-                    case TypeSpecifier::Type::VOID:
-                    case TypeSpecifier::Type::STRUCT:
-                        throw std::runtime_error(
-                                "PostfixExpression::EmitRISC() attempted to increment unsupported type");
-                }
-            }
+        context.FreeTemporary(addrReg);
+        if (tempReg != destReg) context.FreeTemporary(tempReg);
+        if (!postfix && destReg != Register::zero) {
+            child.EmitRISC(stream, context, destReg);
         }
     }
 

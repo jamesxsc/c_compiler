@@ -4,7 +4,6 @@
 #include "ast_postfix_expression.hpp"
 #include "ast_type_name.hpp"
 #include "ast_expression.hpp"
-#include "ast_unary_expression.hpp"
 
 namespace ast {
 
@@ -15,6 +14,9 @@ namespace ast {
         Modulo
     };
 
+    class UnaryExpression;
+    using UnaryExpressionPtr = std::unique_ptr<const UnaryExpression>;
+
     class MultiplicativeExpression; // Forward declaration for recursive using declaration
     using MultiplicativeExpressionPtr = std::unique_ptr<const MultiplicativeExpression>;
 
@@ -24,12 +26,10 @@ namespace ast {
 
         ~MultiplicativeExpression() override;
 
-        MultiplicativeExpression(MultiplicativeExpressionPtr left, UnaryExpressionPtr right, MultiplicativeOperator op)
-                : left_(std::move(left)), right_(std::move(right)), op_(op) {}
+        MultiplicativeExpression(MultiplicativeExpressionPtr left, UnaryExpressionPtr right, MultiplicativeOperator op);
 
         // Overload for unary promotion
-        explicit MultiplicativeExpression(UnaryExpressionPtr right) : left_(nullptr), right_(std::move(right)),
-                                                                      op_(MultiplicativeOperator::UnaryPromote) {}
+        explicit MultiplicativeExpression(UnaryExpressionPtr right);
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
 

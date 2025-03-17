@@ -6,6 +6,46 @@
 namespace ast {
 
     void ArrayIndexExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
+        if (context.emitLHS) {
+            Register indexReg = context.AllocateTemporary();
+            context.emitLHS = false; // Emit/evaluate this normally
+            index_->EmitRISC(stream, context, indexReg);
+            context.emitLHS = true;
+            std::string identifier = array_->GetIdentifier();
+            if (context.IsArray(identifier)) {
+                if (context.IsGlobal(identifier)) {
+                    TypeSpecifier array = context.GetGlobalType(identifier);
+                    Utils::EmitIndexToAddressOffset(stream, indexReg, context, array.GetArrayType());
+                    stream << "lui " << destReg << ", %hi(" << identifier << ")" << std::endl;
+                    stream << "addi " << destReg << "," << destReg << ",%lo(" << identifier << ")" << std::endl;
+                    stream << "add " << destReg << "," << destReg << "," << indexReg << std::endl;
+                } else {
+                    const Variable &variable = context.CurrentFrame().bindings.Get(identifier);
+                    Utils::EmitIndexToAddressOffset(stream, indexReg, context, variable.type.GetArrayType());
+                    stream << "addi " << destReg << ",s0," << variable.offset << std::endl;
+                    stream << "add " << destReg << "," << destReg << "," << indexReg << std::endl;
+                }
+            } else {
+                if (context.IsGlobal(identifier)) {
+                    TypeSpecifier type = context.GetGlobalType(identifier);
+                    assert(type == TypeSpecifier::POINTER &&
+                           "ArrayIndexExpression::EmitRISC() called on a non-pointer/array");
+                    Utils::EmitIndexToAddressOffset(stream, indexReg, context, type.GetPointeeType());
+                    stream << "lui " << destReg << ", %hi(" << identifier << ")" << std::endl;
+                    stream << "addi " << destReg << "," << destReg << ",%lo(" << identifier << ")" << std::endl;
+                    stream << "add " << destReg << "," << destReg << "," << indexReg << std::endl;
+                } else {
+                    const Variable &variable = context.CurrentFrame().bindings.Get(identifier);
+                    assert(variable.type.IsPointer() && "ArrayIndexExpression::EmitRISC() called on a non-pointer/array");
+                    Utils::EmitIndexToAddressOffset(stream, indexReg, context, variable.type.GetPointeeType());
+                    stream << "addi " << destReg << ",s0," << variable.offset << std::endl;
+                    stream << "add " << destReg << "," << destReg << "," << indexReg << std::endl;
+                }
+            }
+            context.FreeTemporary(indexReg);
+            return;
+        }
+
         // We can safely-ish use destReg as a temporary here as we will always be inside a function
         std::string identifier = array_->GetIdentifier();
         if (context.IsArray(identifier)) { // Array syntax

@@ -61,10 +61,10 @@ namespace ast {
 
     private:
         // Only one of these will ever be non-null depending on the operator (see parser)
-        PostfixExpressionPtr postfixChild_ = nullptr;
-        UnaryExpressionPtr unaryChild_ = nullptr;
-        MultiplicativeExpressionPtr multiplicativeChild_ = nullptr;
-        TypeNamePtr typeNameChild_ = nullptr;
+        PostfixExpressionPtr postfixChild_;
+        UnaryExpressionPtr unaryChild_;
+        MultiplicativeExpressionPtr multiplicativeChild_;
+        TypeNamePtr typeNameChild_;
         UnaryOperator op_;
     };
 }

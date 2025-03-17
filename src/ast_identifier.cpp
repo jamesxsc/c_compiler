@@ -6,7 +6,29 @@ namespace ast {
 
 
     void Identifier::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-        // Variable identifier
+        // If we are in LHS, load address
+        if (context.emitLHS) {
+            if (context.IsGlobal(identifier_)) {
+                stream << "lui " << destReg << ",%hi(" << identifier_ << ")" << std::endl;
+                stream << "addi " << destReg << "," << destReg << ",%lo(" << identifier_ << ")" << std::endl;
+
+                if (GetType(context) == TypeSpecifier::POINTER) { // todo array?
+                    stream << "lw " << destReg << ",0(" << destReg << ")" << std::endl;
+                }
+            } else if (context.CurrentFrame().bindings.Contains(identifier_)) {
+                int offset = context.CurrentFrame().bindings.Get(identifier_).offset;
+                stream << "addi " << destReg << ",s0," << offset << std::endl;
+
+                if (GetType(context) == TypeSpecifier::POINTER) {
+                    stream << "lw " << destReg << ",0(" << destReg << ")" << std::endl;
+                }
+            } else {
+                throw std::runtime_error("Identifier::EmitRISC() (LHS) called on an undeclared identifier");
+            }
+            return;
+        }
+
+        // Otherwise load value
         if (context.IsGlobal(identifier_)) {
             TypeSpecifier type = GetType(context);
             switch (type) {
