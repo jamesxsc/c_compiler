@@ -9,8 +9,7 @@ namespace ast {
         PrimaryPromote,
         ArrayIndexPromote,
         FunctionCallPromote,
-//        MemberAccess,
-//        PointerMemberAccess,
+        StructMemberAccessPromote,
         PostfixIncrement,
         PostfixDecrement
     };

@@ -63,6 +63,7 @@
 #include "ast_struct_declaration_list.hpp"
 #include "ast_struct_declarator.hpp"
 #include "ast_struct_declarator_list.hpp"
+#include "ast_struct_member_access_expression.hpp"
 #include "ast_struct_specifier.hpp"
 #include "ast_type_name.hpp"
 

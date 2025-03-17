@@ -13,6 +13,7 @@ namespace ast {
             case PostfixOperator::PrimaryPromote:
             case PostfixOperator::FunctionCallPromote:
             case PostfixOperator::ArrayIndexPromote:
+            case PostfixOperator::StructMemberAccessPromote:
                 child_->EmitRISC(stream, context, destReg);
                 break;
             case PostfixOperator::PostfixIncrement:
@@ -27,6 +28,7 @@ namespace ast {
             case PostfixOperator::PrimaryPromote:
             case PostfixOperator::FunctionCallPromote:
             case PostfixOperator::ArrayIndexPromote:
+            case PostfixOperator::StructMemberAccessPromote:
                 child_->Print(stream);
                 break;
             case PostfixOperator::PostfixIncrement:
@@ -49,16 +51,18 @@ namespace ast {
         switch (op_) {
             case PostfixOperator::PrimaryPromote:
             case PostfixOperator::FunctionCallPromote: {
-                Identifier identifier = dynamic_cast<const Identifier &>(*child_); // todo that also makes this wrong for primarypromote
+                Identifier identifier = dynamic_cast<const Identifier &>(*child_);
                 return identifier.GetIdentifier();
             }
             case PostfixOperator::PostfixIncrement:
             case PostfixOperator::PostfixDecrement: {
-                // Child is a postfix expression / todo this assumption is wrong (it may be primarypromote underlying), needs to be passed along the whole chain, or we commit to using raw addresses, i think i prefer that, and mark this unsupported
+                // Child is a postfix expression
                 return dynamic_cast<const PostfixExpression *>(child_.get())->GetIdentifier();
             }
             case PostfixOperator::ArrayIndexPromote:
                 return dynamic_cast<const ArrayIndexExpression *>(child_.get())->GetIdentifier();
+            case PostfixOperator::StructMemberAccessPromote:
+                throw std::runtime_error("PostfixExpression::GetIdentifier() called on struct member access");
         }
 
         Identifier identifier = dynamic_cast<const Identifier &>(*child_);

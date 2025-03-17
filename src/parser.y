@@ -24,6 +24,7 @@
   ExpressionBase* expression_base;
   PostfixExpression* postfix_expression;
   FunctionCallExpression* function_call_expression;
+  StructMemberAccessExpression* struct_member_access_expression;
   ArrayIndexExpression* array_index_expression;
   UnaryExpression* unary_expression; 
   UnaryOperator unary_operator;
@@ -117,6 +118,7 @@
 %type <expression_base> primary_expression
 %nterm <postfix_expression> postfix_expression
 %nterm <function_call_expression> function_call_expression
+%nterm <struct_member_access_expression> struct_member_access_expression
 %nterm <array_index_expression> array_index_expression
 %nterm <unary_expression> unary_expression
 %nterm <unary_operator> unary_operator
@@ -215,12 +217,16 @@ array_index_expression
     : postfix_expression '[' expression ']' { $$ = new ArrayIndexExpression(PostfixExpressionPtr($1), ExpressionPtr($3)); }
     ;
 
+struct_member_access_expression
+    : postfix_expression '.' IDENTIFIER { $$ = new StructMemberAccessExpression(PostfixExpressionPtr($1), *$3); delete $3; }
+    | postfix_expression PTR_OP IDENTIFIER { $$ = new StructMemberAccessExpression(PostfixExpressionPtr($1), *$3, true); delete $3; }
+    ;
+
 postfix_expression
 	: primary_expression { $$ = new PostfixExpression(ExpressionBasePtr($1), PostfixOperator::PrimaryPromote); }
     | array_index_expression { $$ = new PostfixExpression(ExpressionBasePtr($1), PostfixOperator::ArrayIndexPromote); }
 	| function_call_expression { $$ = new PostfixExpression(ExpressionBasePtr($1), PostfixOperator::FunctionCallPromote); }
-	| postfix_expression '.' IDENTIFIER // todo struct access type with bool for ptr. then integrate this with whatever assignment changes we make to keep it clean, basically if its dereferenced, it will be the address... but global vs etc will be a pain
-	| postfix_expression PTR_OP IDENTIFIER
+	| struct_member_access_expression { $$ = new PostfixExpression(ExpressionBasePtr($1), PostfixOperator::StructMemberAccessPromote); }
 	| postfix_expression INC_OP { $$ = new PostfixExpression(PostfixExpressionPtr($1), PostfixOperator::PostfixIncrement); }
 	| postfix_expression DEC_OP { $$ = new PostfixExpression(PostfixExpressionPtr($1), PostfixOperator::PostfixDecrement); }
 	;
@@ -483,7 +489,7 @@ direct_declarator
 
 pointer
 	: '*'
-	| '*' pointer // todo double ptr?
+	| '*' pointer
 	;
 
 parameter_list

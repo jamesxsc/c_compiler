@@ -65,7 +65,6 @@ namespace ast {
                 case TypeSpecifier::STRUCT:
                     throw std::runtime_error(
                             "Identifier::EmitRISC() called on an unsupported type");
-                    // todo handle these
             }
         } else if (context.CurrentFrame().bindings.Contains(identifier_)) {
             TypeSpecifier type = GetType(context);
@@ -81,6 +80,7 @@ namespace ast {
                 case TypeSpecifier::POINTER:
                 case TypeSpecifier::INT:
                 case TypeSpecifier::UNSIGNED:
+                case TypeSpecifier::ENUM:
                     assert(!IsFloatRegister(destReg) &&
                            "Identifier::EmitRISC attempting to load non-float into float register");
                     stream << "lw " << destReg << "," << offset << "(s0)" << std::endl;
@@ -93,11 +93,9 @@ namespace ast {
                     stream << "addi " << destReg << ",s0," << offset << std::endl;
                     break;
                 case TypeSpecifier::VOID:
-                case TypeSpecifier::ENUM:
-                case TypeSpecifier::STRUCT:
+                case TypeSpecifier::STRUCT: // Should only ever be called LHS? // todo what about return?
                     throw std::runtime_error(
                             "Identifier::EmitRISC() called on an unsupported type");
-                    // todo handle these
             }
         } else if (context.IsEnum(identifier_)) { // Enumerator identifier
             int value = context.LookupEnum(identifier_);
