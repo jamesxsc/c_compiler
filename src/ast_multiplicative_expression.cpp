@@ -1,5 +1,5 @@
 #include <cassert>
-#include "ast_multiplicative_unary_expressions.hpp"
+#include "ast_multiplicative_expression.hpp"
 #include "ast_type_specifier.hpp"
 #include "risc_utils.hpp"
 
@@ -112,5 +112,7 @@ namespace ast {
         std::cerr << "Invalid multiplicative operator" << std::endl;
         exit(1);
     }
+
+    MultiplicativeExpression::~MultiplicativeExpression() = default;
 
 }

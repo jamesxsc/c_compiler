@@ -1,4 +1,5 @@
-#include "ast_multiplicative_unary_expressions.hpp"
+#include "ast_unary_expression.hpp"
+#include "ast_multiplicative_expression.hpp"
 #include "ast_type_specifier.hpp"
 
 namespace ast {
@@ -81,7 +82,8 @@ namespace ast {
                             Register tempReg = context.AllocateTemporary();
                             stream << "lui " << tempReg << ",%hi(" << identifier << ")" << std::endl;
                             stream << "lw " << tempReg << ",%lo(" << identifier << ")(" << tempReg << ")" << std::endl;
-                            stream << (type == TypeSpecifier::Type::FLOAT ? "flw " : "fld ") << destReg << ",0(" << tempReg
+                            stream << (type == TypeSpecifier::Type::FLOAT ? "flw " : "fld ") << destReg << ",0("
+                                   << tempReg
                                    << ")" << std::endl;
                             context.FreeTemporary(tempReg);
                             break;
@@ -112,7 +114,8 @@ namespace ast {
                         case TypeSpecifier::Type::DOUBLE: {
                             Register tempReg = context.AllocateTemporary();
                             stream << "lw " << tempReg << "," << ptr.offset << "(s0)" << std::endl;
-                            stream << (type == TypeSpecifier::Type::FLOAT ? "flw " : "fld ") << destReg << ",0(" << tempReg
+                            stream << (type == TypeSpecifier::Type::FLOAT ? "flw " : "fld ") << destReg << ",0("
+                                   << tempReg
                                    << ")" << std::endl;
                             context.FreeTemporary(tempReg);
                             break;
@@ -322,7 +325,7 @@ namespace ast {
                 return ~multiplicativeChild_->Evaluate(context);
             case UnaryOperator::LogicalNot:
                 return !multiplicativeChild_->Evaluate(context);
-            // Accept errors if context is rqd
+                // Accept errors if context is rqd
             case UnaryOperator::SizeofUnary:
                 return unaryChild_->GetType(dummy).GetTypeSize();
             case UnaryOperator::SizeofType:
@@ -361,6 +364,19 @@ namespace ast {
         }
         throw std::runtime_error("UnaryExpression::Evaluate() called on a non-constant");
     }
+
+    UnaryExpression::UnaryExpression(PostfixExpressionPtr child) : postfixChild_(std::move(child)),
+                                                                   op_(UnaryOperator::PostfixPromote) {}
+
+    UnaryExpression::UnaryExpression(TypeNamePtr child) : typeNameChild_(std::move(child)),
+                                                          op_(UnaryOperator::SizeofType) {}
+
+    UnaryExpression::UnaryExpression(UnaryExpressionPtr child, UnaryOperator op) : unaryChild_(std::move(child)),
+                                                                                   op_(op) {}
+
+    UnaryExpression::UnaryExpression(MultiplicativeExpressionPtr child, UnaryOperator op)
+            : multiplicativeChild_(std::move(child)), op_(op) {}
+
 
     UnaryExpression::~UnaryExpression() = default;
 

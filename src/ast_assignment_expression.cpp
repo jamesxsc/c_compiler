@@ -4,7 +4,7 @@
 #include "ast_expression.hpp"
 #include "ast_type_specifier.hpp"
 #include "ast_conditional_expression.hpp"
-#include "ast_multiplicative_unary_expressions.hpp"
+#include "ast_unary_expression.hpp"
 #include "risc_utils.hpp"
 
 namespace ast {
@@ -107,9 +107,7 @@ namespace ast {
             } else {
                 Register indexReg = context.AllocateTemporary();
                 unary_->GetArrayIndexExpression().EmitRISC(stream, context, indexReg);
-                int logSize = static_cast<int>(std::log2(type.GetTypeSize()));
-                if (logSize != 0) // Save an instruction if it's a char array
-                    stream << "slli " << indexReg << "," << indexReg << "," << logSize << std::endl;
+                Utils::EmitIndexToAddressOffset(stream, indexReg, context, type);
                 Register addrReg = context.AllocateTemporary();
                 // Offset of start of array
                 stream << "addi " << addrReg << ",s0," << context.CurrentFrame().bindings.Get(identifier).offset

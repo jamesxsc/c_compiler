@@ -93,7 +93,7 @@
 * Check if we need nops anywhere/load delay slots
 * ~~Ternary operator - Eliott~~ Mar 16
 * Test with multiply where right hand is dereferenced pointer e.g. int *p = &x; int y = 2 * *p;
-* Float/double unary and postfix operators AND for pointers/array identifier e.g. float++ --float float[0]++ --float[0], globals and local ideally
+* Float/double unary and postfix operators AND for pointers/array identifier e.g. float++ --float float[0]++ --float[0], globals and local ideally. and addressof minus difference, good trick for checking ops on ptrs/addresses
 * Char operation byte masking where applicable
 * Enum tests: arithmetic e.g. adding multiplying enums with each other and ints; scoped enums; enum in switch case; initialize global int from enum identifier
 * Struct tests: various including nested structs and arrays of structs (maybe will get time for implementing this)

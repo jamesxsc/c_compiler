@@ -46,9 +46,9 @@ namespace ast {
                                 stream << "sb " << tempReg << "," << array.offset + idx * type.GetTypeSize() << "(s0)" << std::endl;
                                 break;
                             case TypeSpecifier::STRUCT:
-                                for (const auto &member: type.GetStructMembers()) {
+//                                for (const auto &member: type.GetStructMembers()) {
                                     // todo impl here and below, put offset in typespec somehow
-                                }
+//                                }
                                 break;
                             case TypeSpecifier::ARRAY: // todo multidim
                             case TypeSpecifier::VOID:
@@ -84,9 +84,9 @@ namespace ast {
                             stream << "sb " << tempReg << "," << var.offset << "(s0)" << std::endl;
                             break;
                         case TypeSpecifier::STRUCT:
-                            for (const auto &member: type.GetStructMembers()) {
+//                            for (const auto &member: type.GetStructMembers()) {
                                 // todo impl here and above, put offset in typespec somehow
-                            }
+//                            }
                             break;
                         case TypeSpecifier::VOID:
                         case TypeSpecifier::ARRAY: // Should never get here

@@ -56,9 +56,7 @@ namespace ast {
                        "ArrayIndexExpression::EmitRISC() destReg array type mismatch");
                 Register indexReg = context.AllocateTemporary();
                 index_->EmitRISC(stream, context, indexReg);
-                int logSize = static_cast<int>(std::log2(arrayType.GetTypeSize()));
-                if (logSize != 0) // Save an instruction if it's a char array
-                    stream << "slli " << indexReg << "," << indexReg << "," << logSize << std::endl;
+                Utils::EmitIndexToAddressOffset(stream, indexReg, context, arrayType);
                 Register addressTemp = useFloat ? context.AllocateTemporary() : destReg;
                 stream << "addi " << addressTemp << ",s0," << variable.offset << std::endl;
                 stream << "add " << addressTemp << "," << addressTemp << "," << indexReg << std::endl;
@@ -97,7 +95,7 @@ namespace ast {
                 bool useFloat = type.GetPointeeType() == TypeSpecifier::FLOAT || type.GetPointeeType() == TypeSpecifier::DOUBLE;
                 Register indexReg = context.AllocateTemporary();
                 index_->EmitRISC(stream, context, indexReg);
-                stream << "slli " << indexReg << "," << indexReg << ",2" << std::endl;
+                Utils::EmitIndexToAddressOffset(stream, indexReg, context, type.GetPointeeType());
                 Register addressTemp = useFloat ? context.AllocateTemporary() : destReg;
                 stream << "lui " << addressTemp << ", %hi(" << identifier << ")" << std::endl;
                 stream << "addi " << addressTemp << "," << addressTemp << ",%lo(" << identifier << ")" << std::endl;
@@ -137,7 +135,7 @@ namespace ast {
                 bool useFloat = variable.type.GetPointeeType() == TypeSpecifier::FLOAT || variable.type.GetPointeeType() == TypeSpecifier::DOUBLE;
                 Register indexReg = context.AllocateTemporary();
                 index_->EmitRISC(stream, context, indexReg);
-                stream << "slli " << indexReg << "," << indexReg << ",2" << std::endl;
+                Utils::EmitIndexToAddressOffset(stream, indexReg, context, variable.type.GetPointeeType());
                 Register addressTemp = useFloat ? context.AllocateTemporary() : destReg;
                 stream << "lw " << addressTemp << "," << variable.offset << "(s0)" << std::endl;
                 stream << "add " << addressTemp << "," << addressTemp << "," << indexReg << std::endl;
