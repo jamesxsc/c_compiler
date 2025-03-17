@@ -1,5 +1,7 @@
-int f() {
-    char c = 1;
-    int result = c + 2;
-    return result;
+int f()
+{
+    char c = 127;
+    short s = 200;
+    int res = c + s;
+    return res;
 }

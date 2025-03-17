@@ -1,5 +1,6 @@
 int f();
 
-int main() {
-    return !(f() == 3);
+int main()
+{
+    return !(f() == 327);
 }
