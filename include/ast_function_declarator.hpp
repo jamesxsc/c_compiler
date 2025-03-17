@@ -12,6 +12,7 @@ namespace ast {
         // Identifier is stored in Declarator base class
         ParameterListPtr parameterList_;
         bool pointerReturn_{false};
+        int indirectionLevel_{0};
 
     public:
         explicit FunctionDeclarator(DeclaratorPtr identifier) : Declarator(
@@ -38,7 +39,7 @@ namespace ast {
 
         void EmitLabelRISC(std::ostream &stream) const;
 
-        void SetPointerReturn() override;
+        void SetPointerReturn(int indirectionLevel) override;
 
         bool GetPointerReturn() const;
     };

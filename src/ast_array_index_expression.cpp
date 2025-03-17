@@ -157,14 +157,12 @@ namespace ast {
                         break;
                     case TypeSpecifier::POINTER:
                     case TypeSpecifier::VOID:
-
                     case TypeSpecifier::STRUCT:
                     case TypeSpecifier::ARRAY:
                         throw std::runtime_error(
                                 "ArrayIndexExpression::EmitRISC() called on an unsupported array type");
                         // todo handle these
                 }
-                stream << "lw " << destReg << ",0" << "(" << addressTemp << ")" << std::endl; // here ^
                 context.FreeTemporary(indexReg);
                 if (useFloat)
                     context.FreeTemporary(addressTemp);

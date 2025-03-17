@@ -90,7 +90,6 @@
 // Unchanged types
 %type <node_list> translation_unit
 %type <node> external_declaration function_definition
-%type <node> pointer
 %type <node> identifier_list abstract_declarator direct_abstract_declarator
 
 // Statement types
@@ -158,6 +157,9 @@
 %type <number_float> FLOAT_CONSTANT DOUBLE_CONSTANT
 %type <string> IDENTIFIER TYPE_NAME STRING_LITERAL
 %type <type_specifier> type_specifier
+
+%type <number_int> pointer
+
 
 %start ROOT
 %%
@@ -464,8 +466,8 @@ declarator
     // todo do we need to support double pointers?
 	: pointer direct_declarator {
 	    // Function returning pointer isn't a pointer declarator
-	    if ($2->IsFunction()) { $2->SetPointerReturn(); $$ = $2; }
-        else $$ = new PointerDeclarator(DeclaratorPtr($2));
+	    if ($2->IsFunction()) { $2->SetPointerReturn($1); $$ = $2; }
+        else $$ = new PointerDeclarator(DeclaratorPtr($2), $1);
 	}
 	| direct_declarator { $$ = $1; $$->Indirect(); }
 	;
@@ -488,8 +490,8 @@ direct_declarator
 	;
 
 pointer
-	: '*'
-	| '*' pointer
+	: '*' { $$ = 1; }
+	| '*' pointer { $$ = $2 + 1; }
 	;
 
 parameter_list
@@ -500,7 +502,7 @@ parameter_list
 parameter_declaration
 	: declaration_specifiers declarator { $$ = new ParameterDeclaration(DeclarationSpecifiersPtr($1), DeclaratorPtr($2)); }
 	| declaration_specifiers abstract_declarator
-	| declaration_specifiers
+	| declaration_specifiers // todo ideally support, unnamed/unused?
 	;
 
 identifier_list
@@ -513,22 +515,23 @@ type_name
 	| specifier_qualifier_list abstract_declarator { std::cerr << "Abstract declarators need to be implemented (for type names)." << std::endl; exit(1); }
 	;
 
+// Don't think we need this
 abstract_declarator
 	: pointer
-	| direct_abstract_declarator
-	| pointer direct_abstract_declarator
+//	| direct_abstract_declarator
+//	| pointer direct_abstract_declarator
 	;
-
+//
 direct_abstract_declarator
 	: '(' abstract_declarator ')'
-	| '[' ']'
-	| '[' constant_expression ']'
-	| direct_abstract_declarator '[' ']'
-	| direct_abstract_declarator '[' constant_expression ']'
-	| '(' ')'
-	| '(' parameter_list ')'
-	| direct_abstract_declarator '(' ')'
-	| direct_abstract_declarator '(' parameter_list ')'
+//	| '[' ']'
+//	| '[' constant_expression ']'
+//	| direct_abstract_declarator '[' ']'
+//	| direct_abstract_declarator '[' constant_expression ']'
+//	| '(' ')'
+//	| '(' parameter_list ')'
+//	| direct_abstract_declarator '(' ')'
+//	| direct_abstract_declarator '(' parameter_list ')'
 	;
 
 initializer

@@ -62,8 +62,9 @@ namespace ast {
         };
     }
 
-    void FunctionDeclarator::SetPointerReturn() {
+    void FunctionDeclarator::SetPointerReturn(int indirectionLevel) {
         pointerReturn_ = true;
+        indirectionLevel_ = indirectionLevel;
     }
 
     bool FunctionDeclarator::GetPointerReturn() const {

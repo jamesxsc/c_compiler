@@ -12,6 +12,7 @@ namespace ast {
             if (!identifier->IsDirect()) {
                 throw std::runtime_error("Array identifier declarator must be direct");
             }
+            // TODO if we want multidimensional arrays, start here with a dim counter
         }
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;

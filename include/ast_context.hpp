@@ -12,77 +12,11 @@
 #include <optional>
 #include "register.hpp"
 #include "ast_type_specifier.hpp"
-
+#include "ast_bindings.hpp"
+#include "ast_enums.hpp"
+#include "ast_structs.hpp"
 
 namespace ast {
-    struct Variable {
-        int offset{0};
-        int size; // Bytes
-        TypeSpecifier type;
-    };
-    using VariablePtr = std::shared_ptr<const Variable>;
-
-    struct Function {
-        std::vector<int> parameterSizes;
-        int totalSize;
-        TypeSpecifier returnType;
-    };
-
-    // I prefer this, but it may be possible to ditch the deque and just store a counter
-    class Bindings {
-    public:
-        // todo we need to get array locations from *(p+1) sorta ops... or handle this arithmetically somehow in assignment
-        // I think the easiest way will be pushing down evaluation of ptrs to identifier
-        // Then simply use address rather than identifier (although we need a way to reverse look up address to get type etc)
-        Bindings(int size, int start) : size_(size), start_(start) {};
-
-        [[nodiscard]] const Variable &Get(const std::string &identifier) const;
-
-        [[nodiscard]] bool Contains(const std::string &identifier) const;
-
-        // Must pass as rvalue to avoid slicing Array type
-        const Variable &Insert(const std::string &identifier, Variable &&variable);
-
-        // This is for in a scope - removes old and reallocated because may be a different type/size
-        const Variable &InsertOrOverwrite(const std::string &identifier, Variable &&variable);
-
-        bool IsArray(const std::string &identifier) const;
-
-    private:
-        int size_;
-        int start_; // Don't overwrite saved ra and s... registers
-        std::deque<VariablePtr> bindings_;
-        std::unordered_map<std::string, const VariablePtr> bindingsMap_;
-    };
-
-    // This probably overkill class is in case we need to iterate over enumerators anywhere
-    class Enums {
-    public:
-        void Insert(const std::string &identifier, const std::map<std::string, int> &values);
-
-        [[nodiscard]] std::map<std::string, int> GetEnum(const std::string &identifier) const;
-
-        int Lookup(const std::string &identifier) const;
-
-        bool Contains(const std::string &identifier) const;
-
-    private:
-        std::unordered_map<std::string, std::map<std::string, int>> enums_{};
-        std::unordered_map<std::string, int> lookup_{};
-    };
-
-    // Again, overkill but may need to include size logic here
-    class Structs {
-    public:
-        void Insert(const std::string &identifier, const std::vector<std::pair<std::string, TypeSpecifier>> &members);
-
-        [[nodiscard]] std::vector<std::pair<std::string, TypeSpecifier>> GetStruct(const std::string &identifier) const;
-
-        bool Contains(const std::string &identifier) const;
-
-    private:
-        std::unordered_map<std::string, std::vector<std::pair<std::string, TypeSpecifier>>> structs_{};
-    };
 
     struct StackFrame {
         int size;

@@ -11,13 +11,16 @@ namespace ast {
             declarations_->EmitRISC(stream, context, destReg);
 
         if (statements_) {
-            statements_->SetInSwitchScope();
+            if (inSwitchScope_)
+                statements_->SetInSwitchScope();
 
             statements_->EmitRISC(stream, context, destReg);
 
-            // todo propogate to control blocks? + the setinscope
-            LabelCasePairVector childPairs = statements_->GetSwitchLabelCasePairs();
-            switchLabelCasePairs_.insert(std::end(switchLabelCasePairs_), std::begin(childPairs), std::end(childPairs));
+            if (inSwitchScope_) {
+                LabelCasePairVector childPairs = statements_->GetSwitchLabelCasePairs();
+                switchLabelCasePairs_.insert(std::end(switchLabelCasePairs_), std::begin(childPairs),
+                                             std::end(childPairs));
+            }
         }
 
         if (!isFunction_) {

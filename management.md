@@ -51,6 +51,7 @@
 - GetType on expressions is designed to always return the type of the actual operation (return) being performed to easily know whether to use a floating-point register and switch on the type.
   - TODO we return int from logical, is that ok for storing result in a char? if thats allowed anyway
 - Constexpr evaluation. I didn't want to do it but enums would be super ugly without it.
+- Round robin persistent register allocation to reduce bashing
 
 
 # Milestones (Draft)
@@ -96,7 +97,7 @@
 * Float/double unary and postfix operators AND for pointers/array identifier e.g. float++ --float float[0]++ --float[0], globals and local ideally. and addressof minus difference, good trick for checking ops on ptrs/addresses
 * Char operation byte masking where applicable
 * Enum tests: arithmetic e.g. adding multiplying enums with each other and ints; scoped enums; enum in switch case; initialize global int from enum identifier
-* Struct tests: various including nested structs and arrays of structs (maybe will get time for implementing this)
+* Struct tests: various including nested structs and arrays of structs (maybe will get time for implementing this), address of struct
 * ~~Floats Eliott & James~~ Mar 10
 * ~~Char type - James~~ Mar 11
 * ~~Global variables - James~~ Mar 9

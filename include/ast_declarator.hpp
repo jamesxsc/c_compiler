@@ -25,7 +25,7 @@ namespace ast {
 
         [[nodiscard]] virtual bool IsArray() const;
 
-        virtual void SetPointerReturn();
+        virtual void SetPointerReturn(int indirectionLevel);
 
         [[nodiscard]] virtual Function BuildFunction(TypeSpecifier returnType, Context &context) const;
 

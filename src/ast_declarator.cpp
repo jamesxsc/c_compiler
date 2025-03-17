@@ -42,7 +42,7 @@ namespace ast {
         return false;
     }
 
-    void Declarator::SetPointerReturn() {
+    void Declarator::SetPointerReturn(int) {
         throw std::runtime_error("Declarator::SetPointerReturn() called on a non-function declarator");
     }
 
