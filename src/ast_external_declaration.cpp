@@ -11,8 +11,10 @@ namespace ast {
             // Handle forward declarations
             if (initDeclarator->IsFunction()) {
                 // Store forward declarations
-                context.InsertFunction(initDeclarator->GetIdentifier(),
-                                       initDeclarator->BuildFunction(declarationSpecifiers_->GetType(context), context));
+                TypeSpecifier type = declarationSpecifiers_->GetType(context);
+                if (initDeclarator->IsPointer())
+                    type = TypeSpecifier(TypeSpecifier::POINTER, type);
+                context.InsertFunction(initDeclarator->GetIdentifier(), initDeclarator->BuildFunction(type, context));
             } else {
                 // Handle global variables
                 std::string identifier = initDeclarator->GetIdentifier();
@@ -26,11 +28,12 @@ namespace ast {
                 if (initDeclarator->HasInitializer()) {
                     if (initDeclarator->IsArray()) {
                         assert(initDeclarator->GetInitializer().IsList() && "Array initializer must be a list");
-                        context.InsertGlobal(identifier, initDeclarator->BuildArray(type, context).type); // Pretty much discard the offset etc info.
-                        const auto& initializerList = static_cast<const InitializerList&>(initDeclarator->GetInitializer()); // NOLINT(*-pro-type-static-cast-downcast)
-                        stream << ".size " << identifier << "," << context.GetGlobalType(identifier).GetTypeSize() << std::endl;
+                        context.InsertGlobal(identifier, initDeclarator->BuildArray(type,context).type);
+                        const auto &initializerList = static_cast<const InitializerList &>(initDeclarator->GetInitializer()); // NOLINT(*-pro-type-static-cast-downcast)
+                        stream << ".size " << identifier << "," << context.GetGlobalType(identifier).GetTypeSize()
+                               << std::endl;
                         stream << identifier << ":" << std::endl;
-                        for (const auto& initializer : initializerList) {
+                        for (const auto &initializer: initializerList) {
                             switch (type) { // Type is element type in array case here
                                 case TypeSpecifier::INT:
                                 case TypeSpecifier::UNSIGNED:
@@ -50,11 +53,10 @@ namespace ast {
                                     stream << ".double " << initializer->Evaluate<double>(context) << std::endl;
                                     break;
                                 case TypeSpecifier::VOID:
-                                case TypeSpecifier::STRUCT:
-                                case TypeSpecifier::ARRAY:
+                                case TypeSpecifier::STRUCT: // todo arrays of structs
+                                case TypeSpecifier::ARRAY: // todo multidim
                                     throw std::runtime_error(
                                             "ExternalDeclaration::EmitRISC() called on an unsupported array type");
-                                    // todo handle these
                             }
                         }
                     } else {
@@ -64,29 +66,67 @@ namespace ast {
                         switch (type) {
                             case TypeSpecifier::INT:
                             case TypeSpecifier::UNSIGNED:
+                            case TypeSpecifier::ENUM:
                                 // Can only be a constant (can't be assigned to another global for example)
                                 stream << ".word " << initDeclarator->EvaluateInitializer<int>(context) << std::endl;
+                                break;
+                            case TypeSpecifier::POINTER:
+                                stream << ".word " << initDeclarator->GetGlobalInitializerIdentifier() << std::endl;
                                 break;
                             case TypeSpecifier::CHAR:
                                 stream << ".byte " << initDeclarator->EvaluateInitializer<int>(context) << std::endl;
                                 break;
-                            case TypeSpecifier::POINTER:
-                                // Simply .word (RHS identifier)
-                                stream << ".word " << initDeclarator->GetGlobalInitializerIdentifier() << std::endl;
-                                break;
                             case TypeSpecifier::FLOAT:
-                                stream << ".float " << initDeclarator->EvaluateInitializer<double>(context) << std::endl;
+                                stream << ".float " << initDeclarator->EvaluateInitializer<double>(context)
+                                       << std::endl;
                                 break;
                             case TypeSpecifier::DOUBLE:
-                                stream << ".double " << initDeclarator->EvaluateInitializer<double>(context) << std::endl;
+                                stream << ".double " << initDeclarator->EvaluateInitializer<double>(context)
+                                       << std::endl;
                                 break;
+                            case TypeSpecifier::STRUCT: {
+                                assert(initDeclarator->GetInitializer().IsList() &&
+                                       "Struct initializer must be a list");
+                                const auto &initializerList = static_cast<const InitializerList &>(initDeclarator->GetInitializer()); // NOLINT(*-pro-type-static-cast-downcast)
+                                auto it = initializerList.begin();
+                                for (const auto &member: type.GetStructMembers()) {
+                                    if (member.first == "#padding") {
+                                        stream << ".zero " << member.second.GetTypeSize() << std::endl;
+                                        continue;
+                                    }
+                                    // todo ideally change the align directive
+
+                                    TypeSpecifier memberType = member.second;
+                                    switch (memberType) {
+                                        case TypeSpecifier::Type::INT:
+                                        case TypeSpecifier::Type::UNSIGNED:
+                                        case TypeSpecifier::Type::POINTER:
+                                        case TypeSpecifier::Type::ENUM:
+                                            stream << ".word " << (*it)->Evaluate<int>(context) << std::endl;
+                                            break;
+                                        case TypeSpecifier::Type::CHAR:
+                                            stream << ".byte " << (*it)->Evaluate<int>(context) << std::endl;
+                                            break;
+                                        case TypeSpecifier::Type::FLOAT:
+                                            stream << ".float " << (*it)->Evaluate<double>(context) << std::endl;
+                                            break;
+                                        case TypeSpecifier::Type::DOUBLE:
+                                            stream << ".double " << (*it)->Evaluate<double>(context) << std::endl;
+                                            break;
+                                        case TypeSpecifier::Type::ARRAY:
+                                        case TypeSpecifier::Type::STRUCT:
+                                        case TypeSpecifier::Type::VOID:
+                                            throw std::runtime_error(
+                                                    "ExternalDeclaration::EmitRISC() called on an unsupported global struct member type");
+                                    }
+                                    it++;
+                                }
+                                break;
+                            }
+                            case TypeSpecifier::ARRAY: // Should never get here
                             case TypeSpecifier::VOID:
-                            case TypeSpecifier::ENUM:
-                            case TypeSpecifier::STRUCT:
-                            case TypeSpecifier::ARRAY:
                                 throw std::runtime_error(
                                         "ArrayIndexExpression::EmitRISC() called on an unsupported array type");
-                                // todo handle these
                         }
                     }
                 } else {

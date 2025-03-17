@@ -24,6 +24,7 @@ namespace ast {
                                   .bindings = Bindings(frameSize,
                                                        -4 * 13), // 4 * 13 is the size of the saved registers (max case)
                           });
+        context.CurrentFrame().returnType = GetType(context);
         // Set the return label for return statements to emit
         context.CurrentFrame().returnLabel = context.MakeLabel(".L_RETURN");
 
@@ -46,10 +47,12 @@ namespace ast {
                 storedCount++;
             }
         }
-        storedCount++; // Make space for 64 bit reg
+        if (storedCount % 2 == 0) {
+            storedCount++; // Ensure double alignment
+        }
         for (int r = 0; r < 8; r++) {
             if (context.CurrentFrame().usedFloatPersistentRegisters.test(r)) {
-                stream << "fsw fs" << r << "," << frameSize - 8 - storedCount * 4 << "(sp)" << std::endl;
+                stream << "fsd fs" << r << "," << frameSize - 8 - storedCount * 4 << "(sp)" << std::endl;
                 storedCount += 2; // Float registers are 64 bit
             }
         }
@@ -75,10 +78,12 @@ namespace ast {
                 storedCount++;
             }
         }
-        storedCount++; // Make space for 64 bit reg // todo check this is correct and cx declaration (abi alignment)
+        if (storedCount % 2 == 0) {
+            storedCount++; // Ensure double alignment
+        }
         for (int r = 0; r < 8; r++) {
             if (context.CurrentFrame().usedFloatPersistentRegisters.test(r)) {
-                stream << "flw fs" << r << "," << frameSize - 8 - storedCount * 4 << "(sp)" << std::endl;
+                stream << "fld fs" << r << "," << frameSize - 8 - storedCount * 4 << "(sp)" << std::endl;
                 storedCount += 2; // Float registers are 64 bit
             }
         }
@@ -105,8 +110,6 @@ namespace ast {
 
 
     TypeSpecifier FunctionDefinition::GetType(Context &context) const {
-        // todo is this the best soln, and do we need to modify external decl. also can we return an array?
-        // search wont pass until pointer loads/stores are complete
         TypeSpecifier returnType = declaration_specifiers_->GetType(context);
         if (declarator_->GetPointerReturn())
             returnType = {TypeSpecifier::POINTER, returnType};

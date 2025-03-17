@@ -35,6 +35,7 @@ namespace ast {
                 }
                 members.emplace_back(declarator->GetIdentifier(), declaration->GetType(context));
                 maxAlignment = std::max(maxAlignment, alignment);
+                totalSize += alignment;
             }
         }
         if (totalSize % maxAlignment != 0) {

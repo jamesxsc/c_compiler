@@ -25,6 +25,8 @@ namespace ast {
         Enums enums{};
         Structs structs{};
 
+        TypeSpecifier returnType{TypeSpecifier::VOID};
+
         std::bitset<12> usedIntegerPersistentRegisters{1}; // s0 is always used
         std::bitset<12> usedFloatPersistentRegisters{};
 

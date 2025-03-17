@@ -98,12 +98,14 @@
 * Char operation byte masking where applicable
 * Enum tests: arithmetic e.g. adding multiplying enums with each other and ints; scoped enums; enum in switch case; initialize global int from enum identifier
 * Struct tests: various including nested structs and arrays of structs (maybe will get time for implementing this), address of struct
+* Stack alignment uhh vars
+* Test for calling external function returning a pointer
+* Test for array param not as pointer if we haven't already
 * ~~Floats Eliott & James~~ Mar 10
 * ~~Char type - James~~ Mar 11
 * ~~Global variables - James~~ Mar 9
 * ~~Arrays local or global - James~~ Mar 11
 * ~~Char constant (override same methods as int but accept char or int in constructor; needs work in lexer also) - James~~ Mar 13
-* Float int double char (weird shifting and masking int | char return char eg) conversion pain - but implicit casting isn't tested apparently what about int + float
 * Function calls with many arguments and test
 * Register spilling and test
 * ~~Void type/functions~~ Mar 14

@@ -63,6 +63,7 @@ namespace ast {
                     break;
                 case TypeSpecifier::VOID:
                 case TypeSpecifier::STRUCT:
+                    // todo handle return global struct
                     throw std::runtime_error(
                             "Identifier::EmitRISC() called on an unsupported type");
             }
@@ -92,8 +93,51 @@ namespace ast {
                     // Load address, but probably never called in local scope
                     stream << "addi " << destReg << ",s0," << offset << std::endl;
                     break;
+                case TypeSpecifier::STRUCT: { // Should only ever be called in return
+                    assert(destReg == Register::a0 && "Structs identifier called in non-return context");
+                    const std::vector<std::pair<std::string, TypeSpecifier>> &structMembers = type.GetStructMembers();
+                    bool useStack = structMembers.size() > 2; // Doesn't handle nested structs
+                    // I think this is best placed here because I can't think where else we want it
+                    if (useStack) {
+                        // todo store large structs
+                    } else {
+                        Register floatReg = Register::fa0;
+                        Register intReg = Register::a0;
+                        int memberOffset = 0;
+                        for (const auto &member: structMembers) {
+                            TypeSpecifier memberType = member.second;
+                            if (member.first == "#padding") { // Don't store padding
+                                offset += memberType.GetTypeSize();
+                                continue;
+                            }
+                            switch (memberType) {
+                                case TypeSpecifier::Type::INT:
+                                case TypeSpecifier::Type::CHAR:
+                                case TypeSpecifier::Type::UNSIGNED:
+                                case TypeSpecifier::Type::POINTER:
+                                case TypeSpecifier::Type::ENUM:
+                                    stream << "lw " << intReg << "," << offset + memberOffset << "(s0)" << std::endl;
+                                    memberOffset += memberType.GetTypeSize();
+                                    intReg = static_cast<Register>(static_cast<int>(intReg) + 1);
+                                    break;
+                                case TypeSpecifier::Type::FLOAT:
+                                case TypeSpecifier::Type::DOUBLE:
+                                    stream << (memberType == TypeSpecifier::FLOAT ? "flw " : "fld ") << floatReg << ","
+                                           << offset + memberOffset << "(s0)" << std::endl;
+                                    memberOffset += memberType.GetTypeSize();
+                                    floatReg = static_cast<Register>(static_cast<int>(floatReg) + 1);
+                                    break;
+                                case TypeSpecifier::Type::ARRAY:
+                                case TypeSpecifier::Type::VOID:
+                                case TypeSpecifier::Type::STRUCT:
+                                    throw std::runtime_error(
+                                            "ReturnStatement::EmitRISC() called on an unsupported struct member type");
+                            }
+                        }
+                    }
+                    break;
+                }
                 case TypeSpecifier::VOID:
-                case TypeSpecifier::STRUCT: // Should only ever be called LHS? // todo what about return?
                     throw std::runtime_error(
                             "Identifier::EmitRISC() called on an unsupported type");
             }
