@@ -52,4 +52,6 @@ namespace ast::Utils {
 
     void EmitAddressToIndexOffset(std::ostream &stream, Register sizeReg, Context &context, const TypeSpecifier& type);
 
+    void EmitIncrementDecrement(std::ostream &stream, Context &context, Register destReg, const ExpressionBase &child, bool decrement, bool postfix);
+
 }

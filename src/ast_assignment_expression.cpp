@@ -17,7 +17,7 @@ namespace ast {
             return;
         }
 
-        TypeSpecifier type = GetType(context); // unfolded LHS type
+        TypeSpecifier type = GetTypeInternal(context); // unfolded LHS type
         bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
         bool rightStored = (op_ != AssignmentOperator::Assign) &&
                            unary_->ContainsFunctionCall(); // I can't see any case where this is true
@@ -71,7 +71,9 @@ namespace ast {
         if (unary_->IsPointerDereference()) { // Type is already unfolded, moved to top as this won't always have an identifier
             // I think this, is ok, although maybe we call unary gettype?
             Register addrReg = context.AllocateTemporary();
-            unary_->EmitDereferencedAddressRISC(stream, context, addrReg);
+            context.emitLHS = true;
+            unary_->EmitRISC(stream, context, addrReg);
+            context.emitLHS = false;
             // Copied from below could maybe extract
             switch (type) {
                 case TypeSpecifier::FLOAT:
@@ -123,7 +125,7 @@ namespace ast {
                         case TypeSpecifier::CHAR:
                             stream << "sb " << result << ",0(" << addrReg << ")" << std::endl;
                             break;
-                        case TypeSpecifier::POINTER:
+                        case TypeSpecifier::POINTER: // will be reassignment
                         case TypeSpecifier::VOID:
                         case TypeSpecifier::STRUCT:
                         case TypeSpecifier::ARRAY:
@@ -306,8 +308,8 @@ namespace ast {
                                                                                      assignment_(
                                                                                              std::move(assignment)) {}
 
-    // The logic of this function is to return the type of the actual arithmetic operation
-    TypeSpecifier AssignmentExpression::GetType(Context &context) const {
+    // The logic of this function is to return the type of the actual arithmetic operation (unwraps ptrs etc.)
+    TypeSpecifier AssignmentExpression::GetTypeInternal(Context &context) const {
         // Just pass down, there is only one operand
         if (op_ == AssignmentOperator::ConditionalPromote) {
             return conditional_->GetType(context);
@@ -328,6 +330,15 @@ namespace ast {
                 lhsType = lhsType.GetPointeeType();
 
             return lhsType;
+        }
+    }
+
+    // Return expression type
+    TypeSpecifier AssignmentExpression::GetType(Context &context) const {
+        if (op_ == AssignmentOperator::ConditionalPromote) {
+            return conditional_->GetType(context);
+        } else {
+            return unary_->GetType(context);
         }
     }
 

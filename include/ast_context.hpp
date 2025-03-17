@@ -155,6 +155,8 @@ namespace ast {
 
         TypeSpecifier ResolveTypeAlias(std::vector<TypeSpecifier> specifiers);
 
+        bool emitLHS{false};
+
     private:
         std::bitset<7> integerTemporaries_; // using t0... notation for contiguous numbering
         std::bitset<12> integerPersistent_; // using s0... notation for contiguous numbering

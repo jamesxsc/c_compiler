@@ -40,8 +40,6 @@ namespace ast {
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
 
-        void EmitDereferencedAddressRISC(std::ostream &stream, Context &context, Register destReg) const;
-
         void Print(std::ostream &stream) const override;
 
         [[nodiscard]] int Evaluate(Context &context) const override;

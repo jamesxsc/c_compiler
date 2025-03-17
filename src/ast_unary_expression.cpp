@@ -2,50 +2,61 @@
 #include "ast_unary_expression.hpp"
 #include "ast_multiplicative_expression.hpp"
 #include "ast_type_specifier.hpp"
+#include "risc_utils.hpp"
 
 namespace ast {
 
     // Lvalue asserts are in GetIdentifier impls
     void UnaryExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-        bool hasDestination = destReg != Register::zero;
+        if (context.emitLHS && op_ == UnaryOperator::Dereference) {
+            multiplicativeChild_->EmitRISC(stream, context, destReg);
+            return;
+        }
+
         switch (op_) {
             case UnaryOperator::PostfixPromote:
                 postfixChild_->EmitRISC(stream, context, destReg);
                 break;
             case UnaryOperator::PrefixIncrement:
-            case UnaryOperator::PrefixDecrement: { // todo float etc
-                // To an extent this assumes child unary is an lvalue
-                std::string identifier = unaryChild_->GetIdentifier();
-                if (context.IsGlobal(identifier)) {
-                    // ballache have to handle derefence/non dereference case
-                    // check this in postfix too - type gets unwrapped, but never considers de ref right? . use unary child -> EmtiAddressRisc, youre welcome
-                    Register tempReg = context.AllocateTemporary();
-                    Register tempReg2 = hasDestination ? destReg : context.AllocateTemporary();
-                    stream << "lui " << tempReg2 << ",%hi(" << identifier << ")" << std::endl;
-                    stream << "lw " << tempReg2 << ",%lo(" << identifier << ")(" << tempReg2 << ")" << std::endl;
-                    stream << "addi " << tempReg << "," << tempReg2 << ","
-                           << (op_ == UnaryOperator::PrefixIncrement ? "1" : "-1") << std::endl;
-                    stream << "lui " << tempReg2 << ",%hi(" << identifier << ")" << std::endl;
-                    stream << "sw " << tempReg << ",%lo(" << identifier << ")(" << tempReg2 << ")" << std::endl;
-                    context.FreeTemporary(tempReg);
-                    if (!hasDestination)
-                        context.FreeTemporary(tempReg2);
-                    // Store the incremented/decremented value in the destination register
-                    if (destReg != Register::zero)
-                        unaryChild_->EmitRISC(stream, context, destReg);
-                } else {
-                    Variable var = context.CurrentFrame().bindings.Get(identifier);
-                    Register tempReg = hasDestination ? destReg : context.AllocateTemporary();
-                    stream << "lw " << tempReg << "," << var.offset << "(s0)" << std::endl;
-                    stream << "addi " << tempReg << "," << tempReg << ","
-                           << (op_ == UnaryOperator::PrefixIncrement ? "1" : "-1") << std::endl;
-                    stream << "sw " << tempReg << "," << var.offset << "(s0)" << std::endl;
-                    if (!hasDestination)
-                        context.FreeTemporary(tempReg);
-                    // Store the incremented/decremented value in the destination register
-                    if (destReg != Register::zero)
-                        unaryChild_->EmitRISC(stream, context, destReg);
-                }
+            case UnaryOperator::PrefixDecrement: {
+
+                Utils::EmitIncrementDecrement(stream, context, destReg, *unaryChild_, op_ == UnaryOperator::PrefixDecrement, false);
+
+
+
+
+
+//                std::string identifier = unaryChild_->GetIdentifier();
+//                if (context.IsGlobal(identifier)) {
+//                    // ballache have to handle derefence/non dereference case
+//                    // check this in postfix too - type gets unwrapped, but never considers de ref right? . use unary child -> EmtiAddressRisc, youre welcome
+//                    Register tempReg = context.AllocateTemporary();
+//                    Register tempReg2 = hasDestination ? destReg : context.AllocateTemporary();
+//                    stream << "lui " << tempReg2 << ",%hi(" << identifier << ")" << std::endl;
+//                    stream << "lw " << tempReg2 << ",%lo(" << identifier << ")(" << tempReg2 << ")" << std::endl;
+//                    stream << "addi " << tempReg << "," << tempReg2 << ","
+//                           << (op_ == UnaryOperator::PrefixIncrement ? "1" : "-1") << std::endl;
+//                    stream << "lui " << tempReg2 << ",%hi(" << identifier << ")" << std::endl;
+//                    stream << "sw " << tempReg << ",%lo(" << identifier << ")(" << tempReg2 << ")" << std::endl;
+//                    context.FreeTemporary(tempReg);
+//                    if (!hasDestination)
+//                        context.FreeTemporary(tempReg2);
+//                    // Store the incremented/decremented value in the destination register
+//                    if (destReg != Register::zero)
+//                        unaryChild_->EmitRISC(stream, context, destReg);
+//                } else {
+//                    Variable var = context.CurrentFrame().bindings.Get(identifier);
+//                    Register tempReg = hasDestination ? destReg : context.AllocateTemporary();
+//                    stream << "lw " << tempReg << "," << var.offset << "(s0)" << std::endl;
+//                    stream << "addi " << tempReg << "," << tempReg << ","
+//                           << (op_ == UnaryOperator::PrefixIncrement ? "1" : "-1") << std::endl;
+//                    stream << "sw " << tempReg << "," << var.offset << "(s0)" << std::endl;
+//                    if (!hasDestination)
+//                        context.FreeTemporary(tempReg);
+//                    // Store the incremented/decremented value in the destination register
+//                    if (destReg != Register::zero)
+//                        unaryChild_->EmitRISC(stream, context, destReg);
+//                }
                 break;
             }
                 // Below all multiplicative child expression
@@ -73,6 +84,9 @@ namespace ast {
                 // all of this is sort of delegating much better, and postfix/unary ops can probably leverage this approach
 
                 // deepcopying etc may be quote important
+
+                // let's try implementing lhs risc along whole chain, and then we can use that in assignment and postfix/here
+                // or lhs bool might do the trick...
 
                 TypeSpecifier pointeeType = multiplicativeChild_->GetType(context).GetPointeeType();
 
@@ -219,12 +233,6 @@ namespace ast {
                 stream << "li " << destReg << "," << typeNameChild_->GetType(context).GetTypeSize() << std::endl;
                 break;
         }
-    }
-
-    void UnaryExpression::EmitDereferencedAddressRISC(std::ostream &stream, Context &context, Register destReg) const {
-        assert(op_ == UnaryOperator::Dereference && "EmitDereferencedAddress called on non-dereference");
-
-        multiplicativeChild_->EmitRISC(stream, context, destReg);
     }
 
     void UnaryExpression::Print(std::ostream &stream) const {
