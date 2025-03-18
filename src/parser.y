@@ -24,6 +24,7 @@
   ExpressionBase* expression_base;
   PostfixExpression* postfix_expression;
   FunctionCallExpression* function_call_expression;
+  StructMemberAccessExpression* struct_member_access_expression;
   ArrayIndexExpression* array_index_expression;
   UnaryExpression* unary_expression; 
   UnaryOperator unary_operator;
@@ -89,7 +90,6 @@
 // Unchanged types
 %type <node_list> translation_unit
 %type <node> external_declaration function_definition
-%type <node> pointer
 %type <node> identifier_list abstract_declarator direct_abstract_declarator
 
 // Statement types
@@ -117,6 +117,7 @@
 %type <expression_base> primary_expression
 %nterm <postfix_expression> postfix_expression
 %nterm <function_call_expression> function_call_expression
+%nterm <struct_member_access_expression> struct_member_access_expression
 %nterm <array_index_expression> array_index_expression
 %nterm <unary_expression> unary_expression
 %nterm <unary_operator> unary_operator
@@ -156,6 +157,9 @@
 %type <number_float> FLOAT_CONSTANT DOUBLE_CONSTANT
 %type <string> IDENTIFIER TYPE_NAME STRING_LITERAL
 %type <type_specifier> type_specifier
+
+%type <number_int> pointer
+
 
 %start ROOT
 %%
@@ -215,12 +219,16 @@ array_index_expression
     : postfix_expression '[' expression ']' { $$ = new ArrayIndexExpression(PostfixExpressionPtr($1), ExpressionPtr($3)); }
     ;
 
+struct_member_access_expression
+    : postfix_expression '.' IDENTIFIER { $$ = new StructMemberAccessExpression(PostfixExpressionPtr($1), *$3); delete $3; }
+    | postfix_expression PTR_OP IDENTIFIER { $$ = new StructMemberAccessExpression(PostfixExpressionPtr($1), *$3, true); delete $3; }
+    ;
+
 postfix_expression
 	: primary_expression { $$ = new PostfixExpression(ExpressionBasePtr($1), PostfixOperator::PrimaryPromote); }
     | array_index_expression { $$ = new PostfixExpression(ExpressionBasePtr($1), PostfixOperator::ArrayIndexPromote); }
 	| function_call_expression { $$ = new PostfixExpression(ExpressionBasePtr($1), PostfixOperator::FunctionCallPromote); }
-	| postfix_expression '.' IDENTIFIER
-	| postfix_expression PTR_OP IDENTIFIER
+	| struct_member_access_expression { $$ = new PostfixExpression(ExpressionBasePtr($1), PostfixOperator::StructMemberAccessPromote); }
 	| postfix_expression INC_OP { $$ = new PostfixExpression(PostfixExpressionPtr($1), PostfixOperator::PostfixIncrement); }
 	| postfix_expression DEC_OP { $$ = new PostfixExpression(PostfixExpressionPtr($1), PostfixOperator::PostfixDecrement); }
 	;
@@ -402,8 +410,8 @@ type_specifier
 	| DOUBLE { $$ = new TypeSpecifier(TypeSpecifier::DOUBLE); }
 	| SIGNED { $$ = new TypeSpecifier(TypeSpecifier::INT); }
 	| UNSIGNED { $$ = new TypeSpecifier(TypeSpecifier::UNSIGNED); }
-    | struct_specifier { $$ = new TypeSpecifier($1->GetIdentifier()); }
-	| enum_specifier { $$ = new TypeSpecifier($1->GetIdentifier()); }
+    | struct_specifier { $$ = new TypeSpecifier($1->GetIdentifier(), true); }
+	| enum_specifier { $$ = new TypeSpecifier($1->GetIdentifier(), false); }
 	| TYPE_NAME { $$ = new TypeSpecifier(typedefs.at(*$1)); delete $1; }
 	;
 
@@ -458,8 +466,8 @@ declarator
     // todo do we need to support double pointers?
 	: pointer direct_declarator {
 	    // Function returning pointer isn't a pointer declarator
-	    if ($2->IsFunction()) { $2->SetPointerReturn(); $$ = $2; }
-        else $$ = new PointerDeclarator(DeclaratorPtr($2));
+	    if ($2->IsFunction()) { $2->SetPointerReturn($1); $$ = $2; }
+        else $$ = new PointerDeclarator(DeclaratorPtr($2), $1);
 	}
 	| direct_declarator { $$ = $1; $$->Indirect(); }
 	;
@@ -472,7 +480,7 @@ direct_declarator
 	}
 	| '(' declarator ')' { $$ = $2; $$->Direct(); }
 	| direct_declarator '[' constant_expression ']' { $$ = new ArrayDeclarator(DeclaratorPtr($1), ConstantExpressionPtr($3)); }
-	| direct_declarator '[' ']' { std::cerr << "Need to support empty array declarations?" << std::endl; exit(1); }
+	| direct_declarator '[' ']' { std::cerr << "Need to support empty array declarations?" << std::endl; exit(1); } // todo is this required for array param? // todo not sure but certainly declaring with init list seems valid
 	| direct_declarator '(' parameter_list ')' { $$ = new FunctionDeclarator(DeclaratorPtr($1), ParameterListPtr($3)); }
 	| direct_declarator '(' identifier_list ')' {
 	    std::cerr << "Need to support identifier_list in direct_declarator" << std::endl;
@@ -482,8 +490,8 @@ direct_declarator
 	;
 
 pointer
-	: '*'
-	| '*' pointer
+	: '*' { $$ = 1; }
+	| '*' pointer { $$ = $2 + 1; }
 	;
 
 parameter_list
@@ -494,7 +502,7 @@ parameter_list
 parameter_declaration
 	: declaration_specifiers declarator { $$ = new ParameterDeclaration(DeclarationSpecifiersPtr($1), DeclaratorPtr($2)); }
 	| declaration_specifiers abstract_declarator
-	| declaration_specifiers
+	| declaration_specifiers // todo ideally support, unnamed/unused?
 	;
 
 identifier_list
@@ -507,22 +515,23 @@ type_name
 	| specifier_qualifier_list abstract_declarator { std::cerr << "Abstract declarators need to be implemented (for type names)." << std::endl; exit(1); }
 	;
 
+// Don't think we need this
 abstract_declarator
 	: pointer
-	| direct_abstract_declarator
-	| pointer direct_abstract_declarator
+//	| direct_abstract_declarator
+//	| pointer direct_abstract_declarator
 	;
-
+//
 direct_abstract_declarator
 	: '(' abstract_declarator ')'
-	| '[' ']'
-	| '[' constant_expression ']'
-	| direct_abstract_declarator '[' ']'
-	| direct_abstract_declarator '[' constant_expression ']'
-	| '(' ')'
-	| '(' parameter_list ')'
-	| direct_abstract_declarator '(' ')'
-	| direct_abstract_declarator '(' parameter_list ')'
+//	| '[' ']'
+//	| '[' constant_expression ']'
+//	| direct_abstract_declarator '[' ']'
+//	| direct_abstract_declarator '[' constant_expression ']'
+//	| '(' ')'
+//	| '(' parameter_list ')'
+//	| direct_abstract_declarator '(' ')'
+//	| direct_abstract_declarator '(' parameter_list ')'
 	;
 
 initializer

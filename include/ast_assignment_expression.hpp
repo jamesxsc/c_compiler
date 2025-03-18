@@ -61,6 +61,8 @@ namespace ast {
         // For assignment
         UnaryExpressionPtr unary_;
         AssignmentExpressionPtr assignment_;
+
+        TypeSpecifier GetTypeInternal(Context &context) const;
     };
 
 

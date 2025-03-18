@@ -47,7 +47,8 @@
 #include "ast_labeled_statement.hpp"
 #include "ast_logical_and_expression.hpp"
 #include "ast_logical_or_expression.hpp"
-#include "ast_multiplicative_unary_expressions.hpp"
+#include "ast_multiplicative_expression.hpp"
+#include "ast_unary_expression.hpp"
 #include "ast_node.hpp"
 #include "ast_postfix_expression.hpp"
 #include "ast_primary_expression.hpp"
@@ -62,6 +63,7 @@
 #include "ast_struct_declaration_list.hpp"
 #include "ast_struct_declarator.hpp"
 #include "ast_struct_declarator_list.hpp"
+#include "ast_struct_member_access_expression.hpp"
 #include "ast_struct_specifier.hpp"
 #include "ast_type_name.hpp"
 

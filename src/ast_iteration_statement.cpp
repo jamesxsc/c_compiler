@@ -22,7 +22,14 @@ namespace ast {
         context.FreeTemporary(condReg);
 
         // Never null
+        if (inSwitchScope_)
+            body_->SetInSwitchScope();
         body_->EmitRISC(stream, context, destReg);
+        if (inSwitchScope_) {
+            LabelCasePairVector childPairs = body_->GetSwitchLabelCasePairs();
+            switchLabelCasePairs_.insert(std::end(switchLabelCasePairs_), std::begin(childPairs),
+                                         std::end(childPairs));
+        }
 
         // Jump back
         stream << "j " << labelStart << std::endl;
@@ -49,7 +56,15 @@ namespace ast {
         context.CurrentFrame().continueLabel.push_back(labelStart);
 
         stream << labelStart << ":" << std::endl;
+        // Never null
+        if (inSwitchScope_)
+            body_->SetInSwitchScope();
         body_->EmitRISC(stream, context, destReg);
+        if (inSwitchScope_) {
+            LabelCasePairVector childPairs = body_->GetSwitchLabelCasePairs();
+            switchLabelCasePairs_.insert(std::end(switchLabelCasePairs_), std::begin(childPairs),
+                                         std::end(childPairs));
+        }
 
         Register condReg = context.AllocateTemporary();
         Utils::EmitComparison(stream, context, condReg, *condition_);
@@ -92,7 +107,15 @@ namespace ast {
         stream << "beq " << condReg << ",zero," << labelEnd << std::endl;
         context.FreeTemporary(condReg);
 
+        // Never null
+        if (inSwitchScope_)
+            body_->SetInSwitchScope();
         body_->EmitRISC(stream, context, destReg);
+        if (inSwitchScope_) {
+            LabelCasePairVector childPairs = body_->GetSwitchLabelCasePairs();
+            switchLabelCasePairs_.insert(std::end(switchLabelCasePairs_), std::begin(childPairs),
+                                         std::end(childPairs));
+        }
 
         stream << labelContinue << ":" << std::endl; // Must still inc
         if (increment_) {

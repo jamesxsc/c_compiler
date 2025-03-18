@@ -18,39 +18,46 @@ namespace ast {
             // We won't ever need to "return" to destReg so overwrite it for temporary use
             // Bindings and init
             if (initDeclarator->HasInitializer()) {
-                bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE; // This should work, type is element type in array case here
+                bool useFloat = type == TypeSpecifier::FLOAT || type ==
+                                                                TypeSpecifier::DOUBLE; // This should work, type is element type in array case here
                 Register tempReg = context.AllocateTemporary(useFloat);
                 if (initDeclarator->IsArray()) {
-                    // This approach may have to change slightly for (nested) structs
                     assert(initDeclarator->GetInitializer().IsList() && "Array initializer must be a list");
-                    Variable array = context.CurrentFrame().bindings.InsertOrOverwrite(identifier, initDeclarator->BuildArray(type, context));
+                    Variable array = context.CurrentFrame().bindings.InsertOrOverwrite(identifier,
+                                                                                       initDeclarator->BuildArray(type,
+                                                                                                                  context));
                     // ^ Wraps the type, but we keep element type here
                     const auto &initializerList = static_cast<const InitializerList &>(initDeclarator->GetInitializer()); // NOLINT(*-pro-type-static-cast-downcast)
                     int idx = 0;
-                    for (const auto & initializer : initializerList) {
+                    for (const auto &initializer: initializerList) {
                         initializer->EmitRISC(stream, context, tempReg);
                         switch (type) {
                             case TypeSpecifier::INT:
                             case TypeSpecifier::UNSIGNED:
                             case TypeSpecifier::POINTER:
                             case TypeSpecifier::ENUM:
-                                stream << "sw " << tempReg << "," << array.offset + idx * type.GetTypeSize() << "(s0)" << std::endl;
+                                stream << "sw " << tempReg << "," << array.offset + idx * type.GetTypeSize() << "(s0)"
+                                       << std::endl;
                                 break;
                             case TypeSpecifier::FLOAT:
-                                stream << "fsw " << tempReg << "," << array.offset + idx * type.GetTypeSize() << "(s0)" << std::endl;
+                                stream << "fsw " << tempReg << "," << array.offset + idx * type.GetTypeSize() << "(s0)"
+                                       << std::endl;
                                 break;
                             case TypeSpecifier::DOUBLE:
-                                stream << "fsd " << tempReg << "," << array.offset + idx * type.GetTypeSize() << "(s0)" << std::endl;
+                                stream << "fsd " << tempReg << "," << array.offset + idx * type.GetTypeSize() << "(s0)"
+                                       << std::endl;
                                 break;
                             case TypeSpecifier::CHAR:
-                                stream << "sb " << tempReg << "," << array.offset + idx * type.GetTypeSize() << "(s0)" << std::endl;
+                                stream << "sb " << tempReg << "," << array.offset + idx * type.GetTypeSize() << "(s0)"
+                                       << std::endl;
                                 break;
+                            case TypeSpecifier::STRUCT: {
+                                // todo arrays of structs
+                            }
+                            case TypeSpecifier::ARRAY: // todo multidim
                             case TypeSpecifier::VOID:
-                            case TypeSpecifier::STRUCT:
-                            case TypeSpecifier::ARRAY:
                                 throw std::runtime_error(
                                         "Declaration::EmitRISC() called on an unsupported array type");
-                                // todo handle these
                         }
                         idx++;
                     }
@@ -67,6 +74,7 @@ namespace ast {
                         case TypeSpecifier::INT:
                         case TypeSpecifier::POINTER:
                         case TypeSpecifier::UNSIGNED:
+                        case TypeSpecifier::ENUM:
                             stream << "sw " << tempReg << "," << var.offset << "(s0)" << std::endl;
                             break;
                         case TypeSpecifier::FLOAT:
@@ -78,20 +86,64 @@ namespace ast {
                         case TypeSpecifier::CHAR:
                             stream << "sb " << tempReg << "," << var.offset << "(s0)" << std::endl;
                             break;
+                        case TypeSpecifier::STRUCT: {
+                            assert(initDeclarator->GetInitializer().IsList() && "Struct initializer must be a list");
+                            int index = 0;
+                            const auto &initializerList = static_cast<const InitializerList &>(initDeclarator->GetInitializer()); // NOLINT(*-pro-type-static-cast-downcast)
+                            auto it = initializerList.begin();
+                            for (const auto &member: type.GetStructMembers()) {
+                                if (member.first == "#padding") {
+                                    stream << "li " << tempReg << ",0" << std::endl;
+                                    stream << "sb " << tempReg << "," << var.offset + index << "(s0)" << std::endl;
+                                    index += member.second.GetTypeSize();
+                                    continue;
+                                }
+
+                                TypeSpecifier memberType = member.second;
+                                switch (memberType) {
+                                    case TypeSpecifier::Type::INT:
+                                    case TypeSpecifier::Type::UNSIGNED:
+                                    case TypeSpecifier::Type::POINTER:
+                                    case TypeSpecifier::Type::ENUM:
+                                        (*it)->EmitRISC(stream, context, tempReg);
+                                        stream << "sw " << tempReg << "," << var.offset + index << "(s0)" << std::endl;
+                                        break;
+                                    case TypeSpecifier::Type::CHAR:
+                                        (*it)->EmitRISC(stream, context, tempReg);
+                                        stream << "sb " << tempReg << "," << var.offset + index << "(s0)" << std::endl;
+                                        break;
+                                    case TypeSpecifier::Type::FLOAT:
+                                    case TypeSpecifier::Type::DOUBLE: {
+                                        Register tempFloatReg = context.AllocateTemporary(true);
+                                        (*it)->EmitRISC(stream, context, tempFloatReg);
+                                        stream << (memberType == TypeSpecifier::Type::FLOAT ? "fsw " : "fsd ")
+                                               << tempFloatReg << "," << var.offset + index << "(s0)" << std::endl;
+                                        context.FreeTemporary(tempFloatReg);
+                                        break;
+                                    }
+                                    case TypeSpecifier::Type::ARRAY:
+                                    case TypeSpecifier::Type::STRUCT:
+                                    case TypeSpecifier::Type::VOID:
+                                        throw std::runtime_error(
+                                                "Declaration::EmitRISC() called on an unsupported struct member type");
+                                }
+                                it++;
+                                index += memberType.GetTypeSize();
+                            }
+                            break;
+                        }
                         case TypeSpecifier::VOID:
-                        case TypeSpecifier::ENUM:
-                        case TypeSpecifier::STRUCT:
-                        case TypeSpecifier::ARRAY:
+                        case TypeSpecifier::ARRAY: // Should never get here
                             throw std::runtime_error(
                                     "ArrayIndexExpression::EmitRISC() called on an unsupported type");
-                            // todo handle these
                     }
                 }
                 context.FreeTemporary(tempReg);
             } else {
                 // Allocated (stack), but not initialized
                 if (initDeclarator->IsArray()) {
-                    context.CurrentFrame().bindings.InsertOrOverwrite(identifier, initDeclarator->BuildArray(type, context));
+                    context.CurrentFrame().bindings.InsertOrOverwrite(identifier,
+                                                                      initDeclarator->BuildArray(type, context));
                 } else {
                     int size = type.GetTypeSize();
                     context.CurrentFrame().bindings.InsertOrOverwrite(identifier, Variable{

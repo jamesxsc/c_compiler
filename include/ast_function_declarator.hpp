@@ -12,10 +12,11 @@ namespace ast {
         // Identifier is stored in Declarator base class
         ParameterListPtr parameterList_;
         bool pointerReturn_{false};
+        int indirectionLevel_{0};
 
     public:
         explicit FunctionDeclarator(DeclaratorPtr identifier) : Declarator(
-                identifier->GetIdentifier(), true) {
+                identifier->GetIdentifier(), true), parameterList_(std::make_unique<ParameterList>(nullptr)) {
             if (!identifier->IsDirect()) {
                 throw std::runtime_error("Function identifier declarator must be direct");
             }
@@ -38,9 +39,11 @@ namespace ast {
 
         void EmitLabelRISC(std::ostream &stream) const;
 
-        void SetPointerReturn() override;
+        void SetPointerReturn(int indirectionLevel) override;
 
-        bool GetPointerReturn() const;
+        [[nodiscard]] bool GetPointerReturn() const;
+
+        void SetHiddenPointerReturn() const;
     };
 
     using FunctionDeclaratorPtr = std::unique_ptr<const FunctionDeclarator>;

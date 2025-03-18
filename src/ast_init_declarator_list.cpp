@@ -11,7 +11,6 @@ namespace ast {
     }
 
     void InitDeclaratorList::Print(std::ostream &stream) const {
-        stream << " ";
         if (!initDeclarators_.empty()) {
             for (auto it = initDeclarators_.begin(); it != initDeclarators_.end(); ++it) {
                 (*it)->Print(stream);

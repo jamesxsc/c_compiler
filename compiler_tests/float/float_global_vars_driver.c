@@ -1,5 +1,14 @@
-int f();
+float f();
+double g();
 
 int main() {
-    return !(f() == 24);
+    if (f() != 1.5f) {
+        return 1;
+    }
+
+    if (g() != 2.75) {
+        return 1;
+    }
+
+    return 0;
 }

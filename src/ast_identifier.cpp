@@ -6,7 +6,29 @@ namespace ast {
 
 
     void Identifier::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-        // Variable identifier
+        // If we are in LHS, load address
+        if (context.EmitLHS()) {
+            if (context.IsGlobal(identifier_)) {
+                stream << "lui " << destReg << ",%hi(" << identifier_ << ")" << std::endl;
+                stream << "addi " << destReg << "," << destReg << ",%lo(" << identifier_ << ")" << std::endl;
+
+                if (GetType(context) == TypeSpecifier::POINTER && context.dereference) { // todo array?
+                    stream << "lw " << destReg << ",0(" << destReg << ")" << std::endl;
+                }
+            } else if (context.CurrentFrame().bindings.Contains(identifier_)) {
+                int offset = context.CurrentFrame().bindings.Get(identifier_).offset;
+                stream << "addi " << destReg << ",s0," << offset << std::endl;
+
+                if (GetType(context) == TypeSpecifier::POINTER && context.dereference) {
+                    stream << "lw " << destReg << ",0(" << destReg << ")" << std::endl;
+                }
+            } else {
+                throw std::runtime_error("Identifier::EmitRISC() (LHS) called on an undeclared identifier");
+            }
+            return;
+        }
+
+        // Otherwise load value
         if (context.IsGlobal(identifier_)) {
             TypeSpecifier type = GetType(context);
             switch (type) {
@@ -34,12 +56,16 @@ namespace ast {
                     stream << "lui " << destReg << ",%hi(" << identifier_ << ")" << std::endl;
                     stream << "lbu " << destReg << ",%lo(" << identifier_ << ")(" << destReg << ")" << std::endl;
                     break;
+                case TypeSpecifier::ARRAY:
+                    // Load address
+                    stream << "lui " << destReg << ",%hi(" << identifier_ << ")" << std::endl;
+                    stream << "addi " << destReg << "," << destReg << ",%lo(" << identifier_ << ")" << std::endl;
+                    break;
                 case TypeSpecifier::VOID:
                 case TypeSpecifier::STRUCT:
-                case TypeSpecifier::ARRAY: // Unsupported since it is handled in ArrayIndexExpression
+                    // todo handle return global struct
                     throw std::runtime_error(
                             "Identifier::EmitRISC() called on an unsupported type");
-                    // todo handle these
             }
         } else if (context.CurrentFrame().bindings.Contains(identifier_)) {
             TypeSpecifier type = GetType(context);
@@ -55,6 +81,7 @@ namespace ast {
                 case TypeSpecifier::POINTER:
                 case TypeSpecifier::INT:
                 case TypeSpecifier::UNSIGNED:
+                case TypeSpecifier::ENUM:
                     assert(!IsFloatRegister(destReg) &&
                            "Identifier::EmitRISC attempting to load non-float into float register");
                     stream << "lw " << destReg << "," << offset << "(s0)" << std::endl;
@@ -62,13 +89,72 @@ namespace ast {
                 case TypeSpecifier::CHAR:
                     stream << "lbu " << destReg << "," << offset << "(s0)" << std::endl;
                     break;
+                case TypeSpecifier::ARRAY:
+                    // Load address, but probably never called in local scope
+                    stream << "addi " << destReg << ",s0," << offset << std::endl;
+                    break;
+                case TypeSpecifier::STRUCT: { // Should only ever be called in return
+                    assert(destReg == Register::a0 && "Structs identifier called in non-return context");
+                    const std::vector<std::pair<std::string, TypeSpecifier>> &structMembers = type.GetStructMembers();
+                    // I think this is best placed here because I can't think where else we want it
+                    if (type.UseStack()) {
+                        // Get hidden pointer
+                        int address = context.CurrentFrame().bindings.Get("#hiddenpointer").offset;
+                        Register addressReg = context.AllocateTemporary();
+                        stream << "lw " << addressReg << "," << address << "(s0)" << std::endl;
+
+                        // Store members, don't care about types, keep padding
+                        int size = type.GetTypeSize();
+                        Register tempReg = context.AllocateTemporary();
+                        for (int i = 0; i < size; i += 4) {
+                            stream << "lw " << tempReg << "," << offset + i << "(s0)" << std::endl;
+                            stream << "sw " << tempReg << "," << i << "(" << addressReg << ")" << std::endl;
+                        }
+                        context.FreeTemporary(tempReg);
+
+                        // Return address
+                        stream << "mv a0," << addressReg << std::endl;
+                        context.FreeTemporary(addressReg);
+                    } else {
+                        Register floatReg = Register::fa0;
+                        Register intReg = Register::a0;
+                        int memberOffset = 0;
+                        for (const auto &member: structMembers) {
+                            TypeSpecifier memberType = member.second;
+                            if (member.first == "#padding") { // Don't store padding
+                                offset += memberType.GetTypeSize();
+                                continue;
+                            }
+                            switch (memberType) {
+                                case TypeSpecifier::Type::INT:
+                                case TypeSpecifier::Type::CHAR:
+                                case TypeSpecifier::Type::UNSIGNED:
+                                case TypeSpecifier::Type::POINTER:
+                                case TypeSpecifier::Type::ENUM:
+                                    stream << "lw " << intReg << "," << offset + memberOffset << "(s0)" << std::endl;
+                                    memberOffset += memberType.GetTypeSize();
+                                    intReg = static_cast<Register>(static_cast<int>(intReg) + 1);
+                                    break;
+                                case TypeSpecifier::Type::FLOAT:
+                                case TypeSpecifier::Type::DOUBLE:
+                                    stream << (memberType == TypeSpecifier::FLOAT ? "flw " : "fld ") << floatReg << ","
+                                           << offset + memberOffset << "(s0)" << std::endl;
+                                    memberOffset += memberType.GetTypeSize();
+                                    floatReg = static_cast<Register>(static_cast<int>(floatReg) + 1);
+                                    break;
+                                case TypeSpecifier::Type::ARRAY:
+                                case TypeSpecifier::Type::VOID:
+                                case TypeSpecifier::Type::STRUCT:
+                                    throw std::runtime_error(
+                                            "ReturnStatement::EmitRISC() called on an unsupported struct member type");
+                            }
+                        }
+                    }
+                    break;
+                }
                 case TypeSpecifier::VOID:
-                case TypeSpecifier::ENUM:
-                case TypeSpecifier::STRUCT:
-                case TypeSpecifier::ARRAY: // Unsupported since it is handled in ArrayIndexExpression
                     throw std::runtime_error(
                             "Identifier::EmitRISC() called on an unsupported type");
-                    // todo handle these
             }
         } else if (context.IsEnum(identifier_)) { // Enumerator identifier
             int value = context.LookupEnum(identifier_);
@@ -93,7 +179,7 @@ namespace ast {
             Variable var = context.CurrentFrame().bindings.Get(identifier_);
             return var.type;
         } else if (context.IsEnum(identifier_)) {
-            return TypeSpecifier{identifier_};
+            return TypeSpecifier{identifier_, false};
         } else {
             // Nice no more sigfaults
             throw std::runtime_error("Identifier::GetType() called on an undeclared identifier");

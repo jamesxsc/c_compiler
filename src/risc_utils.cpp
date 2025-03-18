@@ -19,6 +19,7 @@ namespace ast::Utils {
                 operand.EmitRISC(stream, context, tempReg2);
                 stream << "fmv.s.x " << tempReg1 << ",zero" << std::endl;
                 stream << "feq.s " << result << "," << tempReg2 << "," << tempReg1 << std::endl;
+                stream << "seqz " << result << "," << result << std::endl;
                 context.FreeTemporary(tempReg1);
                 context.FreeTemporary(tempReg2);
                 break;
@@ -29,6 +30,7 @@ namespace ast::Utils {
                 operand.EmitRISC(stream, context, tempReg2);
                 stream << "fcvt.d.w " << tempReg1 << ",zero" << std::endl;
                 stream << "feq.d " << result << "," << tempReg2 << "," << tempReg1 << std::endl;
+                stream << "seqz " << result << "," << result << std::endl;
                 break;
             }
             case TypeSpecifier::Type::STRUCT:
@@ -37,7 +39,6 @@ namespace ast::Utils {
         }
     }
 
-    // todo nice to have : extract a binaryexpression class to handle common logic
     void EmitMultiply(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
                       const ExpressionBase &right) {
         TypeSpecifier type = BinaryResultType(left.GetType(context), right.GetType(context));
@@ -151,13 +152,10 @@ namespace ast::Utils {
             case TypeSpecifier::POINTER:
             case TypeSpecifier::ARRAY: {
                 // We are guaranteed here that only one is a pointer
-                int logSize = static_cast<int>(std::log2(type.GetPointeeType().GetTypeSize()));
                 if (left.GetType(context).IsPointer()) {
-                    // todo wont work for structs
-                    // logsize != 0 etc... but can maybe extract this as it will actually be pretty long to stay efficient
-                    stream << "slli " << rightReg << "," << rightReg << "," << logSize << std::endl;
+                    Utils::EmitIndexToAddressOffset(stream, rightReg, context, left.GetType(context).GetPointeeType());
                 } else {
-                    stream << "slli " << leftReg << "," << leftReg << "," << logSize << std::endl;
+                    Utils::EmitIndexToAddressOffset(stream, leftReg, context, right.GetType(context).GetPointeeType());
                 }
                 stream << "add " << result << "," << leftReg << "," << rightReg << std::endl;
                 break;
@@ -179,6 +177,9 @@ namespace ast::Utils {
     void EmitSubtraction(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
                          const ExpressionBase &right) {
         TypeSpecifier type = BinarySubtractionResultType(left.GetType(context), right.GetType(context));
+        // Arithmetic type is different from return type for ptr - ptr
+        if (left.GetType(context).IsPointer() && right.GetType(context).IsPointer())
+            type = left.GetType(context);
         bool leftStored = right.ContainsFunctionCall();
         bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
         Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(useFloat);
@@ -195,10 +196,8 @@ namespace ast::Utils {
             case TypeSpecifier::ARRAY:
             case TypeSpecifier::POINTER: {
                 // We are guaranteed here that both are ptrs
-                int logSize = static_cast<int>(std::log2(left.GetType(context).GetPointeeType().GetTypeSize()));
-                // todo wont work for structs
                 stream << "sub " << result << "," << leftReg << "," << rightReg << std::endl;
-                stream << "srai " << result << "," << result << "," << logSize << std::endl;
+                Utils::EmitAddressToIndexOffset(stream, result, context, left.GetType(context).GetPointeeType());
                 break;
             }
             case TypeSpecifier::INT:
@@ -277,19 +276,7 @@ namespace ast::Utils {
         leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg);
     }
 
-    TypeSpecifier ResolveTypeAlias(std::vector<TypeSpecifier> specifiers) {
-        if (specifiers.size() == 1) {
-            return {specifiers.front()};
-        }
-        std::set<TypeSpecifier::Type> typeSet{specifiers.begin(), specifiers.end()};
-        auto it = aliasMap.find(typeSet);
-        if (it == aliasMap.end()) {
-            throw std::runtime_error("Unsupported type alias");
-        }
-        return {it->second};
-    }
-
-    // todo alter this, we're not promoting to int everywhere. that is what should be done, then sw is based on return type? cx assignment
+    // This is good enough unless we get failures as a direct result
     TypeSpecifier BinaryResultType(const TypeSpecifier &leftType, const TypeSpecifier &rightType) {
         // Choose wider type, and choose unsigned if equal
         if (leftType.GetTypeSize() > rightType.GetTypeSize()) {
@@ -298,7 +285,8 @@ namespace ast::Utils {
             if (leftType.IsSigned() && !rightType.IsSigned())
                 return rightType;
             else
-                return leftType;
+                // Always promote
+                return leftType == TypeSpecifier::CHAR ? TypeSpecifier{TypeSpecifier::UNSIGNED} : leftType;
         } else {
             return rightType;
         }
@@ -334,6 +322,127 @@ namespace ast::Utils {
         }
 
         return BinaryResultType(leftType, rightType);
+    }
+
+    // Quite efficient, and works for structs
+    void EmitIndexToAddressOffset(std::ostream &stream, Register sizeReg, Context &context, const TypeSpecifier &type) {
+        int elementSize = type.GetTypeSize();
+        if (elementSize == 1) return;
+        bool pow2 = (elementSize & (elementSize - 1)) == 0;
+        if (pow2) {
+            int logSize = static_cast<int>(std::log2(elementSize));
+            stream << "slli " << sizeReg << "," << sizeReg << "," << logSize << std::endl;
+        } else {
+            Register temp = context.AllocateTemporary();
+            stream << "li " << temp << "," << elementSize << std::endl;
+            stream << "mul " << sizeReg << "," << sizeReg << "," << temp << std::endl;
+            context.FreeTemporary(temp);
+        }
+    }
+
+    void EmitAddressToIndexOffset(std::ostream &stream, Register sizeReg, Context &context, const TypeSpecifier &type) {
+        int elementSize = type.GetTypeSize();
+        if (elementSize == 1) return;
+        bool pow2 = (elementSize & (elementSize - 1)) == 0;
+        if (pow2) {
+            int logSize = static_cast<int>(std::log2(elementSize));
+            stream << "srai " << sizeReg << "," << sizeReg << "," << logSize << std::endl;
+        } else {
+            Register temp = context.AllocateTemporary();
+            stream << "li " << temp << "," << elementSize << std::endl;
+            stream << "div " << sizeReg << "," << sizeReg << "," << temp << std::endl;
+            context.FreeTemporary(temp);
+        }
+    }
+
+    void EmitIncrementDecrement(std::ostream &stream, Context &context, Register destReg, const ExpressionBase &child,
+                                bool decrement, bool postfix) {
+        bool restore = context.SetEmitLHS(true); // Get raw address
+        TypeSpecifier lhsType = child.GetType(context);
+        Register addrReg = context.AllocateTemporary();
+        TypeSpecifier type = child.GetType(context);
+        child.EmitRISC(stream, context, addrReg);
+        context.SetEmitLHS(restore);
+
+        if (destReg != Register::zero && postfix)
+            child.EmitRISC(stream, context, destReg);
+
+        // Now safely increment
+        bool ptr = type.IsPointer();
+        if (ptr) type = type.GetPointeeType();
+        bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
+        Register tempReg = (postfix || destReg == Register::zero) ? context.AllocateTemporary(useFloat) : destReg;
+        switch (type) {
+            case TypeSpecifier::Type::INT:
+            case TypeSpecifier::Type::CHAR:
+            case TypeSpecifier::Type::UNSIGNED:
+            case TypeSpecifier::Type::ENUM: {
+                stream << (type == TypeSpecifier::CHAR ? "lbu " : "lw ") << tempReg << ","
+                       << "0(" << addrReg << ")" << std::endl;
+                stream << "addi " << tempReg << "," << tempReg << ","
+                       << (decrement ? -1 : 1) << std::endl;
+                stream << (type == TypeSpecifier::CHAR ? "sb " : "sw ") << tempReg << ","
+                       << "0(" << addrReg << ")" << std::endl;
+                break;
+            }
+            case TypeSpecifier::Type::FLOAT:
+            case TypeSpecifier::Type::DOUBLE: {
+                stream << (type == TypeSpecifier::FLOAT ? "flw " : "fld ") << tempReg
+                       << ","
+                       << "0(" << addrReg << ")" << std::endl;
+                std::string constantMemoryLabel = context.MakeLabel("POSTFIX_CONSTANT");
+                Register tempAddrReg = context.AllocateTemporary();
+                Register tempFloatReg2 = context.AllocateTemporary(true);
+                stream << "lui " << tempAddrReg << ",%hi(" << constantMemoryLabel << ")" << std::endl;
+                stream << (type == TypeSpecifier::FLOAT ? "flw " : "fld ") << tempFloatReg2
+                       << ",%lo("
+                       << constantMemoryLabel << ")(" << tempAddrReg << ")" << std::endl;
+                if (!decrement) {
+                    stream << (type == TypeSpecifier::FLOAT ? "fadd.s " : "fadd.d ")
+                           << tempReg
+                           << "," << tempReg << "," << tempFloatReg2 << std::endl;
+                } else {
+                    stream << (type == TypeSpecifier::FLOAT ? "fsubd.s " : "fsub.d ")
+                           << tempReg
+                           << "," << tempReg << "," << tempFloatReg2 << std::endl;
+                }
+                stream << (type == TypeSpecifier::FLOAT ? "fsw " : "fsd ") << tempReg
+                       << ","
+                       << "0(" << addrReg << ")" << std::endl;
+                context.FreeTemporary(tempAddrReg);
+                context.FreeTemporary(tempFloatReg2);
+
+                context.DeferredRISC() << ".section .rodata" << std::endl;
+                context.DeferredRISC() << ".align "
+                                       << (type == TypeSpecifier::Type::FLOAT ? 2 : 3)
+                                       << std::endl;
+                context.DeferredRISC() << constantMemoryLabel << ":" << std::endl;
+                context.DeferredRISC()
+                        << (type == TypeSpecifier::Type::FLOAT ? ".float " : ".double ")
+                        << (decrement ? -1.0 : 1.0)
+                        << std::endl;
+                break;
+            }
+            case TypeSpecifier::Type::POINTER:
+            case TypeSpecifier::Type::ARRAY: {
+                const TypeSpecifier &pointeePointeeType = type.GetPointeeType();
+                stream << "lw " << tempReg << "," << "0(" << addrReg << ")" << std::endl;
+                int size = pointeePointeeType.GetTypeSize();
+                stream << "addi " << tempReg << "," << tempReg << ","
+                       << (decrement ? -size : size) << std::endl;
+                stream << "sw " << tempReg << "," << "0(" << addrReg << ")" << std::endl;
+                break;
+            }
+            case TypeSpecifier::Type::VOID:
+            case TypeSpecifier::Type::STRUCT:
+                throw std::runtime_error(
+                        "PostfixExpression::EmitRISC() attempted to increment unsupported type");
+        }
+        context.FreeTemporary(addrReg);
+        if (tempReg != destReg) context.FreeTemporary(tempReg);
+        if (!postfix && destReg != Register::zero) {
+            child.EmitRISC(stream, context, destReg);
+        }
     }
 
 }

@@ -17,15 +17,27 @@ namespace ast {
         context.FreeTemporary(condReg);
 
         // Never null
+        if (inSwitchScope_)
+            thenStmt_->SetInSwitchScope();
         thenStmt_->EmitRISC(stream, context, destReg);
-
-        if (elseStmt_) {
+        if (inSwitchScope_) {
+            LabelCasePairVector childPairs = thenStmt_->GetSwitchLabelCasePairs();
+            switchLabelCasePairs_.insert(std::end(switchLabelCasePairs_), std::begin(childPairs),
+                                         std::end(childPairs));
+        }        if (elseStmt_) {
             stream << "j " << labelEnd << std::endl;
         }
 
         stream << labelElse << ":\n";
         if (elseStmt_) {
+            if (inSwitchScope_)
+                elseStmt_->SetInSwitchScope();
             elseStmt_->EmitRISC(stream, context, destReg);
+            if (inSwitchScope_) {
+                LabelCasePairVector childPairs = elseStmt_->GetSwitchLabelCasePairs();
+                switchLabelCasePairs_.insert(std::end(switchLabelCasePairs_), std::begin(childPairs),
+                                             std::end(childPairs));
+            }
             stream << labelEnd << ":\n";
         }
     }
@@ -53,6 +65,7 @@ namespace ast {
 
             // Emit comparisons and jumps
             // This is actually more efficient than GCC with -O0
+            // Do not put them in instance or nested switch will break
             Register condReg = context.AllocateTemporary();
             condition_->EmitRISC(stream, context, condReg);
             std::string defaultLabel{endLabel};

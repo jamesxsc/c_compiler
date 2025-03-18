@@ -1,49 +1,24 @@
 #include <cassert>
+#include <cmath>
 #include "ast_postfix_expression.hpp"
 #include "ast_identifier.hpp"
 #include "ast_type_specifier.hpp"
 #include "ast_array_index_expression.hpp"
+#include "risc_utils.hpp"
 
 namespace ast {
 
-    // todo postfix and unary support for floating point or any other relevant types (ptr/array)
     void PostfixExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         switch (op_) {
             case PostfixOperator::PrimaryPromote:
             case PostfixOperator::FunctionCallPromote:
             case PostfixOperator::ArrayIndexPromote:
+            case PostfixOperator::StructMemberAccessPromote:
                 child_->EmitRISC(stream, context, destReg);
                 break;
             case PostfixOperator::PostfixIncrement:
             case PostfixOperator::PostfixDecrement:
-                std::string identifier = GetIdentifier();
-                if (context.IsGlobal(identifier)) {
-                    // Note this is slightly different from GCC because I want to delegate to child
-                    // Store the incremented/decremented value in the destination register
-                    if (destReg != Register::zero)
-                        child_->EmitRISC(stream, context, destReg);
-                    Register tempReg = context.AllocateTemporary();
-                    Register tempReg2 = context.AllocateTemporary();
-                    stream << "lui " << tempReg2 << ",%hi(" << identifier << ")" << std::endl;
-                    stream << "lw " << tempReg2 << ",%lo(" << identifier << ")(" << tempReg2 << ")" << std::endl;
-                    stream << "addi " << tempReg << "," << tempReg2 << ","
-                           << (op_ == PostfixOperator::PostfixIncrement ? "1" : "-1") << std::endl;
-                    stream << "lui " << tempReg2 << ",%hi(" << identifier << ")" << std::endl;
-                    stream << "sw " << tempReg << ",%lo(" << identifier << ")(" << tempReg2 << ")" << std::endl;
-                    context.FreeTemporary(tempReg);
-                    context.FreeTemporary(tempReg2);
-                } else {
-                    Variable variable = context.CurrentFrame().bindings.Get(GetIdentifier());
-                    // Store the pre-inc/dec value in the destination register
-                    if (destReg != Register::zero)
-                        child_->EmitRISC(stream, context, destReg);
-                    Register tempReg = context.AllocateTemporary();
-                    stream << "lw " << tempReg << "," << variable.offset << "(s0)" << std::endl;
-                    stream << "addi " << tempReg << "," << tempReg << ","
-                           << (op_ == PostfixOperator::PostfixIncrement ? 1 : -1) << std::endl;
-                    stream << "sw " << tempReg << "," << variable.offset << "(s0)" << std::endl;
-                    context.FreeTemporary(tempReg);
-                }
+                Utils::EmitIncrementDecrement(stream, context, destReg, *child_, op_ == PostfixOperator::PostfixDecrement, true);
                 break;
         }
     }
@@ -53,6 +28,7 @@ namespace ast {
             case PostfixOperator::PrimaryPromote:
             case PostfixOperator::FunctionCallPromote:
             case PostfixOperator::ArrayIndexPromote:
+            case PostfixOperator::StructMemberAccessPromote:
                 child_->Print(stream);
                 break;
             case PostfixOperator::PostfixIncrement:
@@ -70,6 +46,7 @@ namespace ast {
         return child_->GetType(context);
     }
 
+    // todo look to deprecate this
     std::string PostfixExpression::GetIdentifier() const {
         switch (op_) {
             case PostfixOperator::PrimaryPromote:
@@ -84,6 +61,8 @@ namespace ast {
             }
             case PostfixOperator::ArrayIndexPromote:
                 return dynamic_cast<const ArrayIndexExpression *>(child_.get())->GetIdentifier();
+            case PostfixOperator::StructMemberAccessPromote:
+                throw std::runtime_error("PostfixExpression::GetIdentifier() called on struct member access");
         }
 
         Identifier identifier = dynamic_cast<const Identifier &>(*child_);
@@ -98,8 +77,9 @@ namespace ast {
         return child_->GetGlobalIdentifier();
     }
 
-    const Expression& PostfixExpression::GetArrayIndexExpression() const {
-        assert(op_ == PostfixOperator::ArrayIndexPromote && "PostfixExpression::GetArrayIndexExpression called on non-array");
+    const Expression &PostfixExpression::GetArrayIndexExpression() const {
+        assert(op_ == PostfixOperator::ArrayIndexPromote &&
+               "PostfixExpression::GetArrayIndexExpression called on non-array");
         return dynamic_cast<const ArrayIndexExpression *>(child_.get())->GetIndexExpression();
     }
 

@@ -5,46 +5,6 @@
 
 namespace ast {
 
-    const Variable &Bindings::Get(const std::string &identifier) const {
-        auto it = bindingsMap_.find(identifier);
-        assert(it != bindingsMap_.end() && "Variable not found in bindings");
-        return *it->second;
-    }
-
-    const Variable &Bindings::Insert(const std::string &identifier, Variable &&variable) {
-        assert(bindingsMap_.find(identifier) == bindingsMap_.end() && "Variable already exists in bindings");
-        if (bindings_.empty()) {
-            variable.offset = start_;
-        } else {
-            variable.offset = bindings_.back()->offset - variable.size;
-        }
-        assert(variable.offset > -size_ && "Bindings exceed allocated stack frame size");
-        VariablePtr ptr = std::make_shared<Variable>(variable);
-        bindingsMap_.emplace(identifier, ptr);
-        bindings_.push_back(std::move(ptr));
-        return *bindings_.back();
-    }
-
-    bool Bindings::Contains(const std::string &identifier) const {
-        return bindingsMap_.find(identifier) != bindingsMap_.end();
-    }
-
-    const Variable &Bindings::InsertOrOverwrite(const std::string &identifier, Variable &&variable) {
-        auto it = bindingsMap_.find(identifier);
-        if (it != bindingsMap_.end()) {
-            // Don't remove from deque because it will allow that offset region to be overwritten
-            bindingsMap_.erase(it);
-        }
-        // clang-tidy is wrong
-        return Insert(identifier, std::move(variable)); // NOLINT(*-move-const-arg)
-    }
-
-    bool Bindings::IsArray(const std::string &identifier) const {
-        auto it = bindingsMap_.find(identifier);
-        assert(it != bindingsMap_.end() && "Variable not found in bindings");
-        return it->second->type.IsArray();
-    }
-
     static int temporaries = 0;
 
     // We don't free temporaries automatically between functions - we assume there are no leaked register allocs
@@ -64,6 +24,16 @@ namespace ast {
                     return IntegerTemporaryAtIndex(static_cast<int>(i));
                 }
             }
+//
+//            // Spill a register to memory
+//            static int lastSpilled = 0; // Heuristically try to avoid spilling a register that will be used soon
+//            // maybe last allocated - 1 would be better
+//            int spill = lastSpilled + 1;
+//            lastSpilled = spill;
+//
+//
+//            // TODO free and restore
+//            return IntegerTemporaryAtIndex(spill);
         }
         throw std::runtime_error("Out of temporaries");
     }
@@ -92,26 +62,31 @@ namespace ast {
     }
 
     Register Context::AllocatePersistent(bool forFloat) {
-        // todo dont always use the same register or we will be bashing s0 s1 etc
+        // Round robin allocation
+        static size_t floatIndex = 0;
+        static size_t intIndex = 1; // Avoid frame ptr
+
         if (forFloat) {
             for (size_t i = 0; i < floatPersistent_.size(); i++) {
-                if (!floatPersistent_.test(i)) {
-                    floatPersistent_.set(i);
+                size_t candidate = (floatIndex + i) % floatPersistent_.size();
+                if (!floatPersistent_.test(candidate)) {
+                    floatPersistent_.set(candidate);
                     if (!stack_.empty())
-                        stack_.back().usedFloatPersistentRegisters.set(
-                                i); // Note that it needs to be saved by the current function
-                    return FloatPersistentAtIndex(static_cast<int>(i));
+                        stack_.back().usedFloatPersistentRegisters.set(candidate);
+                    floatIndex = (candidate + 1) % floatPersistent_.size();
+                    return FloatPersistentAtIndex(static_cast<int>(candidate));
                 }
             }
         } else {
-            // Start at 1 to avoid s0 - frame pointer
-            for (size_t i = 1; i < integerPersistent_.size(); i++) {
-                if (!integerPersistent_.test(i)) {
-                    integerPersistent_.set(i);
+            size_t regCount = integerPersistent_.size();
+            for (size_t i = 0; i < regCount - 1; i++) {
+                size_t candidate = 1 + ((intIndex - 1 + i) % (regCount - 1));
+                if (!integerPersistent_.test(candidate)) {
+                    integerPersistent_.set(candidate);
                     if (!stack_.empty())
-                        stack_.back().usedIntegerPersistentRegisters.set(
-                                i); // Note that it needs to be saved by the current function
-                    return IntegerPersistentAtIndex(static_cast<int>(i));
+                        stack_.back().usedIntegerPersistentRegisters.set(candidate);
+                    intIndex = 1 + ((candidate - 1 + 1) % (regCount - 1));
+                    return IntegerPersistentAtIndex(static_cast<int>(candidate));
                 }
             }
         }
@@ -152,9 +127,6 @@ namespace ast {
         stack_.end()[-2].usedIntegerPersistentRegisters |= CurrentFrame().usedIntegerPersistentRegisters;
 
         stack_.pop_back();
-
-        // todo do we need to store anything
-        // and restore registers? unclear
     }
 
     void Context::PopFrame() {
@@ -269,51 +241,40 @@ namespace ast {
         return globalStructs_.Contains(identifier);
     }
 
-    void Enums::Insert(const std::string &identifier, const std::map<std::string, int> &values) {
-        // Overwrite if already exists
-        if (enums_.find(identifier) != enums_.end()) {
-            enums_.erase(identifier);
-        }
-        enums_.emplace(identifier, values);
-        for (const auto &pair: values) {
-            if (lookup_.find(pair.first) != lookup_.end()) {
-                lookup_.erase(pair.first);
+    static std::map<std::set<TypeSpecifier::Type>, TypeSpecifier::Type> aliasMap{
+            {{TypeSpecifier::UNSIGNED, TypeSpecifier::INT},  TypeSpecifier::UNSIGNED},
+            {{TypeSpecifier::INT,      TypeSpecifier::INT},  TypeSpecifier::INT}, // signed int
+            {{TypeSpecifier::UNSIGNED, TypeSpecifier::CHAR}, TypeSpecifier::CHAR},
+    };
+
+    TypeSpecifier Context::ResolveTypeAlias(std::vector<TypeSpecifier> specifiers) {
+        if (specifiers.size() == 1) {
+            TypeSpecifier type = specifiers.front(); // Must copy
+            if (type.IsStruct()) {
+                type.SetMembers(GetStruct(type.GetStructIdentifier()));
             }
-            lookup_.emplace(pair.first, pair.second);
+            return type;
         }
-    }
-
-    std::map<std::string, int> Enums::GetEnum(const std::string &identifier) const {
-        auto it = enums_.find(identifier);
-        if (it != enums_.end()) return it->second;
-        throw std::runtime_error("Enums::GetEnum Enum not found in context");
-    }
-
-    int Enums::Lookup(const std::string &identifier) const {
-        return lookup_.at(identifier);
-    }
-
-    bool Enums::Contains(const std::string &identifier) const {
-        return lookup_.find(identifier) != lookup_.end();
-    }
-
-    void
-    Structs::Insert(const std::string &identifier, const std::vector<std::pair<std::string, TypeSpecifier>> &members) {
-        // Overwrite if already exists
-        if (structs_.find(identifier) != structs_.end()) {
-            structs_.erase(identifier);
+        std::set<TypeSpecifier::Type> typeSet{specifiers.begin(), specifiers.end()};
+        auto it = aliasMap.find(typeSet);
+        if (it == aliasMap.end()) {
+            throw std::runtime_error("Unsupported type alias");
         }
-        structs_.emplace(identifier, members);
+        TypeSpecifier type = it->second; // Must copy
+        if (type.IsStruct()) {
+            type.SetMembers(GetStruct(type.GetStructIdentifier()));
+        }
+        return type;
     }
 
-    std::vector<std::pair<std::string, TypeSpecifier>> Structs::GetStruct(const std::string &identifier) const {
-        auto it = structs_.find(identifier);
-        if (it != structs_.end()) return it->second;
-        throw std::runtime_error("Structs::GetStruct Struct not found in context");
+    bool Context::SetEmitLHS(bool emitLHS) {
+        bool old = emitLHS_;
+        emitLHS_ = emitLHS;
+        return old;
     }
 
-    bool Structs::Contains(const std::string &identifier) const {
-        return structs_.find(identifier) != structs_.end();
+    bool Context::EmitLHS() {
+        return emitLHS_;
     }
 
-} // namespace ast
+}

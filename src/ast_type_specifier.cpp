@@ -1,5 +1,6 @@
 #include <cassert>
 #include <numeric>
+#include <algorithm>
 #include "ast_type_specifier.hpp"
 
 namespace ast {
@@ -38,12 +39,39 @@ namespace ast {
             case TypeSpecifier::Type::VOID:
                 return 0;
             case TypeSpecifier::Type::STRUCT:
-                return std::accumulate(structMembers_.begin(), structMembers_.end(), 0,
-                                       [](int acc, const auto &member) { return acc + member.second->GetTypeSize(); });
+                assert(structMembers_.has_value() &&
+                       "TypeSpecifier::GetTypeSize() called on struct type with unset members");
+                return std::accumulate((*structMembers_).begin(), (*structMembers_).end(), 0,
+                                       [](int acc, const auto &member) { return acc + member.second.GetTypeSize(); });
             case TypeSpecifier::Type::ARRAY:
                 return arrayType_->GetTypeSize() * arraySize_;
         }
         throw std::runtime_error("Unexpected type specifier");
+    }
+
+    int TypeSpecifier::GetAlignment() const {
+        switch (type_) {
+            case Type::CHAR:
+                return 1;
+            case Type::INT:
+            case Type::UNSIGNED:
+            case Type::ENUM:
+            case Type::FLOAT:
+            case Type::POINTER:
+                return 4;
+            case Type::DOUBLE:
+                return 8;
+            case Type::VOID:
+                break;
+            case Type::STRUCT:
+                return std::max_element(structMembers_->begin(), structMembers_->end(),
+                                        [](const auto &a, const auto &b) {
+                                            return a.second.GetAlignment() < b.second.GetAlignment();
+                                        })->second.GetAlignment();
+            case Type::ARRAY:
+                return GetArrayType().GetTypeSize(); // Element alignment
+        }
+        throw std::runtime_error("TypeSpecifier::GetAlignment() Unexpected type specifier");
     }
 
     bool TypeSpecifier::IsPointer() const {
@@ -60,6 +88,11 @@ namespace ast {
 
     bool TypeSpecifier::IsStruct() const {
         return type_ == Type::STRUCT;
+    }
+
+    void TypeSpecifier::SetMembers(std::vector<std::pair<std::string, TypeSpecifier>> members) {
+        assert(IsStruct() && "TypeSpecifier::SetMembers() called on non-struct type");
+        structMembers_ = std::move(members);
     }
 
     const TypeSpecifier &TypeSpecifier::GetPointeeType() const {
@@ -82,14 +115,25 @@ namespace ast {
         return enumIdentifier_;
     }
 
-    const std::vector<std::pair<std::string, TypeSpecifierPtr>> &TypeSpecifier::GetStructMembers() const {
+    const std::vector<std::pair<std::string, TypeSpecifier>> &TypeSpecifier::GetStructMembers() const {
         assert(IsStruct() && "TypeSpecifier::GetStructMembers() called on non-struct type");
-        return structMembers_;
+        assert(structMembers_.has_value() &&
+               "TypeSpecifier::GetStructMembers() called on struct type with unset members");
+        return *structMembers_;
     }
 
     const std::string &TypeSpecifier::GetStructIdentifier() const {
         assert(IsStruct() && "TypeSpecifier::GetStructIdentifier() called on non-struct type");
         return structIdentifier_;
+    }
+
+    bool TypeSpecifier::UseStack() const {
+        // Conveniently seems that sames rules apply to params and return
+        if (!IsStruct() || structMembers_->empty()) return false;
+        int nonPadding = static_cast<int>(std::ranges::count_if(*structMembers_, [](const auto &member) {
+            return member.first != "#padding";
+        }));
+        return nonPadding > 2; // 2 is the number of registers available for return
     }
 
 }

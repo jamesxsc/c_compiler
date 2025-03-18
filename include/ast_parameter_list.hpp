@@ -19,8 +19,11 @@ namespace ast {
         [[nodiscard]] std::vector<ParameterDeclarationPtr>::const_iterator begin() const;
         [[nodiscard]] std::vector<ParameterDeclarationPtr>::const_iterator end() const;
 
+        void SetHiddenPointerReturn() const;
+
     private:
         std::vector<ParameterDeclarationPtr> parameters_;
+        mutable bool hiddenPointerReturn_{false};
     };
 
     using ParameterListPtr = std::unique_ptr<const ParameterList>;

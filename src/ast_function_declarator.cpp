@@ -5,10 +5,8 @@
 namespace ast {
 
     void FunctionDeclarator::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-        // Store args
-        if (parameterList_) {
-            parameterList_->EmitRISC(stream, context, destReg);
-        }
+        // Store args; never null
+        parameterList_->EmitRISC(stream, context, destReg);
     }
 
     void FunctionDeclarator::EmitLabelRISC(std::ostream &stream) const {
@@ -21,12 +19,10 @@ namespace ast {
         stream << GetIdentifier();
         stream << "(";
         // Print with comma separation
-        if (parameterList_) {
-            for (auto it = parameterList_->begin(); it != parameterList_->end(); ++it) {
-                (*it)->Print(stream);
-                if (it + 1 != parameterList_->end()) {
-                    stream << ", ";
-                }
+        for (auto it = parameterList_->begin(); it != parameterList_->end(); ++it) {
+            (*it)->Print(stream);
+            if (it + 1 != parameterList_->end()) {
+                stream << ", ";
             }
         }
         stream << ")";
@@ -39,14 +35,6 @@ namespace ast {
     Function FunctionDeclarator::BuildFunction(TypeSpecifier returnType, Context &context) const {
         if (pointerReturn_)
             returnType = {TypeSpecifier::POINTER, returnType};
-
-        if (!parameterList_) {
-            return {
-                    .parameterSizes = {},
-                    .totalSize = 0,
-                    .returnType = returnType,
-            };
-        }
 
         std::vector<int> parameterSizes;
         int totalSize = 0;
@@ -62,12 +50,17 @@ namespace ast {
         };
     }
 
-    void FunctionDeclarator::SetPointerReturn() {
+    void FunctionDeclarator::SetPointerReturn(int indirectionLevel) {
         pointerReturn_ = true;
+        indirectionLevel_ = indirectionLevel;
     }
 
     bool FunctionDeclarator::GetPointerReturn() const {
         return pointerReturn_;
+    }
+
+    void FunctionDeclarator::SetHiddenPointerReturn() const {
+        parameterList_->SetHiddenPointerReturn();
     }
 
 }

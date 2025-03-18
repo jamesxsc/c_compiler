@@ -1,143 +1,104 @@
-#include "ast_multiplicative_unary_expressions.hpp"
+#include <cassert>
+#include "ast_unary_expression.hpp"
+#include "ast_multiplicative_expression.hpp"
 #include "ast_type_specifier.hpp"
+#include "risc_utils.hpp"
 
 namespace ast {
 
     // Lvalue asserts are in GetIdentifier impls
     void UnaryExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-        bool hasDestination = destReg != Register::zero;
+        if (context.EmitLHS() && op_ == UnaryOperator::Dereference) {
+            context.dereference = true;
+            multiplicativeChild_->EmitRISC(stream, context, destReg);
+            context.dereference = false;
+            return;
+        }
+
         switch (op_) {
             case UnaryOperator::PostfixPromote:
                 postfixChild_->EmitRISC(stream, context, destReg);
                 break;
             case UnaryOperator::PrefixIncrement:
             case UnaryOperator::PrefixDecrement: {
-                // To an extent this assumes child unary is an lvalue
-                std::string identifier = unaryChild_->GetIdentifier();
-                if (context.IsGlobal(identifier)) {
-                    Register tempReg = context.AllocateTemporary();
-                    Register tempReg2 = hasDestination ? destReg : context.AllocateTemporary();
-                    stream << "lui " << tempReg2 << ",%hi(" << identifier << ")" << std::endl;
-                    stream << "lw " << tempReg2 << ",%lo(" << identifier << ")(" << tempReg2 << ")" << std::endl;
-                    stream << "addi " << tempReg << "," << tempReg2 << ","
-                           << (op_ == UnaryOperator::PrefixIncrement ? "1" : "-1") << std::endl;
-                    stream << "lui " << tempReg2 << ",%hi(" << identifier << ")" << std::endl;
-                    stream << "sw " << tempReg << ",%lo(" << identifier << ")(" << tempReg2 << ")" << std::endl;
-                    context.FreeTemporary(tempReg);
-                    if (!hasDestination)
-                        context.FreeTemporary(tempReg2);
-                    // Store the incremented/decremented value in the destination register
-                    if (destReg != Register::zero)
-                        unaryChild_->EmitRISC(stream, context, destReg);
-                } else {
-                    Variable var = context.CurrentFrame().bindings.Get(identifier);
-                    Register tempReg = hasDestination ? destReg : context.AllocateTemporary();
-                    stream << "lw " << tempReg << "," << var.offset << "(s0)" << std::endl;
-                    stream << "addi " << tempReg << "," << tempReg << ","
-                           << (op_ == UnaryOperator::PrefixIncrement ? "1" : "-1") << std::endl;
-                    stream << "sw " << tempReg << "," << var.offset << "(s0)" << std::endl;
-                    if (!hasDestination)
-                        context.FreeTemporary(tempReg);
-                    // Store the incremented/decremented value in the destination register
-                    if (destReg != Register::zero)
-                        unaryChild_->EmitRISC(stream, context, destReg);
-                }
+                Utils::EmitIncrementDecrement(stream, context, destReg, *unaryChild_,
+                                              op_ == UnaryOperator::PrefixDecrement, false);
                 break;
             }
                 // Below all multiplicative child expression
             case UnaryOperator::AddressOf: {
-                std::string identifier = multiplicativeChild_->GetIdentifier();
-                if (context.IsGlobal(identifier)) {
-                    stream << "lui " << destReg << ",%hi(" << identifier << ")" << std::endl;
-                    stream << "addi " << destReg << "," << destReg << ",%lo(" << identifier << ")" << std::endl;
-                } else {
-                    Variable atAddress = context.CurrentFrame().bindings.Get(identifier);
-                    stream << "addi " << destReg << ",s0," << atAddress.offset << std::endl;
-                }
+                // This will emit the raw address
+                bool restore = context.SetEmitLHS(true);
+                multiplicativeChild_->EmitRISC(stream, context, destReg);
+                context.SetEmitLHS(restore);
                 break;
             }
             case UnaryOperator::Dereference: {
-                std::string identifier = multiplicativeChild_->GetIdentifier();
-                // todo maybe the first load should be delegated to child
-                if (context.IsGlobal(identifier)) {
-                    TypeSpecifier type = context.GetGlobalType(identifier).GetPointeeType();
-                    switch (type) {
-                        case TypeSpecifier::Type::INT:
-                        case TypeSpecifier::Type::UNSIGNED:
-                        case TypeSpecifier::Type::ENUM:
-                        case TypeSpecifier::Type::POINTER:
-                            stream << "lui " << destReg << ",%hi(" << identifier << ")" << std::endl;
-                            stream << "lw " << destReg << ",%lo(" << identifier << ")(" << destReg << ")" << std::endl;
-                            stream << "lw " << destReg << ",0(" << destReg << ")" << std::endl;
-                            break;
-                        case TypeSpecifier::Type::CHAR:
-                            stream << "lui " << destReg << ",%hi(" << identifier << ")" << std::endl;
-                            stream << "lw " << destReg << ",%lo(" << identifier << ")(" << destReg << ")" << std::endl;
-                            stream << "lbu " << destReg << ",0(" << destReg << ")" << std::endl;
-                            break;
-                        case TypeSpecifier::Type::FLOAT:
-                        case TypeSpecifier::Type::DOUBLE: {
-                            Register tempReg = context.AllocateTemporary();
-                            stream << "lui " << tempReg << ",%hi(" << identifier << ")" << std::endl;
-                            stream << "lw " << tempReg << ",%lo(" << identifier << ")(" << tempReg << ")" << std::endl;
-                            stream << (type == TypeSpecifier::Type::FLOAT ? "flw " : "fld ") << destReg << ",0(" << tempReg
-                                   << ")" << std::endl;
-                            context.FreeTemporary(tempReg);
-                            break;
-                        }
-                        case TypeSpecifier::Type::VOID:
-                        case TypeSpecifier::Type::STRUCT:
-                        case TypeSpecifier::Type::ARRAY:
-                            throw std::runtime_error("Unsupported type for dereference");
+                context.dereference = true;
+                TypeSpecifier pointeeType = multiplicativeChild_->GetType(context).GetPointeeType();
+                switch (pointeeType) {
+                    case TypeSpecifier::Type::INT:
+                    case TypeSpecifier::Type::UNSIGNED:
+                    case TypeSpecifier::Type::POINTER:
+                    case TypeSpecifier::Type::ENUM:
+                        multiplicativeChild_->EmitRISC(stream, context, destReg);
+                        stream << "lw " << destReg << ",0(" << destReg << ")" << std::endl;
+                        break;
+                    case TypeSpecifier::Type::CHAR:
+                        multiplicativeChild_->EmitRISC(stream, context, destReg);
+                        stream << "lbu " << destReg << ",0(" << destReg << ")" << std::endl;
+                        break;
+                    case TypeSpecifier::Type::DOUBLE:
+                    case TypeSpecifier::Type::FLOAT: {
+                        Register addressReg = context.AllocateTemporary();
+                        multiplicativeChild_->EmitRISC(stream, context, addressReg);
+                        stream << (pointeeType == TypeSpecifier::Type::FLOAT ? "flw " : "fld ") << destReg << ",0("
+                               << addressReg << ")" << std::endl;
+                        context.FreeTemporary(addressReg);
+                        break;
                     }
-                } else {
-                    // Variable is a pointer - get value at address in variable
-                    // This should only be called for RHS
-                    Variable ptr = context.CurrentFrame().bindings.Get(identifier);
-                    TypeSpecifier type = ptr.type.GetPointeeType();
-                    switch (type) {
-                        case TypeSpecifier::Type::INT:
-                        case TypeSpecifier::Type::UNSIGNED:
-                        case TypeSpecifier::Type::ENUM:
-                        case TypeSpecifier::Type::POINTER:
-                            stream << "lw " << destReg << "," << ptr.offset << "(s0)" << std::endl;
-                            stream << "lw " << destReg << ",0(" << destReg << ")" << std::endl;
-                            break;
-                        case TypeSpecifier::Type::CHAR:
-                            stream << "lw " << destReg << "," << ptr.offset << "(s0)" << std::endl;
-                            stream << "lbu " << destReg << ",0(" << destReg << ")" << std::endl;
-                            break;
-                        case TypeSpecifier::Type::FLOAT:
-                        case TypeSpecifier::Type::DOUBLE: {
-                            Register tempReg = context.AllocateTemporary();
-                            stream << "lw " << tempReg << "," << ptr.offset << "(s0)" << std::endl;
-                            stream << (type == TypeSpecifier::Type::FLOAT ? "flw " : "fld ") << destReg << ",0(" << tempReg
-                                   << ")" << std::endl;
-                            context.FreeTemporary(tempReg);
-                            break;
-                        }
-                        case TypeSpecifier::Type::VOID:
-                        case TypeSpecifier::Type::STRUCT:
-                        case TypeSpecifier::Type::ARRAY:
-                            throw std::runtime_error("Unsupported type for dereference");
-                    }
+                    case TypeSpecifier::Type::STRUCT:
+                    case TypeSpecifier::Type::ARRAY:
+                    case TypeSpecifier::Type::VOID:
+                        throw std::runtime_error("Unsupported type for dereference right now, sorry");
                 }
+                context.dereference = false;
                 break;
             }
             case UnaryOperator::Plus:
                 // Does nothing
                 multiplicativeChild_->EmitRISC(stream, context, destReg);
                 break;
-            case UnaryOperator::Minus:
+            case UnaryOperator::Minus: {
                 multiplicativeChild_->EmitRISC(stream, context, destReg);
-                stream << "neg " << destReg << "," << destReg << std::endl;
+                TypeSpecifier type = multiplicativeChild_->GetType(context);
+                switch (type) {
+                    case TypeSpecifier::Type::INT:
+                    case TypeSpecifier::Type::CHAR:
+                    case TypeSpecifier::Type::UNSIGNED:
+                    case TypeSpecifier::Type::ENUM:
+                        stream << "neg " << destReg << "," << destReg << std::endl;
+                        break;
+                    case TypeSpecifier::Type::FLOAT:
+                        stream << "fneg.s " << destReg << "," << destReg << std::endl;
+                        break;
+                    case TypeSpecifier::Type::DOUBLE:
+                        stream << "fneg.d " << destReg << "," << destReg << std::endl;
+                        break;
+                    case TypeSpecifier::Type::VOID:
+                    case TypeSpecifier::Type::POINTER:
+                    case TypeSpecifier::Type::STRUCT:
+                    case TypeSpecifier::Type::ARRAY:
+                        throw std::runtime_error("Unary minus attempted on unsupported type");
+                }
                 break;
+            }
             case UnaryOperator::BitwiseNot:
                 multiplicativeChild_->EmitRISC(stream, context, destReg);
                 stream << "not " << destReg << "," << destReg << std::endl;
                 break;
             case UnaryOperator::LogicalNot:
-                multiplicativeChild_->EmitRISC(stream, context, destReg);
+                Utils::EmitComparison(stream, context, destReg, *multiplicativeChild_);
                 stream << "seqz " << destReg << "," << destReg << std::endl;
                 stream << "andi " << destReg << "," << destReg << ",0xff" << std::endl;
                 break;
@@ -232,12 +193,15 @@ namespace ast {
             case UnaryOperator::AddressOf:
                 return {TypeSpecifier::POINTER, multiplicativeChild_->GetType(context)};
             case UnaryOperator::Dereference:
-                return multiplicativeChild_->GetType(context);
+                if (context.EmitLHS())
+                    return multiplicativeChild_->GetType(context).GetPointeeType();
+                else
+                    return multiplicativeChild_->GetType(context);
             case UnaryOperator::Plus:
             case UnaryOperator::Minus:
             case UnaryOperator::BitwiseNot:
             case UnaryOperator::LogicalNot:
-                return multiplicativeChild_->GetType(context);
+                return TypeSpecifier::INT;
             case UnaryOperator::SizeofUnary:
             case UnaryOperator::SizeofType:
                 return TypeSpecifier::UNSIGNED;
@@ -301,7 +265,7 @@ namespace ast {
                 return ~multiplicativeChild_->Evaluate(context);
             case UnaryOperator::LogicalNot:
                 return !multiplicativeChild_->Evaluate(context);
-            // Accept errors if context is rqd
+                // Accept errors if context is rqd
             case UnaryOperator::SizeofUnary:
                 return unaryChild_->GetType(dummy).GetTypeSize();
             case UnaryOperator::SizeofType:
@@ -340,6 +304,28 @@ namespace ast {
         }
         throw std::runtime_error("UnaryExpression::Evaluate() called on a non-constant");
     }
+
+    UnaryExpression::UnaryExpression(PostfixExpressionPtr child) : postfixChild_(std::move(child)),
+                                                                   unaryChild_(nullptr),
+                                                                   multiplicativeChild_(nullptr),
+                                                                   typeNameChild_(nullptr),
+                                                                   op_(UnaryOperator::PostfixPromote) {}
+
+    UnaryExpression::UnaryExpression(TypeNamePtr child) : postfixChild_(nullptr),
+                                                          unaryChild_(nullptr),
+                                                          multiplicativeChild_(nullptr),
+                                                          typeNameChild_(std::move(child)),
+                                                          op_(UnaryOperator::SizeofType) {}
+
+    UnaryExpression::UnaryExpression(UnaryExpressionPtr child, UnaryOperator op) : postfixChild_(nullptr),
+                                                                                   unaryChild_(std::move(child)),
+                                                                                   multiplicativeChild_(nullptr),
+                                                                                   typeNameChild_(nullptr),
+                                                                                   op_(op) {}
+
+    UnaryExpression::UnaryExpression(MultiplicativeExpressionPtr child, UnaryOperator op)
+            : multiplicativeChild_(std::move(child)), op_(op) {}
+
 
     UnaryExpression::~UnaryExpression() = default;
 

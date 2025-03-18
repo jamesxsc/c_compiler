@@ -7,14 +7,31 @@ namespace ast {
     void ReturnStatement::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         assert(context.CurrentFrame().returnLabel.has_value() && "Return statement outside of a function");
 
-        Register returnReg =
-                (GetType(context) == TypeSpecifier::FLOAT ||
-                 GetType(context) == TypeSpecifier::DOUBLE)
-                ? Register::fa0 : Register::a0;
-        // this may become a ballache if (when) we have to return a struct
-
-        if (expression_ != nullptr) {
-            expression_->EmitRISC(stream, context, returnReg);
+        TypeSpecifier returnType = context.CurrentFrame().returnType;
+        if (returnType == TypeSpecifier::Type::VOID || expression_ == nullptr) {
+            stream << "j " << *context.CurrentFrame().returnLabel << std::endl;
+            return;
+        }
+        switch (returnType) {
+            case TypeSpecifier::Type::INT:
+            case TypeSpecifier::Type::CHAR:
+            case TypeSpecifier::Type::UNSIGNED:
+            case TypeSpecifier::Type::POINTER:
+            case TypeSpecifier::Type::ENUM:
+                expression_->EmitRISC(stream, context, Register::a0);
+                break;
+            case TypeSpecifier::Type::FLOAT:
+            case TypeSpecifier::Type::DOUBLE:
+                expression_->EmitRISC(stream, context, Register::fa0);
+                break;
+            case TypeSpecifier::Type::STRUCT: {
+                // Handled in Identifier, better not be something stupid
+                expression_->EmitRISC(stream, context, Register::a0);
+                break;
+            }
+            case TypeSpecifier::Type::ARRAY: // Can't return arrays
+            case TypeSpecifier::Type::VOID: // Void handled by nullptr check
+                throw std::runtime_error("ReturnStatement::EmitRISC() called on an unsupported type");
         }
 
         stream << "j " << *context.CurrentFrame().returnLabel << std::endl;
@@ -30,12 +47,8 @@ namespace ast {
     }
 
 
-    // todo this is shit - get from context or something? must be a way to do that
     TypeSpecifier ReturnStatement::GetType(Context &context) const {
-        if (expression_)
-            return expression_->GetType(context);
-        else
-            return TypeSpecifier::VOID;
+        return context.CurrentFrame().returnType;
     }
 
     void BreakStatement::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {

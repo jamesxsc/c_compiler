@@ -1,5 +1,6 @@
 #include <cassert>
-#include "ast_multiplicative_unary_expressions.hpp"
+#include "ast_multiplicative_expression.hpp"
+#include "ast_unary_expression.hpp"
 #include "ast_type_specifier.hpp"
 #include "risc_utils.hpp"
 
@@ -46,13 +47,17 @@ namespace ast {
     TypeSpecifier MultiplicativeExpression::GetType(Context &context) const {
         if (op_ == MultiplicativeOperator::UnaryPromote) {
             if (right_->IsPointerDereference())
-                return right_->GetType(context).GetPointeeType();
+                if (context.EmitLHS())
+                    return right_->GetType(context);
+                else
+                    return right_->GetType(context).GetPointeeType();
             else
                 return right_->GetType(context);
         }
 
-        // todo handle unary deref in here // make another method // test
-        return Utils::BinaryResultType(left_->GetType(context), right_->GetType(context));
+        TypeSpecifier right = right_->IsPointerDereference() ? right_->GetType(context).GetPointeeType()
+                                                             : right_->GetType(context);
+        return Utils::BinaryResultType(left_->GetType(context), right);
     }
 
     bool MultiplicativeExpression::ContainsFunctionCall() const {
@@ -112,5 +117,14 @@ namespace ast {
         std::cerr << "Invalid multiplicative operator" << std::endl;
         exit(1);
     }
+
+    MultiplicativeExpression::MultiplicativeExpression(MultiplicativeExpressionPtr left, UnaryExpressionPtr right,
+                                                       MultiplicativeOperator op)
+            : left_(std::move(left)), right_(std::move(right)), op_(op) {}
+
+    MultiplicativeExpression::MultiplicativeExpression(UnaryExpressionPtr right) : left_(nullptr), right_(std::move(right)),
+                                                                                   op_(MultiplicativeOperator::UnaryPromote) {}
+
+    MultiplicativeExpression::~MultiplicativeExpression() = default;
 
 }

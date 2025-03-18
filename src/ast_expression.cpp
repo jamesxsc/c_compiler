@@ -10,7 +10,7 @@ namespace ast {
         assignment_->EmitRISC(stream, context, destReg);
     }
 
-    void ast::Expression::Print(std::ostream &stream) const {
+    void Expression::Print(std::ostream &stream) const {
         if (first_) {
             first_->Print(stream);
             stream << ", ";
@@ -18,7 +18,7 @@ namespace ast {
         assignment_->Print(stream);
     }
 
-    TypeSpecifier Expression::GetType(Context& context) const {
+    TypeSpecifier Expression::GetType(Context &context) const {
         return assignment_->GetType(context); // Return type of last comma separated expression
     }
 

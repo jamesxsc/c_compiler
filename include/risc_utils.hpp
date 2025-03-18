@@ -42,18 +42,16 @@ namespace ast::Utils {
     void EmitBitwiseOr(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
                        const ExpressionBase &right);
 
-    static std::map<std::set<TypeSpecifier::Type>, TypeSpecifier::Type> aliasMap{
-            {{TypeSpecifier::UNSIGNED, TypeSpecifier::INT},  TypeSpecifier::UNSIGNED},
-            {{TypeSpecifier::INT,      TypeSpecifier::INT},  TypeSpecifier::INT}, // signed int
-            {{TypeSpecifier::UNSIGNED, TypeSpecifier::CHAR}, TypeSpecifier::CHAR},
-    };
-
-    TypeSpecifier ResolveTypeAlias(std::vector<TypeSpecifier> specifiers);
-
     TypeSpecifier BinaryResultType(const TypeSpecifier &leftType, const TypeSpecifier &rightType);
 
     TypeSpecifier BinaryAdditionResultType(const TypeSpecifier& leftType, const TypeSpecifier& rightType);
 
     TypeSpecifier BinarySubtractionResultType(const TypeSpecifier& leftType, const TypeSpecifier& rightType);
+
+    void EmitIndexToAddressOffset(std::ostream &stream, Register sizeReg, Context &context, const TypeSpecifier& type);
+
+    void EmitAddressToIndexOffset(std::ostream &stream, Register sizeReg, Context &context, const TypeSpecifier& type);
+
+    void EmitIncrementDecrement(std::ostream &stream, Context &context, Register destReg, const ExpressionBase &child, bool decrement, bool postfix);
 
 }

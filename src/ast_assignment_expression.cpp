@@ -4,7 +4,7 @@
 #include "ast_expression.hpp"
 #include "ast_type_specifier.hpp"
 #include "ast_conditional_expression.hpp"
-#include "ast_multiplicative_unary_expressions.hpp"
+#include "ast_unary_expression.hpp"
 #include "risc_utils.hpp"
 
 namespace ast {
@@ -29,7 +29,7 @@ namespace ast {
                 assignment_->EmitRISC(stream, context, result);
                 break;
             case AssignmentOperator::MultiplyAssign:
-                Utils::EmitMultiply(stream, context, result, *assignment_,*unary_);
+                Utils::EmitMultiply(stream, context, result, *assignment_, *unary_);
                 // Invert order like GCC, unary less likely to need storing
                 break;
             case AssignmentOperator::DivideAssign:
@@ -68,189 +68,37 @@ namespace ast {
         }
 
         // Common: store the result
-        std::string identifier = unary_->GetIdentifier();
-        if (context.IsArray(identifier)) {
-            if (context.IsGlobal(identifier)) {
-                Register indexReg = context.AllocateTemporary();
-                // todo ughhh do we want to change order to match gcc more closely? probably cba
-                unary_->GetArrayIndexExpression().EmitRISC(stream, context, indexReg);
-                int logSize = static_cast<int>(std::log2(type.GetTypeSize())); // todo will this break for structs
-                if (logSize != 0) // Save an instruction if it's a char array
-                    stream << "slli " << indexReg << "," << indexReg << "," << logSize << std::endl;
-                Register addrReg = context.AllocateTemporary();
-                stream << "lui " << addrReg << ",%hi(" << identifier << ")" << std::endl;
-                stream << "addi " << addrReg << "," << addrReg << ",%lo(" << identifier << ")" << std::endl;
-                stream << "add " << addrReg << "," << addrReg << "," << indexReg << std::endl;
-                context.FreeTemporary(indexReg);
-                switch (type) {
-                    case TypeSpecifier::UNSIGNED:
-                    case TypeSpecifier::INT:
-                    case TypeSpecifier::ENUM:
-                        stream << "sw " << result << ",0(" << addrReg << ")" << std::endl;
-                        break;
-                    case TypeSpecifier::FLOAT:
-                        stream << "fsw " << result << ",0(" << addrReg << ")" << std::endl;
-                        break;
-                    case TypeSpecifier::DOUBLE:
-                        stream << "fsd " << result << ",0(" << addrReg << ")" << std::endl;
-                        break;
-                    case TypeSpecifier::CHAR:
-                        stream << "sb " << result << ",0(" << addrReg << ")" << std::endl;
-                        break;
-                    case TypeSpecifier::POINTER:
-                    case TypeSpecifier::VOID:
-                    case TypeSpecifier::STRUCT:
-                    case TypeSpecifier::ARRAY:
-                        throw std::runtime_error(
-                                "AssignmentExpression::EmitRISC() called on an unsupported array type");
-                        // todo these do need to be supported
-                }
-                context.FreeTemporary(addrReg);
-            } else {
-                Register indexReg = context.AllocateTemporary();
-                unary_->GetArrayIndexExpression().EmitRISC(stream, context, indexReg);
-                int logSize = static_cast<int>(std::log2(type.GetTypeSize()));
-                if (logSize != 0) // Save an instruction if it's a char array
-                    stream << "slli " << indexReg << "," << indexReg << "," << logSize << std::endl;
-                Register addrReg = context.AllocateTemporary();
-                // Offset of start of array
-                stream << "addi " << addrReg << ",s0," << context.CurrentFrame().bindings.Get(identifier).offset
+//        if (unary_->IsPointerDereference()) { // Type is already unfolded, moved to top as this won't always have an identifier
+        // I think this, is ok, although maybe we call unary gettype?
+        Register addrReg = context.AllocateTemporary();
+        bool restore = context.SetEmitLHS(true); // Get raw address
+        unary_->EmitRISC(stream, context, addrReg);
+        context.SetEmitLHS(restore);
+        // Copied from below could maybe extract
+        bool ptr = type.IsPointer();
+        if (ptr) type = type.GetPointeeType();
+        switch (type) {
+            case TypeSpecifier::FLOAT:
+            case TypeSpecifier::DOUBLE:
+            case TypeSpecifier::POINTER:
+                stream << (type == TypeSpecifier::FLOAT ? "fsw " : "fsd ") << result << ",0(" << addrReg << ")"
                        << std::endl;
-                stream << "add " << addrReg << "," << addrReg << "," << indexReg << std::endl;
-                context.FreeTemporary(indexReg);
-                switch (type) {
-                    case TypeSpecifier::UNSIGNED:
-                    case TypeSpecifier::INT:
-                        stream << "sw " << result << ",0(" << addrReg << ")" << std::endl;
-                        break;
-                    case TypeSpecifier::FLOAT:
-                        stream << "fsw " << result << ",0(" << addrReg << ")" << std::endl;
-                        break;
-                    case TypeSpecifier::DOUBLE:
-                        stream << "fsd " << result << ",0(" << addrReg << ")" << std::endl;
-                        break;
-                    case TypeSpecifier::CHAR:
-                        stream << "sb " << result << ",0(" << addrReg << ")" << std::endl;
-                        break;
-                    case TypeSpecifier::POINTER:
-                    case TypeSpecifier::VOID:
-                    case TypeSpecifier::ENUM:
-                    case TypeSpecifier::STRUCT:
-                    case TypeSpecifier::ARRAY:
-                        throw std::runtime_error(
-                                "AssignmentExpression::EmitRISC() called on an unsupported array type");
-                }
-                context.FreeTemporary(addrReg);
-            }
-        } else if (unary_->IsPointerDereference()) { // Type is already unfolded
-            // replaces the deref'd check inside pointer case - that will only be reassigning a pointer or ptr to ptr
-            // this is actually a really nice way to avoid nested switches and capture different underlying type stores
-            // am i missing something - where else do we do this? nowehere?
-            // its not the same as de ref because that's reading not writing
-            // use temp reg to obtain address - should be common to global/non global
-            if (context.IsGlobal(identifier)) {
-                // todo global ptrs
-            } else {
-                Register addrReg = context.AllocateTemporary();
-                stream << "lw " << addrReg << "," << context.CurrentFrame().bindings.Get(identifier).offset << "(s0)"
-                          << std::endl;
-                // Copied from below could maybe extract
-                switch (type) {
-                    case TypeSpecifier::FLOAT:
-                    case TypeSpecifier::DOUBLE:
-                        stream << (type == TypeSpecifier::FLOAT ? "fsw " : "fsd ") << result << ",0(" << addrReg << ")"
-                               << std::endl;
-                        break;
-                    case TypeSpecifier::UNSIGNED:
-                    case TypeSpecifier::INT:
-                    case TypeSpecifier::ENUM:
-                        stream << "sw " << result << ",0(" << addrReg << ")" << std::endl;
-                        break;
-                    case TypeSpecifier::CHAR:
-                        stream << "sb " << result << ",0(" << addrReg << ")" << std::endl;
-                        break;
-                    case TypeSpecifier::POINTER:
-                    case TypeSpecifier::VOID:
-                    case TypeSpecifier::STRUCT:
-                    case TypeSpecifier::ARRAY:
-                        throw std::runtime_error("Unsupported type for assignment");
-                        // TODO need to support at least some of these
-                }
-                context.FreeTemporary(addrReg);
-            }
-        } else {
-            if (context.IsGlobal(identifier)) {
-                switch (type) {
-                    case TypeSpecifier::FLOAT:
-                    case TypeSpecifier::DOUBLE: {
-                        Register tempReg = context.AllocateTemporary();
-                        stream << "lui " << tempReg << ",%hi(" << identifier << ")" << std::endl;
-                        stream << (type == TypeSpecifier::FLOAT ? "fsw " : "fsd ") << result << ",%lo(" << identifier
-                               << ")("
-                               << tempReg << ")" << std::endl;
-                        context.FreeTemporary(tempReg);
-                        break;
-                    }
-                    case TypeSpecifier::POINTER: {
-                        // Reassign the pointer
-                        Register tempReg = context.AllocateTemporary();
-                        stream << "lui " << tempReg << ",%hi(" << identifier << ")" << std::endl;
-                        stream << "sw " << result << ",%lo(" << identifier << ")(" << tempReg << ")" << std::endl;
-                        context.FreeTemporary(tempReg);
-                        break;
-                    }
-                    case TypeSpecifier::UNSIGNED:
-                    case TypeSpecifier::INT: {
-                        Register tempReg = context.AllocateTemporary();
-                        stream << "lui " << tempReg << ",%hi(" << identifier << ")" << std::endl;
-                        stream << "sw " << result << ",%lo(" << identifier << ")(" << tempReg << ")" << std::endl;
-                        context.FreeTemporary(tempReg);
-                        break;
-                    }
-                    case TypeSpecifier::CHAR: {
-                        Register tempReg = context.AllocateTemporary();
-                        stream << "lui " << tempReg << ",%hi(" << identifier << ")" << std::endl;
-                        stream << "sb " << result << ",%lo(" << identifier << ")(" << tempReg << ")" << std::endl;
-                        context.FreeTemporary(tempReg);
-                        break;
-                    }
-                    case TypeSpecifier::VOID:
-                    case TypeSpecifier::ENUM:
-                    case TypeSpecifier::STRUCT:
-                    case TypeSpecifier::ARRAY:
-                        throw std::runtime_error("Unsupported type for global assignment");
-                        // TODO need to support at least some of these
-                }
-            } else {
-                Variable lhsVariable = context.CurrentFrame().bindings.Get(identifier);
-                // Can only assign to lvalue so this call should succeed
-                switch (type) {
-                    case TypeSpecifier::FLOAT:
-                    case TypeSpecifier::DOUBLE:
-                        stream << (type == TypeSpecifier::FLOAT ? "fsw " : "fsd ") << result << ","
-                               << lhsVariable.offset << "(s0)" << std::endl;
-                        break;
-                    case TypeSpecifier::UNSIGNED:
-                    case TypeSpecifier::INT:
-                    case TypeSpecifier::ENUM:
-                        stream << "sw " << result << "," << lhsVariable.offset << "(s0)" << std::endl;
-                        break;
-                    case TypeSpecifier::CHAR:
-                        stream << "sb " << result << "," << lhsVariable.offset << "(s0)" << std::endl;
-                        break;
-                    case TypeSpecifier::POINTER: {
-                        // Reassign the pointer
-                        stream << "sw " << result << "," << lhsVariable.offset << "(s0)" << std::endl;
-                        break;
-                    }
-                    case TypeSpecifier::VOID:
-                    case TypeSpecifier::STRUCT:
-                    case TypeSpecifier::ARRAY:
-                        throw std::runtime_error("Unsupported type for assignment");
-                        // TODO need to support at least some of these
-                }
-            }
+                break;
+            case TypeSpecifier::UNSIGNED:
+            case TypeSpecifier::INT:
+            case TypeSpecifier::ENUM:
+                stream << "sw " << result << ",0(" << addrReg << ")" << std::endl;
+                break;
+            case TypeSpecifier::CHAR:
+                stream << "sb " << result << ",0(" << addrReg << ")" << std::endl;
+                break;
+            case TypeSpecifier::VOID:
+            case TypeSpecifier::STRUCT:
+            case TypeSpecifier::ARRAY:
+                throw std::runtime_error("Unsupported type for assignment");
         }
+        context.FreeTemporary(addrReg);
+
         // All "return" the result in destReg (if it's used)
         if (destReg != Register::zero) {
             stream << "mv " << destReg << "," << result << std::endl;
@@ -316,24 +164,45 @@ namespace ast {
                                                                                      assignment_(
                                                                                              std::move(assignment)) {}
 
-    // The logic of this function is to return the type of the actual arithmetic operation
-    TypeSpecifier AssignmentExpression::GetType(Context &context) const {
+    // The logic of this function is to return the type of the actual arithmetic operation (unwraps ptrs etc.)
+    // probably bin this
+    TypeSpecifier AssignmentExpression::GetTypeInternal(Context &context) const {
         // Just pass down, there is only one operand
         if (op_ == AssignmentOperator::ConditionalPromote) {
             return conditional_->GetType(context);
         }
 
-        // LHS will always have an identifier
-        std::string identifier = unary_->GetIdentifier();
-        TypeSpecifier lhsType = context.IsGlobal(identifier) ?
-                                context.GetGlobalType(identifier) :
-                                context.CurrentFrame().bindings.Get(identifier).type;
-        if (lhsType.IsArray())
-            lhsType = lhsType.GetArrayType(); // Will always be indexed
-        if (lhsType.IsPointer() && unary_->IsPointerDereference())
-            lhsType = lhsType.GetPointeeType();
+        if (unary_->IsPointerDereference()) {
+            // Raw address
+            return unary_->GetType(context).GetPointeeType();
+        } else {
+            // LHS with identifier
+            std::string identifier = unary_->GetIdentifier();
+            TypeSpecifier lhsType = context.IsGlobal(identifier) ?
+                                    context.GetGlobalType(identifier) :
+                                    context.CurrentFrame().bindings.Get(identifier).type;
+            if (lhsType.IsArray())
+                lhsType = lhsType.GetArrayType(); // Will always be indexed
+            if (lhsType.IsPointer() && unary_->IsPointerDereference())
+                lhsType = lhsType.GetPointeeType();
 
-        return lhsType;
+            return lhsType;
+        }
+    }
+
+    // Return expression type
+    TypeSpecifier AssignmentExpression::GetType(Context &context) const {
+        if (op_ == AssignmentOperator::ConditionalPromote) {
+            bool restore = context.SetEmitLHS(true);
+            TypeSpecifier ret =  conditional_->GetType(context);
+            context.SetEmitLHS(restore);
+            return ret;
+        } else {
+            bool restore = context.SetEmitLHS(true);
+            TypeSpecifier ret =  unary_->GetType(context);
+            context.SetEmitLHS(restore);
+            return ret;
+        }
     }
 
     bool AssignmentExpression::ContainsFunctionCall() const {
