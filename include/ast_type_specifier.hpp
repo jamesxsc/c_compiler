@@ -67,6 +67,8 @@ namespace ast {
 
         [[nodiscard]] int GetTypeSize() const;
 
+        [[nodiscard]] int GetAlignment() const;
+
         void SetMembers(std::vector<std::pair<std::string, TypeSpecifier>> members);
 
         [[nodiscard]] bool UseStack() const;

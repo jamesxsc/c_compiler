@@ -8,7 +8,7 @@ namespace ast {
 
     // Lvalue asserts are in GetIdentifier impls
     void UnaryExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-        if (context.emitLHS && op_ == UnaryOperator::Dereference) {
+        if (context.EmitLHS() && op_ == UnaryOperator::Dereference) {
             context.dereference = true;
             multiplicativeChild_->EmitRISC(stream, context, destReg);
             context.dereference = false;
@@ -27,14 +27,10 @@ namespace ast {
             }
                 // Below all multiplicative child expression
             case UnaryOperator::AddressOf: {
-                std::string identifier = multiplicativeChild_->GetIdentifier();
-                if (context.IsGlobal(identifier)) {
-                    stream << "lui " << destReg << ",%hi(" << identifier << ")" << std::endl;
-                    stream << "addi " << destReg << "," << destReg << ",%lo(" << identifier << ")" << std::endl;
-                } else {
-                    Variable atAddress = context.CurrentFrame().bindings.Get(identifier);
-                    stream << "addi " << destReg << ",s0," << atAddress.offset << std::endl;
-                }
+                // This will emit the raw address
+                bool restore = context.SetEmitLHS(true);
+                multiplicativeChild_->EmitRISC(stream, context, destReg);
+                context.SetEmitLHS(restore);
                 break;
             }
             case UnaryOperator::Dereference: {
@@ -102,7 +98,7 @@ namespace ast {
                 stream << "not " << destReg << "," << destReg << std::endl;
                 break;
             case UnaryOperator::LogicalNot:
-                multiplicativeChild_->EmitRISC(stream, context, destReg);
+                Utils::EmitComparison(stream, context, destReg, *multiplicativeChild_);
                 stream << "seqz " << destReg << "," << destReg << std::endl;
                 stream << "andi " << destReg << "," << destReg << ",0xff" << std::endl;
                 break;
@@ -197,12 +193,15 @@ namespace ast {
             case UnaryOperator::AddressOf:
                 return {TypeSpecifier::POINTER, multiplicativeChild_->GetType(context)};
             case UnaryOperator::Dereference:
-                return multiplicativeChild_->GetType(context);
+                if (context.EmitLHS())
+                    return multiplicativeChild_->GetType(context).GetPointeeType();
+                else
+                    return multiplicativeChild_->GetType(context);
             case UnaryOperator::Plus:
             case UnaryOperator::Minus:
             case UnaryOperator::BitwiseNot:
             case UnaryOperator::LogicalNot:
-                return multiplicativeChild_->GetType(context);
+                return TypeSpecifier::INT;
             case UnaryOperator::SizeofUnary:
             case UnaryOperator::SizeofType:
                 return TypeSpecifier::UNSIGNED;

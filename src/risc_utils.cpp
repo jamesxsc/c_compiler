@@ -177,6 +177,9 @@ namespace ast::Utils {
     void EmitSubtraction(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
                          const ExpressionBase &right) {
         TypeSpecifier type = BinarySubtractionResultType(left.GetType(context), right.GetType(context));
+        // Arithmetic type is different from return type for ptr - ptr
+        if (left.GetType(context).IsPointer() && right.GetType(context).IsPointer())
+            type = left.GetType(context);
         bool leftStored = right.ContainsFunctionCall();
         bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
         Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(useFloat);
@@ -354,12 +357,12 @@ namespace ast::Utils {
 
     void EmitIncrementDecrement(std::ostream &stream, Context &context, Register destReg, const ExpressionBase &child,
                                 bool decrement, bool postfix) {
-        context.emitLHS = true; // Get raw address
+        bool restore = context.SetEmitLHS(true); // Get raw address
         TypeSpecifier lhsType = child.GetType(context);
         Register addrReg = context.AllocateTemporary();
         TypeSpecifier type = child.GetType(context);
         child.EmitRISC(stream, context, addrReg);
-        context.emitLHS = false;
+        context.SetEmitLHS(restore);
 
         if (destReg != Register::zero && postfix)
             child.EmitRISC(stream, context, destReg);

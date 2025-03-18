@@ -91,7 +91,10 @@ namespace ast {
 
         TypeSpecifier ResolveTypeAlias(std::vector<TypeSpecifier> specifiers);
 
-        bool emitLHS{false};
+        bool SetEmitLHS(bool emitLHS); // Returns the old value for restoring
+
+        [[nodiscard]] bool EmitLHS();
+
         bool dereference{false};
 
     private:
@@ -108,6 +111,8 @@ namespace ast {
         std::unordered_map<std::string, Function> functions_;
 
         std::stringstream deferredRISC_{};
+
+        bool emitLHS_{false};
 
         int labelId_{}; // Instance counter for unique labels
     };

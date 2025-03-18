@@ -480,7 +480,7 @@ direct_declarator
 	}
 	| '(' declarator ')' { $$ = $2; $$->Direct(); }
 	| direct_declarator '[' constant_expression ']' { $$ = new ArrayDeclarator(DeclaratorPtr($1), ConstantExpressionPtr($3)); }
-	| direct_declarator '[' ']' { std::cerr << "Need to support empty array declarations?" << std::endl; exit(1); } // todo is this required for array param?
+	| direct_declarator '[' ']' { std::cerr << "Need to support empty array declarations?" << std::endl; exit(1); } // todo is this required for array param? // todo not sure but certainly declaring with init list seems valid
 	| direct_declarator '(' parameter_list ')' { $$ = new FunctionDeclarator(DeclaratorPtr($1), ParameterListPtr($3)); }
 	| direct_declarator '(' identifier_list ')' {
 	    std::cerr << "Need to support identifier_list in direct_declarator" << std::endl;

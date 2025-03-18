@@ -11,9 +11,16 @@ namespace ast {
     const Variable &Bindings::Insert(const std::string &identifier, Variable &&variable) {
         assert(bindingsMap_.find(identifier) == bindingsMap_.end() && "Variable already exists in bindings");
         if (bindings_.empty()) {
-            variable.offset = start_;
+            variable.offset = start_; // Stack pointer is always 16-byte aligned
         } else {
-            variable.offset = bindings_.back()->offset - variable.size;
+            int lastOffset = bindings_.back()->offset;
+            int currentAlignment = variable.type.GetAlignment();
+            int newOffset = lastOffset - variable.size;
+            int misalignment = -newOffset % currentAlignment;
+            if (misalignment != 0) {
+                newOffset -= currentAlignment - misalignment; // Insert padding
+            }
+            variable.offset = newOffset;
         }
         assert(variable.offset > -size_ && "Bindings exceed allocated stack frame size");
         VariablePtr ptr = std::make_shared<Variable>(variable);

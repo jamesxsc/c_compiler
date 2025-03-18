@@ -3,7 +3,7 @@
 namespace ast {
 
     void StructMemberAccessExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-        if (context.emitLHS) { // Return address
+        if (context.EmitLHS()) { // Return address
             // Get struct base address
             struct_->EmitRISC(stream, context, destReg);
             // todo ispointer... is that handled below?
@@ -21,9 +21,9 @@ namespace ast {
         } else { // Return value
             // Get struct base address
             Register addressReg = context.AllocateTemporary();
-            context.emitLHS = true;
+            bool restore = context.SetEmitLHS(true);
             struct_->EmitRISC(stream, context, addressReg);
-            context.emitLHS = false;
+            context.SetEmitLHS(restore);
             // Get member offset // todo if we get time, optimise this
             const TypeSpecifier &structType = struct_->GetType(context);
             int offset = 0;

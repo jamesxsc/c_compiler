@@ -6,11 +6,11 @@
 namespace ast {
 
     void ArrayIndexExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-        if (context.emitLHS) {
+        if (context.EmitLHS()) {
             Register indexReg = context.AllocateTemporary();
-            context.emitLHS = false; // Emit/evaluate this normally
+            bool restore = context.SetEmitLHS(false); // Emit/evaluate this normally
             index_->EmitRISC(stream, context, indexReg);
-            context.emitLHS = true;
+            context.SetEmitLHS(restore);
             std::string identifier = array_->GetIdentifier();
             if (context.IsArray(identifier)) {
                 if (context.IsGlobal(identifier)) {

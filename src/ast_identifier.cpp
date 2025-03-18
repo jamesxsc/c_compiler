@@ -7,7 +7,7 @@ namespace ast {
 
     void Identifier::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         // If we are in LHS, load address
-        if (context.emitLHS) {
+        if (context.EmitLHS()) {
             if (context.IsGlobal(identifier_)) {
                 stream << "lui " << destReg << ",%hi(" << identifier_ << ")" << std::endl;
                 stream << "addi " << destReg << "," << destReg << ",%lo(" << identifier_ << ")" << std::endl;

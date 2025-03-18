@@ -257,4 +257,14 @@ namespace ast {
         return type;
     }
 
+    bool Context::SetEmitLHS(bool emitLHS) {
+        bool old = emitLHS_;
+        emitLHS_ = emitLHS;
+        return old;
+    }
+
+    bool Context::EmitLHS() {
+        return emitLHS_;
+    }
+
 }

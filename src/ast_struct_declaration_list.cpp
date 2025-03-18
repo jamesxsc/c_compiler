@@ -27,7 +27,7 @@ namespace ast {
         for (const auto &declaration: declarations_) {
             TypeSpecifier type = declaration->GetType(context);
             for (const auto &declarator: declaration->GetDeclarators()) {
-                int alignment = type.GetTypeSize(); // Simplification
+                int alignment = type.GetAlignment();
                 if (totalSize % alignment != 0) {
                     for (int i = 0; i < alignment - (totalSize % alignment); i++)
                         members.emplace_back("#padding", TypeSpecifier(TypeSpecifier::CHAR));

@@ -47,7 +47,7 @@ namespace ast {
     TypeSpecifier MultiplicativeExpression::GetType(Context &context) const {
         if (op_ == MultiplicativeOperator::UnaryPromote) {
             if (right_->IsPointerDereference())
-                if (context.emitLHS)
+                if (context.EmitLHS())
                     return right_->GetType(context);
                 else
                     return right_->GetType(context).GetPointeeType();

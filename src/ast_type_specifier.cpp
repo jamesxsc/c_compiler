@@ -38,13 +38,38 @@ namespace ast {
             case TypeSpecifier::Type::VOID:
                 return 0;
             case TypeSpecifier::Type::STRUCT:
-                assert(structMembers_.has_value() && "TypeSpecifier::GetTypeSize() called on struct type with unset members");
+                assert(structMembers_.has_value() &&
+                       "TypeSpecifier::GetTypeSize() called on struct type with unset members");
                 return std::accumulate((*structMembers_).begin(), (*structMembers_).end(), 0,
                                        [](int acc, const auto &member) { return acc + member.second.GetTypeSize(); });
             case TypeSpecifier::Type::ARRAY:
                 return arrayType_->GetTypeSize() * arraySize_;
         }
         throw std::runtime_error("Unexpected type specifier");
+    }
+
+    int TypeSpecifier::GetAlignment() const {
+        switch (type_) {
+            case Type::CHAR:
+                return 1;
+            case Type::INT:
+            case Type::UNSIGNED:
+            case Type::ENUM:
+            case Type::FLOAT:
+            case Type::POINTER:
+                return 4;
+            case Type::DOUBLE:
+                return 8;
+            case Type::VOID:
+                return 0; // Should never be used
+            case Type::STRUCT:
+                return std::max_element(structMembers_->begin(), structMembers_->end(),
+                                        [](const auto &a, const auto &b) {
+                                            return a.second.GetAlignment() < b.second.GetAlignment();
+                                        })->second.GetAlignment();
+            case Type::ARRAY:
+                return GetArrayType().GetTypeSize(); // Element alignment
+        }
     }
 
     bool TypeSpecifier::IsPointer() const {
@@ -90,7 +115,8 @@ namespace ast {
 
     const std::vector<std::pair<std::string, TypeSpecifier>> &TypeSpecifier::GetStructMembers() const {
         assert(IsStruct() && "TypeSpecifier::GetStructMembers() called on non-struct type");
-        assert(structMembers_.has_value() && "TypeSpecifier::GetStructMembers() called on struct type with unset members");
+        assert(structMembers_.has_value() &&
+               "TypeSpecifier::GetStructMembers() called on struct type with unset members");
         return *structMembers_;
     }
 
