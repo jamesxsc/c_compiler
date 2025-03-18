@@ -10,9 +10,62 @@ namespace ast {
         } else {
             Register firstIntegerReg = Register::a0;
             Register firstFloatReg = Register::fa0;
-            // todo unfold structs, really need to do it here annoyingly
             for (const auto &argument: arguments_) {
-                if (argument->GetType(context) == TypeSpecifier::FLOAT || argument->GetType(context) == TypeSpecifier::DOUBLE) {
+                TypeSpecifier type = argument->GetType(context);
+                if (type == TypeSpecifier::STRUCT) {
+                    if (type.UseStack()) {
+                        // It will be copied if necessary by the callee, so we just return the address
+                        bool restore = context.SetEmitLHS(true);
+                        argument->EmitRISC(stream, context, firstIntegerReg);
+                        context.SetEmitLHS(restore);
+                        firstIntegerReg = static_cast<Register>(static_cast<int>(firstIntegerReg) + 1);
+                    } else {
+                        // Load all of the members into registers
+                        int memberOffset = 0;
+                        // Get the base address
+                        Register baseAddressReg = context.AllocateTemporary();
+                        bool restore = context.SetEmitLHS(true);
+                        argument->EmitRISC(stream, context, baseAddressReg);
+                        context.SetEmitLHS(restore);
+                        for (const auto &member: type.GetStructMembers()) {
+                            if (member.first == "#padding") {
+                                memberOffset += member.second.GetTypeSize();
+                                continue;
+                            }
+
+                            switch (member.second) {
+                                case TypeSpecifier::INT:
+                                case TypeSpecifier::POINTER:
+                                case TypeSpecifier::UNSIGNED:
+                                case TypeSpecifier::ENUM:
+                                case TypeSpecifier::ARRAY: // todo is this right? cx everything arrays in structs
+                                    stream << "lw " << firstIntegerReg << "," << memberOffset << "(" << baseAddressReg
+                                           << ")" << std::endl;
+                                    firstIntegerReg = static_cast<Register>(static_cast<int>(firstIntegerReg) + 1);
+                                    break;
+                                case TypeSpecifier::CHAR:
+                                    stream << "lbu " << firstIntegerReg << "," << memberOffset << "(" << baseAddressReg
+                                           << ")" << std::endl;
+                                    firstIntegerReg = static_cast<Register>(static_cast<int>(firstIntegerReg) + 1);
+                                    break;
+                                case TypeSpecifier::FLOAT:
+                                case TypeSpecifier::DOUBLE:
+                                    stream << (member.second == TypeSpecifier::FLOAT ? "flw " : "fld ") << firstFloatReg
+                                           << "," << memberOffset << "(" << baseAddressReg << ")" << std::endl;
+                                    firstFloatReg = static_cast<Register>(static_cast<int>(firstFloatReg) + 1);
+                                    break;
+                                case TypeSpecifier::STRUCT: // todo Handle nested structs
+                                case TypeSpecifier::VOID:
+                                    std::cerr
+                                            << "ArgumentExpressionList::EmitRISC() called on an unsupported struct member type"
+                                            << std::endl;
+                                    exit(1);
+                            }
+                            memberOffset += member.second.GetTypeSize();
+                        }
+                        context.FreeTemporary(baseAddressReg);
+                    }
+                } else if (type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE) {
                     argument->EmitRISC(stream, context, firstFloatReg);
                     firstFloatReg = static_cast<Register>(static_cast<int>(firstFloatReg) + 1);
                 } else {

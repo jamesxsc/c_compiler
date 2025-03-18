@@ -10,11 +10,10 @@ struct ns {
 int g();
 
 int structparam(int a, struct ns s, int b) {
-    double d = s.b;
     return a + b + s.a;
 }
 
 int main() {
-    g();
+    return g();
 }
 
