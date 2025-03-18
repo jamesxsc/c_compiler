@@ -10,7 +10,7 @@ namespace ast {
         } else {
             Register firstIntegerReg = Register::a0;
             Register firstFloatReg = Register::fa0;
-            // todo unfold structs
+            // todo unfold structs, really need to do it here annoyingly
             for (const auto &argument: arguments_) {
                 if (argument->GetType(context) == TypeSpecifier::FLOAT || argument->GetType(context) == TypeSpecifier::DOUBLE) {
                     argument->EmitRISC(stream, context, firstFloatReg);

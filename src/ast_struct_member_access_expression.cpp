@@ -6,10 +6,16 @@ namespace ast {
         if (context.EmitLHS()) { // Return address
             // Get struct base address
             struct_->EmitRISC(stream, context, destReg);
-            // todo ispointer... is that handled below?
+            // todo ispointer... is that handled below? no not really it seems - need to handle properly, see below branch too
 
             // Get member offset // todo if we get time, optimise this
-            const TypeSpecifier &structType = struct_->GetType(context);
+            TypeSpecifier structType = struct_->GetType(context);
+//            if (structType == TypeSpecifier::POINTER) { // todo Not sure i'm a fan of this, works for hidden pointer PBV on stack params, but doesn't let us use ispointer access properly
+//                // it's annoying as well because it is ambiguous for return struct is it meant to be &struct or struct that is a pointer
+//                // solution is to copy the struct, which also resolves modifying it illegally when its PBV
+//                structType = structType.GetPointeeType();
+//                stream << "lw " << destReg << ",0(" << destReg << ")" << std::endl;
+//            }
             int offset = 0;
             for (const auto &member: structType.GetStructMembers()) {
                 if (member.first == member_) {
@@ -25,7 +31,11 @@ namespace ast {
             struct_->EmitRISC(stream, context, addressReg);
             context.SetEmitLHS(restore);
             // Get member offset // todo if we get time, optimise this
-            const TypeSpecifier &structType = struct_->GetType(context);
+            TypeSpecifier structType = struct_->GetType(context);
+//            if (structType == TypeSpecifier::POINTER) {
+//                structType = structType.GetPointeeType();
+//                stream << "lw " << addressReg << ",0(" << addressReg << ")" << std::endl;
+//            }
             int offset = 0;
             for (const auto &member: structType.GetStructMembers()) {
                 if (member.first == member_) {
@@ -72,6 +82,10 @@ namespace ast {
 
     TypeSpecifier StructMemberAccessExpression::GetType(Context &context) const {
         TypeSpecifier structType = struct_->GetType(context);
+        if (structType == TypeSpecifier::POINTER) {
+            structType = structType.GetPointeeType();
+        }
+
         if (structType != TypeSpecifier::Type::STRUCT) {
             throw std::runtime_error("StructMemberAccessExpression::GetType() called on a non-struct");
         }

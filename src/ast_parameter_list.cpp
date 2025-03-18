@@ -13,8 +13,6 @@ namespace ast {
             return;
         }
 
-        // TODO handle passed on stack
-
         int iidx = 0, fidx = 0;
         if (hiddenPointerReturn_) { // Always in first register
             Variable var = context.CurrentFrame().bindings.Insert("#hiddenpointer", Variable{
@@ -26,6 +24,9 @@ namespace ast {
         }
         for (const auto &param: parameters_) {
             TypeSpecifier type = param->GetType(context);
+
+            // todo condition for non structs? iidx/fifx > 7?
+
             Variable var = context.CurrentFrame().bindings.Insert(param->GetIdentifier(), Variable{
                     .size = type.GetTypeSize(),
                     .type = type
@@ -50,7 +51,7 @@ namespace ast {
                     break;
                 case TypeSpecifier::STRUCT: {
                     int memberOffset = 0;
-                    for (const auto& member : type.GetStructMembers()) {
+                    for (const auto &member: type.GetStructMembers()) {
                         if (member.first == "#padding") {
                             memberOffset += member.second.GetTypeSize();
                             continue;
@@ -61,18 +62,47 @@ namespace ast {
                             case TypeSpecifier::Type::POINTER:
                             case TypeSpecifier::Type::ARRAY:
                             case TypeSpecifier::Type::ENUM:
-                                stream << "sw a" << iidx << "," << var.offset + memberOffset << "(s0)" << std::endl;
-                                ++iidx;
+                                if (type.UseStack()) {
+                                    Register tempReg = context.AllocateTemporary();
+                                    // Load from previous frame
+                                    stream << "lw " << tempReg << "," << memberOffset << "(a" << iidx << ")"
+                                           << std::endl;
+                                    stream << "sw " << tempReg << "," << var.offset + memberOffset << "(s0)"
+                                           << std::endl;
+                                    // Don't increment iidx
+                                    context.FreeTemporary(tempReg);
+                                } else {
+                                    stream << "sw a" << iidx << "," << var.offset + memberOffset << "(s0)" << std::endl;
+                                    ++iidx;
+                                }
                                 break;
                             case TypeSpecifier::Type::CHAR:
-                                stream << "sb a" << iidx << "," << var.offset + memberOffset << "(s0)" << std::endl;
-                                ++iidx;
+                                if (type.UseStack()) {
+                                    Register tempReg = context.AllocateTemporary();
+                                    stream << "lbu " << tempReg << "," << memberOffset << "(a" << iidx << ")"
+                                           << std::endl;
+                                    stream << "sb " << tempReg << "," << var.offset + memberOffset << "(s0)"
+                                           << std::endl;
+                                    context.FreeTemporary(tempReg);
+                                } else {
+                                    stream << "sb a" << iidx << "," << var.offset + memberOffset << "(s0)" << std::endl;
+                                    ++iidx;
+                                }
                                 break;
                             case TypeSpecifier::Type::FLOAT:
                             case TypeSpecifier::Type::DOUBLE:
-                                stream << (member.second == TypeSpecifier::FLOAT ? "fsw " : "fsd ")
-                                       << "fa" << fidx << "," << var.offset + memberOffset << "(s0)" << std::endl;
-                                ++fidx;
+                                if (type.UseStack()) {
+                                    Register tempReg = context.AllocateTemporary(true);
+                                    stream << (member.second == TypeSpecifier::FLOAT ? "flw " : "fld ") << tempReg
+                                           << "," << memberOffset << "(a" << iidx << ")" << std::endl;
+                                    stream << (member.second == TypeSpecifier::FLOAT ? "fsw " : "fsd ") << tempReg
+                                           << "," << var.offset + memberOffset << "(s0)" << std::endl;
+                                    context.FreeTemporary(tempReg);
+                                } else {
+                                    stream << (member.second == TypeSpecifier::FLOAT ? "fsw " : "fsd ")
+                                           << "fa" << fidx << "," << var.offset + memberOffset << "(s0)" << std::endl;
+                                    ++fidx;
+                                }
                                 break;
                             case TypeSpecifier::Type::STRUCT: // todo Handle nested structs
                             case TypeSpecifier::Type::VOID:
@@ -80,6 +110,9 @@ namespace ast {
                                         "ParameterList::EmitRISC() called on an unsupported struct member type");
                         }
                         memberOffset += member.second.GetTypeSize();
+                    }
+                    if (type.UseStack()) {
+                        ++iidx; // Now we are done with the reg holding ptr
                     }
                     break;
                 }
