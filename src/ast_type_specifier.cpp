@@ -1,5 +1,6 @@
 #include <cassert>
 #include <numeric>
+#include <algorithm>
 #include "ast_type_specifier.hpp"
 
 namespace ast {
@@ -61,7 +62,7 @@ namespace ast {
             case Type::DOUBLE:
                 return 8;
             case Type::VOID:
-                return 0; // Should never be used
+                break;
             case Type::STRUCT:
                 return std::max_element(structMembers_->begin(), structMembers_->end(),
                                         [](const auto &a, const auto &b) {
@@ -70,6 +71,7 @@ namespace ast {
             case Type::ARRAY:
                 return GetArrayType().GetTypeSize(); // Element alignment
         }
+        throw std::runtime_error("TypeSpecifier::GetAlignment() Unexpected type specifier");
     }
 
     bool TypeSpecifier::IsPointer() const {
@@ -127,7 +129,11 @@ namespace ast {
 
     bool TypeSpecifier::UseStack() const {
         // Conveniently seems that sames rules apply to params and return
-        return IsStruct() && structMembers_.has_value() && structMembers_->size() > 2; // Doesn't handle nested structs
+        if (!IsStruct() || structMembers_->empty()) return false;
+        int nonPadding = static_cast<int>(std::ranges::count_if(*structMembers_, [](const auto &member) {
+            return member.first != "#padding";
+        }));
+        return nonPadding > 2; // 2 is the number of registers available for return
     }
 
 }
