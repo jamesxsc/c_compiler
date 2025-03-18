@@ -13,6 +13,8 @@ namespace ast {
             return;
         }
 
+        // TODO handle passed on stack
+
         int iidx = 0, fidx = 0;
         if (hiddenPointerReturn_) { // Always in first register
             Variable var = context.CurrentFrame().bindings.Insert("#hiddenpointer", Variable{
@@ -46,7 +48,41 @@ namespace ast {
                     stream << "sb a" << iidx << "," << var.offset << "(s0)" << std::endl;
                     ++iidx;
                     break;
-                case TypeSpecifier::STRUCT: // todo handle struct param
+                case TypeSpecifier::STRUCT: {
+                    int memberOffset = 0;
+                    for (const auto& member : type.GetStructMembers()) {
+                        if (member.first == "#padding") {
+                            memberOffset += member.second.GetTypeSize();
+                            continue;
+                        }
+                        switch (member.second) {
+                            case TypeSpecifier::Type::INT:
+                            case TypeSpecifier::Type::UNSIGNED:
+                            case TypeSpecifier::Type::POINTER:
+                            case TypeSpecifier::Type::ARRAY:
+                            case TypeSpecifier::Type::ENUM:
+                                stream << "sw a" << iidx << "," << var.offset + memberOffset << "(s0)" << std::endl;
+                                ++iidx;
+                                break;
+                            case TypeSpecifier::Type::CHAR:
+                                stream << "sb a" << iidx << "," << var.offset + memberOffset << "(s0)" << std::endl;
+                                ++iidx;
+                                break;
+                            case TypeSpecifier::Type::FLOAT:
+                            case TypeSpecifier::Type::DOUBLE:
+                                stream << (member.second == TypeSpecifier::FLOAT ? "fsw " : "fsd ")
+                                       << "fa" << fidx << "," << var.offset + memberOffset << "(s0)" << std::endl;
+                                ++fidx;
+                                break;
+                            case TypeSpecifier::Type::STRUCT: // todo Handle nested structs
+                            case TypeSpecifier::Type::VOID:
+                                throw std::runtime_error(
+                                        "ParameterList::EmitRISC() called on an unsupported struct member type");
+                        }
+                        memberOffset += member.second.GetTypeSize();
+                    }
+                    break;
+                }
                 case TypeSpecifier::VOID:
                 case TypeSpecifier::ARRAY:
                     throw std::runtime_error(

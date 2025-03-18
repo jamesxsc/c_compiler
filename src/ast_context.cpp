@@ -24,6 +24,16 @@ namespace ast {
                     return IntegerTemporaryAtIndex(static_cast<int>(i));
                 }
             }
+//
+//            // Spill a register to memory
+//            static int lastSpilled = 0; // Heuristically try to avoid spilling a register that will be used soon
+//            // maybe last allocated - 1 would be better
+//            int spill = lastSpilled + 1;
+//            lastSpilled = spill;
+//
+//
+//            // TODO free and restore
+//            return IntegerTemporaryAtIndex(spill);
         }
         throw std::runtime_error("Out of temporaries");
     }
