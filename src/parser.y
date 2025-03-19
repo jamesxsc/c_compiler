@@ -467,7 +467,7 @@ declarator
 	: pointer direct_declarator {
 	    // Function returning pointer isn't a pointer declarator
 	    if ($2->IsFunction()) { $2->SetPointerReturn($1); $$ = $2; }
-        else $$ = new PointerDeclarator(DeclaratorPtr($2), $1);
+        else { $2->SetPointer($1); $$ = $2; }
 	}
 	| direct_declarator { $$ = $1; $$->Indirect(); }
 	;

@@ -6,10 +6,14 @@ namespace ast {
         if (context.EmitLHS()) { // Return address
             // Get struct base address
             struct_->EmitRISC(stream, context, destReg);
-            // todo ispointer... is that handled below? no not really it seems - need to handle properly, see below branch too
 
-            // Get member offset // todo if we get time, optimise this
+            // Get member offset // todo if we get time, optimise this and combine first part of these branches
             TypeSpecifier structType = struct_->GetType(context);
+            if (pointerAccess_) {
+                assert(structType == TypeSpecifier::POINTER && "Pointer access on non-pointer");
+                structType = structType.GetPointeeType();
+                stream << "lw " << destReg << ",0(" << destReg << ")" << std::endl; // Load address stored in ptr
+            }
             int offset = 0;
             for (const auto &member: structType.GetStructMembers()) {
                 if (member.first == member_) {
@@ -26,6 +30,11 @@ namespace ast {
             context.SetEmitLHS(restore);
             // Get member offset // todo if we get time, optimise this
             TypeSpecifier structType = struct_->GetType(context);
+            if (pointerAccess_) {
+                assert(structType == TypeSpecifier::POINTER && "Pointer access on non-pointer");
+                structType = structType.GetPointeeType();
+                stream << "lw " << destReg << ",0(" << destReg << ")" << std::endl; // Load address stored in ptr
+            }
             int offset = 0;
             for (const auto &member: structType.GetStructMembers()) {
                 if (member.first == member_) {
@@ -38,6 +47,7 @@ namespace ast {
             switch (memberType) {
                 case TypeSpecifier::UNSIGNED:
                 case TypeSpecifier::INT:
+                case TypeSpecifier::POINTER:
                 case TypeSpecifier::ENUM:
                     stream << "lw " << destReg << ",0(" << addressReg << ")" << std::endl;
                     break;
@@ -50,7 +60,6 @@ namespace ast {
                 case TypeSpecifier::CHAR:
                     stream << "lbu " << destReg << ",0(" << addressReg << ")" << std::endl;
                     break;
-                case TypeSpecifier::POINTER:
                 case TypeSpecifier::VOID:
                 case TypeSpecifier::STRUCT:
                 case TypeSpecifier::ARRAY:
@@ -72,7 +81,8 @@ namespace ast {
 
     TypeSpecifier StructMemberAccessExpression::GetType(Context &context) const {
         TypeSpecifier structType = struct_->GetType(context);
-        if (structType == TypeSpecifier::POINTER) {
+        if (pointerAccess_) {
+            assert(structType == TypeSpecifier::POINTER && "Pointer access on non-pointer");
             structType = structType.GetPointeeType();
         }
 

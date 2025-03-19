@@ -31,7 +31,7 @@ namespace ast {
     }
 
     bool Declarator::IsPointer() const {
-        return false;
+        return isPointer_;
     }
 
     bool Declarator::IsFunction() const {
@@ -54,6 +54,11 @@ namespace ast {
     Variable Declarator::BuildArray(TypeSpecifier type, Context &context) const {
         std::cerr << "Error: Declarator is not an array" << std::endl;
         exit(1);
+    }
+
+    void Declarator::SetPointer(int indirectionLevel) {
+        isPointer_ = true;
+        indirectionLevel_ = indirectionLevel;
     }
 
 }

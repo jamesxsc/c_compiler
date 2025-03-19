@@ -89,7 +89,7 @@
 * Test using "unsigned int" type
 * Tests for integral promotion
 * ~~Test for sizeof (char + char) should be 4 because of promotion~~
-* Test for ++ and = x + 1 on arrays (like int a[] not a[index]) and pointers (similar to pointer/arithmetic)
+* Test for ++ and = x + 1 on arrays (like int a[] not a[index]) and pointers (similar to pointer/arithmetic) and member incr on struct
 * ~~Test for chained assignment~~
 * Check if we need nops anywhere/load delay slots
 * ~~Ternary operator - Eliott~~ Mar 16

@@ -25,8 +25,10 @@ namespace ast {
         int maxAlignment = 0;
         int totalSize = 0;
         for (const auto &declaration: declarations_) {
-            TypeSpecifier type = declaration->GetType(context);
             for (const auto &declarator: declaration->GetDeclarators()) {
+                TypeSpecifier type = declaration->GetType(context);
+                if (declarator->IsPointer())
+                    type = {TypeSpecifier::POINTER, type};
                 int alignment = type.GetAlignment();
                 if (totalSize % alignment != 0) {
                     for (int i = 0; i < alignment - (totalSize % alignment); i++)
@@ -34,7 +36,7 @@ namespace ast {
                     totalSize += alignment - (totalSize % alignment);
                     // # will never be a valid identifier, char is a bit of a hack
                 }
-                members.emplace_back(declarator->GetIdentifier(), declaration->GetType(context));
+                members.emplace_back(declarator->GetIdentifier(), type);
                 maxAlignment = std::max(maxAlignment, alignment);
                 totalSize += alignment;
             }
