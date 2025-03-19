@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="c_compiler" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="-S compiler_tests/float/neg_relational_float.c -o bin/lit.debug.s" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" WORKING_DIR="file://$PROJECT_DIR$" PASS_PARENT_ENVS_2="true" PROJECT_NAME="c_compiler" TARGET_NAME="c_compiler" CONFIG_NAME="Debug-Docker Valgrind" RUN_TARGET_PROJECT_NAME="c_compiler" RUN_TARGET_NAME="c_compiler">
+  <configuration default="false" name="c_compiler" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="-S compiler_tests/array/local_struct_array_init.c -o bin/lit.debug.s" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" WORKING_DIR="file://$PROJECT_DIR$" PASS_PARENT_ENVS_2="true" PROJECT_NAME="c_compiler" TARGET_NAME="c_compiler" CONFIG_NAME="Debug-Docker Valgrind" RUN_TARGET_PROJECT_NAME="c_compiler" RUN_TARGET_NAME="c_compiler">
     <method v="2">
       <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
     </method>

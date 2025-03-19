@@ -7,7 +7,7 @@ namespace ast {
 
     void ArrayIndexExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         if (context.EmitLHS()) {
-            Register indexReg = context.AllocateTemporary();
+            Register indexReg = context.AllocateTemporary(stream);
             bool restore = context.SetEmitLHS(false); // Emit/evaluate this normally
             index_->EmitRISC(stream, context, indexReg);
             context.SetEmitLHS(restore);
@@ -42,7 +42,7 @@ namespace ast {
                     stream << "add " << destReg << "," << destReg << "," << indexReg << std::endl;
                 }
             }
-            context.FreeTemporary(indexReg);
+            context.FreeTemporary(indexReg, stream);
             return;
         }
 
@@ -54,14 +54,14 @@ namespace ast {
                 bool useFloat = array.GetArrayType() == TypeSpecifier::FLOAT || array.GetArrayType() == TypeSpecifier::DOUBLE;
                 assert(useFloat == IsFloatRegister(destReg) &&
                        "ArrayIndexExpression::EmitRISC() destReg array type mismatch");
-                Register indexReg = context.AllocateTemporary();
+                Register indexReg = context.AllocateTemporary(stream);
                 index_->EmitRISC(stream, context, indexReg);
                 Utils::EmitIndexToAddressOffset(stream, indexReg, context, array.GetArrayType());
-                Register addressTemp = useFloat ? context.AllocateTemporary() : destReg;
+                Register addressTemp = useFloat ? context.AllocateTemporary(stream) : destReg;
                 stream << "lui " << addressTemp << ", %hi(" << identifier << ")" << std::endl;
                 stream << "addi " << addressTemp << "," << addressTemp << ",%lo(" << identifier << ")" << std::endl;
                 stream << "add " << addressTemp << "," << addressTemp << "," << indexReg << std::endl;
-                context.FreeTemporary(indexReg);
+                context.FreeTemporary(indexReg, stream);
                 switch (array.GetArrayType()) {
                     case TypeSpecifier::UNSIGNED:
                     case TypeSpecifier::INT:
@@ -85,7 +85,7 @@ namespace ast {
                                 "ArrayIndexExpression::EmitRISC() called on an unsupported array type");
                 }
                 if (useFloat)
-                    context.FreeTemporary(addressTemp);
+                    context.FreeTemporary(addressTemp, stream);
             } else {
                 const Variable &variable = context.CurrentFrame().bindings.Get(identifier);
                 // Check it is an array
@@ -94,13 +94,13 @@ namespace ast {
                 bool useFloat = arrayType == TypeSpecifier::FLOAT || arrayType == TypeSpecifier::DOUBLE;
                 assert(useFloat == IsFloatRegister(destReg) &&
                        "ArrayIndexExpression::EmitRISC() destReg array type mismatch");
-                Register indexReg = context.AllocateTemporary();
+                Register indexReg = context.AllocateTemporary(stream);
                 index_->EmitRISC(stream, context, indexReg);
                 Utils::EmitIndexToAddressOffset(stream, indexReg, context, arrayType);
-                Register addressTemp = useFloat ? context.AllocateTemporary() : destReg;
+                Register addressTemp = useFloat ? context.AllocateTemporary(stream) : destReg;
                 stream << "addi " << addressTemp << ",s0," << variable.offset << std::endl;
                 stream << "add " << addressTemp << "," << addressTemp << "," << indexReg << std::endl;
-                context.FreeTemporary(indexReg);
+                context.FreeTemporary(indexReg, stream);
                 switch (arrayType) {
                     case TypeSpecifier::UNSIGNED:
                     case TypeSpecifier::INT:
@@ -125,7 +125,7 @@ namespace ast {
                         // todo handle these
                 }
                 if (useFloat)
-                    context.FreeTemporary(addressTemp);
+                    context.FreeTemporary(addressTemp, stream);
             }
         } else { // Ptr syntax
             if (context.IsGlobal(identifier)) {
@@ -133,10 +133,10 @@ namespace ast {
                 assert(type == TypeSpecifier::POINTER &&
                        "ArrayIndexExpression::EmitRISC() called on a non-pointer/array");
                 bool useFloat = type.GetPointeeType() == TypeSpecifier::FLOAT || type.GetPointeeType() == TypeSpecifier::DOUBLE;
-                Register indexReg = context.AllocateTemporary();
+                Register indexReg = context.AllocateTemporary(stream);
                 index_->EmitRISC(stream, context, indexReg);
                 Utils::EmitIndexToAddressOffset(stream, indexReg, context, type.GetPointeeType());
-                Register addressTemp = useFloat ? context.AllocateTemporary() : destReg;
+                Register addressTemp = useFloat ? context.AllocateTemporary(stream) : destReg;
                 stream << "lui " << addressTemp << ", %hi(" << identifier << ")" << std::endl;
                 stream << "addi " << addressTemp << "," << addressTemp << ",%lo(" << identifier << ")" << std::endl;
                 stream << "add " << addressTemp << "," << addressTemp << "," << indexReg << std::endl;
@@ -163,18 +163,18 @@ namespace ast {
                                 "ArrayIndexExpression::EmitRISC() called on an unsupported array type");
                         // todo handle these
                 }
-                context.FreeTemporary(indexReg);
+                context.FreeTemporary(indexReg, stream);
                 if (useFloat)
-                    context.FreeTemporary(addressTemp);
+                    context.FreeTemporary(addressTemp, stream);
             } else {
                 Variable variable = context.CurrentFrame().bindings.Get(identifier);
                 assert(variable.type == TypeSpecifier::POINTER &&
                        "ArrayIndexExpression::EmitRISC() called on a non-pointer/array");
                 bool useFloat = variable.type.GetPointeeType() == TypeSpecifier::FLOAT || variable.type.GetPointeeType() == TypeSpecifier::DOUBLE;
-                Register indexReg = context.AllocateTemporary();
+                Register indexReg = context.AllocateTemporary(stream);
                 index_->EmitRISC(stream, context, indexReg);
                 Utils::EmitIndexToAddressOffset(stream, indexReg, context, variable.type.GetPointeeType());
-                Register addressTemp = useFloat ? context.AllocateTemporary() : destReg;
+                Register addressTemp = useFloat ? context.AllocateTemporary(stream) : destReg;
                 stream << "lw " << addressTemp << "," << variable.offset << "(s0)" << std::endl;
                 stream << "add " << addressTemp << "," << addressTemp << "," << indexReg << std::endl;
                 switch (GetType(context)) { // Already unwrapped
@@ -200,9 +200,9 @@ namespace ast {
                                 "ArrayIndexExpression::EmitRISC() called on an unsupported array type");
                         // todo handle these
                 }
-                context.FreeTemporary(indexReg);
+                context.FreeTemporary(indexReg, stream);
                 if (useFloat)
-                    context.FreeTemporary(addressTemp);
+                    context.FreeTemporary(addressTemp, stream);
             }
         }
     }

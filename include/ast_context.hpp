@@ -41,11 +41,11 @@ namespace ast {
 
         ~Context();
 
-        Register AllocateTemporary(bool forFloat = false);
+        Register AllocateTemporary(std::ostream &stream, bool forFloat = false);
 
         Register AllocatePersistent(bool forFloat = false);
 
-        void FreeTemporary(Register reg);
+        void FreeTemporary(Register reg, std::ostream &stream);
 
         void FreePersistent(Register reg);
 
@@ -102,6 +102,9 @@ namespace ast {
         std::bitset<12> integerPersistent_; // using s0... notation for contiguous numbering
         std::bitset<12> floatTemporaries_; // ft0 ...
         std::bitset<12> floatPersistent_; // fs0 ...
+
+        std::bitset<7> spilledIntegerTemporaries_;
+        std::bitset<12> spilledFloatTemporaries_;
 
         std::vector<StackFrame> stack_;
         // Globals are not stored on the stack so do not require the bindings class/ offsets

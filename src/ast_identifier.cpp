@@ -36,11 +36,11 @@ namespace ast {
                 case TypeSpecifier::FLOAT: {
                     assert(IsFloatRegister(destReg) &&
                            "Identifier::EmitRISC attempting to load float into integer register");
-                    Register tempIntReg = context.AllocateTemporary();
+                    Register tempIntReg = context.AllocateTemporary(stream);
                     stream << "lui " << tempIntReg << ",%hi(" << identifier_ << ")" << std::endl;
                     stream << (type == TypeSpecifier::FLOAT ? "flw " : "fld ") << destReg << ",%lo(" << identifier_
                            << ")(" << tempIntReg << ")" << std::endl;
-                    context.FreeTemporary(tempIntReg);
+                    context.FreeTemporary(tempIntReg, stream);
                     break;
                 }
                 case TypeSpecifier::POINTER:
@@ -100,21 +100,21 @@ namespace ast {
                     if (type.UseStack()) {
                         // Get hidden pointer
                         int address = context.CurrentFrame().bindings.Get("#hiddenpointer").offset;
-                        Register addressReg = context.AllocateTemporary();
+                        Register addressReg = context.AllocateTemporary(stream);
                         stream << "lw " << addressReg << "," << address << "(s0)" << std::endl;
 
                         // Store members, don't care about types, keep padding
                         int size = type.GetTypeSize();
-                        Register tempReg = context.AllocateTemporary();
+                        Register tempReg = context.AllocateTemporary(stream);
                         for (int i = 0; i < size; i += 4) {
                             stream << "lw " << tempReg << "," << offset + i << "(s0)" << std::endl;
                             stream << "sw " << tempReg << "," << i << "(" << addressReg << ")" << std::endl;
                         }
-                        context.FreeTemporary(tempReg);
+                        context.FreeTemporary(tempReg, stream);
 
                         // Return address
                         stream << "mv a0," << addressReg << std::endl;
-                        context.FreeTemporary(addressReg);
+                        context.FreeTemporary(addressReg, stream);
                     } else {
                         Register floatReg = Register::fa0;
                         Register intReg = Register::a0;

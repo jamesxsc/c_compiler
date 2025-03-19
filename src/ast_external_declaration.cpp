@@ -53,7 +53,53 @@ namespace ast {
                                     stream << ".double " << initializer->Evaluate<double>(context) << std::endl;
                                     break;
                                 case TypeSpecifier::VOID:
-                                case TypeSpecifier::STRUCT: // todo arrays of structs
+                                case TypeSpecifier::STRUCT: {
+                                    assert(initializer->IsList() && "Struct initializer must be a list");
+                                    const auto &structInitializerList = static_cast<const InitializerList &>(*initializer); // NOLINT(*-pro-type-static-cast-downcast)
+                                    auto it = structInitializerList.begin();
+                                    for (const auto &member: type.GetStructMembers()) {
+                                        if (member.first == "#padding") {
+                                            stream << ".zero " << member.second.GetTypeSize() << std::endl;
+                                            continue;
+                                        }
+
+                                        // Incomplete init list
+                                        if (it == initializerList.end()) {
+                                            stream << ".zero " << member.second.GetTypeSize() << std::endl;
+                                            ++it;
+                                            continue;
+                                        }
+
+                                        TypeSpecifier memberType = member.second;
+                                        switch (memberType) {
+                                            case TypeSpecifier::INT:
+                                            case TypeSpecifier::UNSIGNED:
+                                            case TypeSpecifier::ENUM:
+                                                stream << ".word " << (*it)->Evaluate<int>(context) << std::endl;
+                                                break;
+                                            case TypeSpecifier::POINTER:
+                                                stream << ".word " << (*it)->GetGlobalIdentifier() << std::endl;
+                                                break;
+                                            case TypeSpecifier::CHAR:
+                                                stream << ".byte " << (*it)->Evaluate<int>(context) << std::endl;
+                                                break;
+                                            case TypeSpecifier::FLOAT:
+                                                stream << ".float " << (*it)->Evaluate<double>(context) << std::endl;
+                                                break;
+                                            case TypeSpecifier::DOUBLE:
+                                                stream << ".double " << (*it)->Evaluate<double>(context) << std::endl;
+                                                break;
+                                            case TypeSpecifier::STRUCT:
+                                            case TypeSpecifier::VOID:
+                                                throw std::runtime_error(
+                                                        "ExternalDeclaration::EmitRISC() called on an unsupported struct member type");
+                                            case TypeSpecifier::ARRAY: // todo array in struct
+                                                break;
+                                        }
+                                        ++it;
+                                    }
+                                    break;
+                                }
                                 case TypeSpecifier::ARRAY: // todo multidim
                                     throw std::runtime_error(
                                             "ExternalDeclaration::EmitRISC() called on an unsupported array type");
@@ -96,13 +142,22 @@ namespace ast {
                                     }
                                     // todo ideally change the align directive
 
+                                    // Incomplete init list
+                                    if (it == initializerList.end()) {
+                                        stream << ".zero " << member.second.GetTypeSize() << std::endl;
+                                        ++it;
+                                        continue;
+                                    }
+
                                     TypeSpecifier memberType = member.second;
                                     switch (memberType) {
                                         case TypeSpecifier::Type::INT:
                                         case TypeSpecifier::Type::UNSIGNED:
-                                        case TypeSpecifier::Type::POINTER:
                                         case TypeSpecifier::Type::ENUM:
                                             stream << ".word " << (*it)->Evaluate<int>(context) << std::endl;
+                                            break;
+                                        case TypeSpecifier::Type::POINTER:
+                                            stream << ".word " << (*it)->GetGlobalIdentifier() << std::endl;
                                             break;
                                         case TypeSpecifier::Type::CHAR:
                                             stream << ".byte " << (*it)->Evaluate<int>(context) << std::endl;
@@ -119,7 +174,7 @@ namespace ast {
                                             throw std::runtime_error(
                                                     "ExternalDeclaration::EmitRISC() called on an unsupported global struct member type");
                                     }
-                                    it++;
+                                    ++it;
                                 }
                                 break;
                             }

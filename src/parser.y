@@ -541,8 +541,8 @@ initializer
 	;
 
 initializer_list
-	: initializer { $$ = $1; } // This is different to other lists to avoid creating single element lists (so IsList is useful)
-	| initializer_list ',' initializer { if ($1->IsList()) { $1->AddInitializer(InitializerPtr($3)); $$ = $1; } else { $$ = new InitializerList(InitializerPtr($1), InitializerPtr($3)); } }
+	: initializer { $$ = new InitializerList(InitializerPtr($1)); }
+	| initializer_list ',' initializer { $1->AddInitializer(InitializerPtr($3)); $$ = $1; }
 	;
 
 // Do these need to be cast to StatementPtrs or are derived ptrs ok?

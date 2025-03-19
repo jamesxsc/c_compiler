@@ -10,11 +10,11 @@ namespace ast {
         std::string labelElse = context.MakeLabel("else");
         std::string labelEnd = context.MakeLabel("endif");
 
-        Register condReg = context.AllocateTemporary();
+        Register condReg = context.AllocateTemporary(stream);
         Utils::EmitComparison(stream, context, condReg, *condition_);
         stream << "beq " << condReg << ", zero, " << labelElse << std::endl;
 
-        context.FreeTemporary(condReg);
+        context.FreeTemporary(condReg, stream);
 
         // Never null
         if (inSwitchScope_)
@@ -66,7 +66,7 @@ namespace ast {
             // Emit comparisons and jumps
             // This is actually more efficient than GCC with -O0
             // Do not put them in instance or nested switch will break
-            Register condReg = context.AllocateTemporary();
+            Register condReg = context.AllocateTemporary(stream);
             condition_->EmitRISC(stream, context, condReg);
             std::string defaultLabel{endLabel};
             for (auto &pair: body_->GetSwitchLabelCasePairs()) {
@@ -75,15 +75,15 @@ namespace ast {
                     continue;
                 }
                 std::string label = pair.first;
-                Register constexprReg = context.AllocateTemporary();
+                Register constexprReg = context.AllocateTemporary(stream);
                 stream << "li " << constexprReg << "," << *pair.second << std::endl;
                 stream << "beq " << condReg << "," << constexprReg << "," << label << std::endl;
-                context.FreeTemporary(constexprReg);
+                context.FreeTemporary(constexprReg, stream);
             }
             // Default or end
             stream << "j " << defaultLabel << std::endl;
 
-            context.FreeTemporary(condReg);
+            context.FreeTemporary(condReg, stream);
 
             if (bodyBuffer.rdbuf()->in_avail() > 0)
                 stream << bodyBuffer.rdbuf();

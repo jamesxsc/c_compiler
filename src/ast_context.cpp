@@ -8,7 +8,7 @@ namespace ast {
     static int temporaries = 0;
 
     // We don't free temporaries automatically between functions - we assume there are no leaked register allocs
-    Register Context::AllocateTemporary(bool forFloat) {
+    Register Context::AllocateTemporary(std::ostream &stream, bool forFloat) {
         ++temporaries;
         if (forFloat) {
             for (size_t i = 0; i < floatTemporaries_.size(); i++) {
@@ -24,33 +24,50 @@ namespace ast {
                     return IntegerTemporaryAtIndex(static_cast<int>(i));
                 }
             }
-//
-//            // Spill a register to memory
-//            static int lastSpilled = 0; // Heuristically try to avoid spilling a register that will be used soon
-//            // maybe last allocated - 1 would be better
-//            int spill = lastSpilled + 1;
-//            lastSpilled = spill;
-//
-//
-//            // TODO free and restore
-//            return IntegerTemporaryAtIndex(spill);
+
+            // todo optimise reg use anyway in binary emission
+            // Spill a register to memory
+            // This is very much a heuristic approach that just slightly increases the chance of being successful
+            static int lastSpilled = 0;
+            int spill = (lastSpilled + 1) % 6;
+            spilledIntegerTemporaries_.set(spill);
+            Variable var = CurrentFrame().bindings.InsertOrOverwrite("#spilled_int_" + std::to_string(spill), Variable{
+                .size = 4,
+                .type = TypeSpecifier::INT,
+            });
+            stream << "sw " << IntegerTemporaryAtIndex(spill) << "," << var.offset << "(sp)" << std::endl;
+            lastSpilled = spill;
+
+            return IntegerTemporaryAtIndex(spill);
         }
         throw std::runtime_error("Out of temporaries");
     }
 
-    void Context::FreeTemporary(Register reg) {
+    void Context::FreeTemporary(Register reg, std::ostream &stream) {
         if (IsFloatRegister(reg)) {
             int index = IndexOfFloatTemporary(reg);
             assert(index != -1 && "Attempted to free a non-temporary register");
             if (!floatTemporaries_.test(index))
                 std::cerr << "Warning: freeing already free temporary" << std::endl;
-            floatTemporaries_.reset(index);
+            if (spilledFloatTemporaries_.test(index)) {
+                // todo restore
+            } else {
+                floatTemporaries_.reset(index);
+            }
         } else {
             int index = IndexOfIntegerTemporary(reg);
             assert(index != -1 && "Attempted to free a non-temporary register");
             if (!integerTemporaries_.test(index))
                 std::cerr << "Warning: freeing already free temporary" << std::endl;
-            integerTemporaries_.reset(index);
+            if (spilledIntegerTemporaries_.test(index)) {
+                assert(CurrentFrame().bindings.Contains("#spilled_int_" + std::to_string(index)) && "Spilled register not found in bindings");
+                Variable var = CurrentFrame().bindings.Get("#spilled_int_" + std::to_string(index));
+                stream << "lw " << IntegerTemporaryAtIndex(index) << "," << var.offset << "(sp)" << std::endl;
+                spilledIntegerTemporaries_.reset(index);
+                // Keep it set as a used temporary since it has been restored to original value
+            } else {
+                integerTemporaries_.reset(index);
+            }
         }
         --temporaries;
     }

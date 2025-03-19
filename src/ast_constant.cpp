@@ -99,11 +99,11 @@ namespace ast {
 
     void FloatConstant::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         std::string memoryLabel = context.MakeLabel(".LC");
-        Register tempIntReg = context.AllocateTemporary();
+        Register tempIntReg = context.AllocateTemporary(stream);
         stream << "lui " << tempIntReg << ",%hi(" << memoryLabel << ")" << std::endl;
         stream << (doublePrecision_ ? "fld " : "flw ")
                << destReg << ",%lo(" << memoryLabel << ")(" << tempIntReg << ")" << std::endl;
-        context.FreeTemporary(tempIntReg);
+        context.FreeTemporary(tempIntReg, stream);
 
         // Defer memory to the end
         context.DeferredRISC() << ".section .rodata" << std::endl;

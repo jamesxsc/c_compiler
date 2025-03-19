@@ -21,7 +21,8 @@ namespace ast {
         bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
         bool rightStored = (op_ != AssignmentOperator::Assign) &&
                            unary_->ContainsFunctionCall(); // I can't see any case where this is true
-        Register result = rightStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(useFloat);
+        Register result = rightStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(
+                stream, useFloat);
         switch (op_) {
             case AssignmentOperator::ConditionalPromote:
                 break; // Handled above
@@ -70,7 +71,7 @@ namespace ast {
         // Common: store the result
 //        if (unary_->IsPointerDereference()) { // Type is already unfolded, moved to top as this won't always have an identifier
         // I think this, is ok, although maybe we call unary gettype?
-        Register addrReg = context.AllocateTemporary();
+        Register addrReg = context.AllocateTemporary(stream);
         bool restore = context.SetEmitLHS(true); // Get raw address
         unary_->EmitRISC(stream, context, addrReg);
         context.SetEmitLHS(restore);
@@ -97,13 +98,13 @@ namespace ast {
             case TypeSpecifier::ARRAY:
                 throw std::runtime_error("Unsupported type for assignment");
         }
-        context.FreeTemporary(addrReg);
+        context.FreeTemporary(addrReg, stream);
 
         // All "return" the result in destReg (if it's used)
         if (destReg != Register::zero) {
             stream << "mv " << destReg << "," << result << std::endl;
         }
-        context.FreeTemporary(result);
+        context.FreeTemporary(result, stream);
     }
 
     void AssignmentExpression::Print(std::ostream &stream) const {

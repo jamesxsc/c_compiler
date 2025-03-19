@@ -11,14 +11,14 @@ namespace ast {
             std::string label2 {context.MakeLabel(".L_OR")};
             std::string label3 {context.MakeLabel(".L_OR")};
             std::string label4 {context.MakeLabel(".L_OR")};
-            Register leftReg = context.AllocateTemporary();
+            Register leftReg = context.AllocateTemporary(stream);
             Utils::EmitComparison(stream, context, leftReg, *left_);
             stream << "bne " << leftReg << ",zero," << label2 << std::endl;
-            context.FreeTemporary(leftReg);
-            Register rightReg = context.AllocateTemporary();
+            context.FreeTemporary(leftReg, stream);
+            Register rightReg = context.AllocateTemporary(stream);
             Utils::EmitComparison(stream, context, rightReg, *right_);
             stream << "beq " << rightReg << ",zero," << label3 << std::endl;
-            context.FreeTemporary(rightReg);
+            context.FreeTemporary(rightReg, stream);
             stream << label2 << ":" << std::endl;
             stream << "li " << destReg << ",1" << std::endl;
             stream << "j " << label4 << std::endl;

@@ -12,12 +12,12 @@ namespace ast {
             return;
         }
 
-        Register condReg = context.AllocateTemporary();
+        Register condReg = context.AllocateTemporary(stream);
         Utils::EmitComparison(stream, context, condReg, *left_);
         std::string falseLabel = context.MakeLabel("ternary_false");
         std::string joinLabel = context.MakeLabel("ternary_join");
         stream << "beqz " << condReg << "," << falseLabel << std::endl;
-        context.FreeTemporary(condReg);
+        context.FreeTemporary(condReg, stream);
         middle_->EmitRISC(stream, context, destReg);
         stream << "j " << joinLabel << std::endl;
         stream << falseLabel << ":" << std::endl;

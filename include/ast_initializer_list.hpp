@@ -6,9 +6,8 @@ namespace ast {
 
     class InitializerList: public Initializer {
     public:
-        InitializerList(InitializerPtr first, InitializerPtr second): Initializer(nullptr), initializers_() {
+        explicit InitializerList(InitializerPtr first): Initializer(nullptr), initializers_() {
             initializers_.push_back(std::move(first));
-            initializers_.push_back(std::move(second));
         }
 
         ~InitializerList() override;

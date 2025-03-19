@@ -4,7 +4,7 @@ namespace ast {
 
     void StructMemberAccessExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         // Get struct base address
-        Register addressReg = context.AllocateTemporary();
+        Register addressReg = context.AllocateTemporary(stream);
         bool restore = context.SetEmitLHS(true);
         struct_->EmitRISC(stream, context, addressReg);
         context.SetEmitLHS(restore);
@@ -21,7 +21,7 @@ namespace ast {
 
         if (context.EmitLHS()) { // Just return address
             stream << "mv " << destReg << "," << addressReg << std::endl;
-            context.FreeTemporary(addressReg);
+            context.FreeTemporary(addressReg, stream);
             return;
         }
 
@@ -48,7 +48,7 @@ namespace ast {
                 throw std::runtime_error(
                         "ArrayIndexExpression::EmitRISC() called on an unsupported array type");
         }
-        context.FreeTemporary(addressReg);
+        context.FreeTemporary(addressReg, stream);
     }
 
     void StructMemberAccessExpression::Print(std::ostream &stream) const {

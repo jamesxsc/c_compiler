@@ -18,9 +18,8 @@ namespace ast {
             // We won't ever need to "return" to destReg so overwrite it for temporary use
             // Bindings and init
             if (initDeclarator->HasInitializer()) {
-                bool useFloat = type == TypeSpecifier::FLOAT || type ==
-                                                                TypeSpecifier::DOUBLE; // This should work, type is element type in array case here
-                Register tempReg = context.AllocateTemporary(useFloat);
+                bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
+                Register tempReg = context.AllocateTemporary(stream, useFloat);
                 if (initDeclarator->IsArray()) {
                     assert(initDeclarator->GetInitializer().IsList() && "Array initializer must be a list");
                     Variable array = context.CurrentFrame().bindings.InsertOrOverwrite(identifier,
@@ -52,7 +51,66 @@ namespace ast {
                                        << std::endl;
                                 break;
                             case TypeSpecifier::STRUCT: {
-                                // todo arrays of structs
+                                assert(initializer->IsList() && "Struct initializer must be a list");
+                                const auto &structInitializerList = static_cast<const InitializerList &>(*initializer); // NOLINT(*-pro-type-static-cast-downcast)
+                                auto it = structInitializerList.begin();
+                                int memberOffset = 0;
+                                for (const auto &member: type.GetStructMembers()) {
+                                    if (member.first == "#padding") {
+                                        stream << "li " << tempReg << ",0" << std::endl;
+                                        stream << "sb " << tempReg << ","
+                                               << array.offset + idx * type.GetTypeSize() + memberOffset << "(s0)"
+                                               << std::endl;
+                                        memberOffset += member.second.GetTypeSize();
+                                        continue;
+                                    }
+
+                                    // Incomplete init list
+                                    if (it == initializerList.end()) {
+                                        stream << ".zero " << member.second.GetTypeSize() << std::endl;
+                                        memberOffset += member.second.GetTypeSize();
+                                        ++it;
+                                        continue;
+                                    }
+
+                                    TypeSpecifier memberType = member.second;
+                                    switch (memberType) {
+                                        case TypeSpecifier::Type::INT:
+                                        case TypeSpecifier::Type::UNSIGNED:
+                                        case TypeSpecifier::Type::POINTER:
+                                        case TypeSpecifier::Type::ENUM:
+                                            (*it)->EmitRISC(stream, context, tempReg);
+                                            stream << "sw " << tempReg << ","
+                                                   << array.offset + idx * type.GetTypeSize() + memberOffset << "(s0)"
+                                                   << std::endl;
+                                            break;
+                                        case TypeSpecifier::Type::CHAR:
+                                            (*it)->EmitRISC(stream, context, tempReg);
+                                            stream << "sb " << tempReg << ","
+                                                   << array.offset + idx * type.GetTypeSize() + memberOffset << "(s0)"
+                                                   << std::endl;
+                                            break;
+                                        case TypeSpecifier::Type::FLOAT:
+                                        case TypeSpecifier::Type::DOUBLE: {
+                                            Register tempFloatReg = context.AllocateTemporary(stream, true);
+                                            (*it)->EmitRISC(stream, context, tempFloatReg);
+                                            stream << (memberType == TypeSpecifier::Type::FLOAT ? "fsw " : "fsd ")
+                                                   << tempFloatReg << ","
+                                                   << array.offset + idx * type.GetTypeSize() + memberOffset << "(s0)"
+                                                   << std::endl;
+                                            context.FreeTemporary(tempFloatReg, stream);
+                                            break;
+                                        }
+                                        case TypeSpecifier::Type::ARRAY:
+                                        case TypeSpecifier::Type::STRUCT: // todo flatten nested structs - or maybe not flatten here
+                                        case TypeSpecifier::Type::VOID:
+                                            throw std::runtime_error(
+                                                    "Declaration::EmitRISC() called on an unsupported struct member type");
+                                    }
+                                    ++it;
+                                    memberOffset += memberType.GetTypeSize();
+                                }
+                                break;
                             }
                             case TypeSpecifier::ARRAY: // todo multidim
                             case TypeSpecifier::VOID:
@@ -88,14 +146,23 @@ namespace ast {
                             break;
                         case TypeSpecifier::STRUCT: {
                             assert(initDeclarator->GetInitializer().IsList() && "Struct initializer must be a list");
-                            int index = 0;
+                            int memberOffset = 0;
                             const auto &initializerList = static_cast<const InitializerList &>(initDeclarator->GetInitializer()); // NOLINT(*-pro-type-static-cast-downcast)
                             auto it = initializerList.begin();
                             for (const auto &member: type.GetStructMembers()) {
                                 if (member.first == "#padding") {
                                     stream << "li " << tempReg << ",0" << std::endl;
-                                    stream << "sb " << tempReg << "," << var.offset + index << "(s0)" << std::endl;
-                                    index += member.second.GetTypeSize();
+                                    stream << "sb " << tempReg << "," << var.offset + memberOffset << "(s0)"
+                                           << std::endl;
+                                    memberOffset += member.second.GetTypeSize();
+                                    continue;
+                                }
+
+                                // Incomplete init list
+                                if (it == initializerList.end()) {
+                                    stream << ".zero " << member.second.GetTypeSize() << std::endl;
+                                    memberOffset += member.second.GetTypeSize();
+                                    ++it;
                                     continue;
                                 }
 
@@ -106,19 +173,22 @@ namespace ast {
                                     case TypeSpecifier::Type::POINTER:
                                     case TypeSpecifier::Type::ENUM:
                                         (*it)->EmitRISC(stream, context, tempReg);
-                                        stream << "sw " << tempReg << "," << var.offset + index << "(s0)" << std::endl;
+                                        stream << "sw " << tempReg << "," << var.offset + memberOffset << "(s0)"
+                                               << std::endl;
                                         break;
                                     case TypeSpecifier::Type::CHAR:
                                         (*it)->EmitRISC(stream, context, tempReg);
-                                        stream << "sb " << tempReg << "," << var.offset + index << "(s0)" << std::endl;
+                                        stream << "sb " << tempReg << "," << var.offset + memberOffset << "(s0)"
+                                               << std::endl;
                                         break;
                                     case TypeSpecifier::Type::FLOAT:
                                     case TypeSpecifier::Type::DOUBLE: {
-                                        Register tempFloatReg = context.AllocateTemporary(true);
+                                        Register tempFloatReg = context.AllocateTemporary(stream, true);
                                         (*it)->EmitRISC(stream, context, tempFloatReg);
                                         stream << (memberType == TypeSpecifier::Type::FLOAT ? "fsw " : "fsd ")
-                                               << tempFloatReg << "," << var.offset + index << "(s0)" << std::endl;
-                                        context.FreeTemporary(tempFloatReg);
+                                               << tempFloatReg << "," << var.offset + memberOffset << "(s0)"
+                                               << std::endl;
+                                        context.FreeTemporary(tempFloatReg, stream);
                                         break;
                                     }
                                     case TypeSpecifier::Type::ARRAY:
@@ -128,7 +198,7 @@ namespace ast {
                                                 "Declaration::EmitRISC() called on an unsupported struct member type");
                                 }
                                 it++;
-                                index += memberType.GetTypeSize();
+                                memberOffset += memberType.GetTypeSize();
                             }
                             break;
                         }
@@ -138,7 +208,7 @@ namespace ast {
                                     "ArrayIndexExpression::EmitRISC() called on an unsupported type");
                     }
                 }
-                context.FreeTemporary(tempReg);
+                context.FreeTemporary(tempReg, stream);
             } else {
                 // Allocated (stack), but not initialized
                 if (initDeclarator->IsArray()) {

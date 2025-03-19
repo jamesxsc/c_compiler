@@ -101,6 +101,7 @@
 * ~~Stack alignment uhh vars~~
 * Test for calling external function returning a pointer
 * Test for array param not as pointer and array if we haven't already
+* Test case for loads of recursion that needs persistent registers
 * ~~Floats Eliott & James~~ Mar 10
 * ~~Char type - James~~ Mar 11
 * ~~Global variables - James~~ Mar 9
