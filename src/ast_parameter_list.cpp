@@ -8,6 +8,8 @@ namespace ast {
             parameters_.push_back(std::move(first));
     }
 
+    // todo some extraction and simplification throughout - this for example is getting a bit crazy
+
     void ParameterList::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         if (parameters_.empty() && !hiddenPointerReturn_) {
             return;
@@ -33,24 +35,34 @@ namespace ast {
             bool noFloatRegs = fidx > 7;
             bool noIntRegs = iidx > 7;
 
-            Variable var = context.CurrentFrame().bindings.Insert(param->GetIdentifier(), Variable{
-                    .size = type.GetTypeSize(),
-                    .type = type
-            });
+            bool used = param->HasIdentifier();
+            Variable var = used ?
+                           context.CurrentFrame().bindings.Insert(param->GetIdentifier(), Variable{
+                                   .size = type.GetTypeSize(),
+                                   .type = type
+                           }) :
+                           Variable{ // Don't store
+                                   .size = type.GetTypeSize(),
+                                   .type = type
+                                   // Offset not used
+                           };
             switch (type) {
                 case TypeSpecifier::FLOAT:
                 case TypeSpecifier::DOUBLE:
                     if (noFloatRegs) {
-                        Register tempReg = context.AllocateTemporary(true);
-                        stream << (type == TypeSpecifier::FLOAT ? "flw " : "fld ") << tempReg << ","
-                               << stackOffset << "(s0)" << std::endl;
-                        stream << (type == TypeSpecifier::FLOAT ? "fsw " : "fsd ") << tempReg << ","
-                               << var.offset << "(s0)" << std::endl; // Copy
-                        context.FreeTemporary(tempReg);
+                        if (used) {
+                            Register tempReg = context.AllocateTemporary(true);
+                            stream << (type == TypeSpecifier::FLOAT ? "flw " : "fld ") << tempReg << ","
+                                   << stackOffset << "(s0)" << std::endl;
+                            stream << (type == TypeSpecifier::FLOAT ? "fsw " : "fsd ") << tempReg << ","
+                                   << var.offset << "(s0)" << std::endl; // Copy
+                            context.FreeTemporary(tempReg);
+                        }
                         stackOffset += (type == TypeSpecifier::FLOAT ? 4 : 8);
                     } else {
-                        stream << (type == TypeSpecifier::FLOAT ? "fsw " : "fsd ")
-                               << "fa" << fidx << "," << var.offset << "(s0)" << std::endl;
+                        if (used) // Have to still incr counters
+                            stream << (type == TypeSpecifier::FLOAT ? "fsw " : "fsd ")
+                                   << "fa" << fidx << "," << var.offset << "(s0)" << std::endl;
                         ++fidx;
                     }
                     break;
@@ -59,25 +71,31 @@ namespace ast {
                 case TypeSpecifier::ENUM:
                 case TypeSpecifier::UNSIGNED:
                     if (noIntRegs) {
-                        Register tempReg = context.AllocateTemporary();
-                        stream << "lw " << tempReg << "," << stackOffset << "(s0)" << std::endl;
-                        stream << "sw " << tempReg << "," << var.offset << "(s0)" << std::endl; // Copy
-                        context.FreeTemporary(tempReg);
+                        if (used) {
+                            Register tempReg = context.AllocateTemporary();
+                            stream << "lw " << tempReg << "," << stackOffset << "(s0)" << std::endl;
+                            stream << "sw " << tempReg << "," << var.offset << "(s0)" << std::endl; // Copy
+                            context.FreeTemporary(tempReg);
+                        }
                         stackOffset += 4;
                     } else {
-                        stream << "sw a" << iidx << "," << var.offset << "(s0)" << std::endl;
+                        if (used)
+                            stream << "sw a" << iidx << "," << var.offset << "(s0)" << std::endl;
                         ++iidx;
                     }
                     break;
                 case TypeSpecifier::CHAR:
                     if (noIntRegs) {
-                        Register tempReg = context.AllocateTemporary();
-                        stream << "lbu " << tempReg << "," << stackOffset << "(s0)" << std::endl;
-                        stream << "sb " << tempReg << "," << var.offset << "(s0)" << std::endl; // Copy
-                        context.FreeTemporary(tempReg);
+                        if (used) {
+                            Register tempReg = context.AllocateTemporary();
+                            stream << "lbu " << tempReg << "," << stackOffset << "(s0)" << std::endl;
+                            stream << "sb " << tempReg << "," << var.offset << "(s0)" << std::endl; // Copy
+                            context.FreeTemporary(tempReg);
+                        }
                         stackOffset += 1;
                     } else {
-                        stream << "sb a" << iidx << "," << var.offset << "(s0)" << std::endl;
+                        if (used)
+                            stream << "sb a" << iidx << "," << var.offset << "(s0)" << std::endl;
                         ++iidx;
                     }
                     break;
@@ -94,77 +112,105 @@ namespace ast {
                             case TypeSpecifier::Type::POINTER:
                             case TypeSpecifier::Type::ARRAY:
                             case TypeSpecifier::Type::ENUM:
-                                if (type.UseStack()) {
+                                if (type.UseStack() && used) {
                                     Register tempReg = context.AllocateTemporary();
-                                    // todo ptr on stack case
                                     // Load from previous frame
-                                    stream << "lw " << tempReg << "," << memberOffset << "(a" << iidx << ")"
-                                           << std::endl;
+                                    if (noIntRegs) {
+                                        // Get ptr
+                                        stream << "lw " << tempReg << "," << stackOffset << "(s0)" << std::endl;
+                                        stream << "lw " << tempReg << "," << memberOffset << "(" << tempReg << ")"
+                                               << std::endl;
+                                    } else {
+                                        stream << "lw " << tempReg << "," << memberOffset << "(a" << iidx << ")"
+                                               << std::endl;
+                                    }
                                     stream << "sw " << tempReg << "," << var.offset + memberOffset << "(s0)"
                                            << std::endl;
                                     // Don't increment iidx
                                     context.FreeTemporary(tempReg);
                                 } else {
                                     if (noIntRegs) {
-                                        Register tempReg = context.AllocateTemporary();
-                                        stream << "lw " << tempReg << "," << stackOffset << "(s0)" << std::endl;
-                                        stream << "sw " << tempReg << "," << var.offset + memberOffset << "(s0)"
-                                               << std::endl;
-                                        context.FreeTemporary(tempReg);
+                                        if (used) {
+                                            Register tempReg = context.AllocateTemporary();
+                                            stream << "lw " << tempReg << "," << stackOffset << "(s0)" << std::endl;
+                                            stream << "sw " << tempReg << "," << var.offset + memberOffset << "(s0)"
+                                                   << std::endl;
+                                            context.FreeTemporary(tempReg);
+                                        }
                                         stackOffset += 4;
                                     } else {
-                                        stream << "sw a" << iidx << "," << var.offset + memberOffset << "(s0)"
-                                               << std::endl;
+                                        if (used)
+                                            stream << "sw a" << iidx << "," << var.offset + memberOffset << "(s0)"
+                                                   << std::endl;
                                         ++iidx;
                                     }
                                 }
                                 break;
                             case TypeSpecifier::Type::CHAR:
-                                if (type.UseStack()) {
-                                    // todo ptr on stack case
+                                if (type.UseStack() && used) {
                                     Register tempReg = context.AllocateTemporary();
-                                    stream << "lbu " << tempReg << "," << memberOffset << "(a" << iidx << ")"
-                                           << std::endl;
+                                    if (noIntRegs) {
+                                        stream << "lw " << tempReg << "," << stackOffset << "(s0)" << std::endl;
+                                        stream << "lbu " << tempReg << "," << memberOffset << "(" << tempReg << ")"
+                                               << std::endl;
+                                    } else {
+                                        stream << "lbu " << tempReg << "," << memberOffset << "(a" << iidx << ")"
+                                               << std::endl;
+                                    }
                                     stream << "sb " << tempReg << "," << var.offset + memberOffset << "(s0)"
                                            << std::endl;
                                     context.FreeTemporary(tempReg);
                                 } else {
                                     if (noIntRegs) {
-                                        Register tempReg = context.AllocateTemporary();
-                                        stream << "lbu " << tempReg << "," << stackOffset << "(s0)" << std::endl;
-                                        stream << "sb " << tempReg << "," << var.offset + memberOffset << "(s0)"
-                                               << std::endl;
-                                        context.FreeTemporary(tempReg);
+                                        if (used) {
+                                            Register tempReg = context.AllocateTemporary();
+                                            stream << "lbu " << tempReg << "," << stackOffset << "(s0)" << std::endl;
+                                            stream << "sb " << tempReg << "," << var.offset + memberOffset << "(s0)"
+                                                   << std::endl;
+                                            context.FreeTemporary(tempReg);
+                                        }
                                         stackOffset += 1;
                                     } else {
-                                        stream << "sb a" << iidx << "," << var.offset + memberOffset << "(s0)"
-                                               << std::endl;
+                                        if (used)
+                                            stream << "sb a" << iidx << "," << var.offset + memberOffset << "(s0)"
+                                                   << std::endl;
                                         ++iidx;
                                     }
                                 }
                                 break;
                             case TypeSpecifier::Type::FLOAT:
                             case TypeSpecifier::Type::DOUBLE:
-                                if (type.UseStack()) {
-                                    // todo ptr on stack case
+                                if (type.UseStack() && used) {
                                     Register tempReg = context.AllocateTemporary(true);
-                                    stream << (member.second == TypeSpecifier::FLOAT ? "flw " : "fld ") << tempReg
-                                           << "," << memberOffset << "(a" << iidx << ")" << std::endl;
+                                    if (noIntRegs) {
+                                        stream << "lw " << tempReg << "," << stackOffset << "(s0)" << std::endl;
+                                        stream << (member.second == TypeSpecifier::FLOAT ? "flw " : "fld ") << tempReg
+                                               << "," << memberOffset << "(" << tempReg << ")" << std::endl;
+                                    } else {
+                                        stream << (member.second == TypeSpecifier::FLOAT ? "flw " : "fld ") << tempReg
+                                               << "," << memberOffset << "(a" << iidx << ")" << std::endl;
+                                    }
                                     stream << (member.second == TypeSpecifier::FLOAT ? "fsw " : "fsd ") << tempReg
                                            << "," << var.offset + memberOffset << "(s0)" << std::endl;
                                     context.FreeTemporary(tempReg);
                                 } else {
                                     if (noFloatRegs) {
-                                        Register tempReg = context.AllocateTemporary(true);
-                                        stream << (member.second == TypeSpecifier::FLOAT ? "flw " : "fld ") << tempReg
-                                               << "," << stackOffset << "(s0)" << std::endl;
-                                        stream << (member.second == TypeSpecifier::FLOAT ? "fsw " : "fsd ") << tempReg
-                                               << "," << var.offset + memberOffset << "(s0)" << std::endl;
-                                        context.FreeTemporary(tempReg);
+                                        if (used) {
+                                            Register tempReg = context.AllocateTemporary(true);
+                                            stream << (member.second == TypeSpecifier::FLOAT ? "flw " : "fld ")
+                                                   << tempReg
+                                                   << "," << stackOffset << "(s0)" << std::endl;
+                                            stream << (member.second == TypeSpecifier::FLOAT ? "fsw " : "fsd ")
+                                                   << tempReg
+                                                   << "," << var.offset + memberOffset << "(s0)" << std::endl;
+                                            context.FreeTemporary(tempReg);
+                                        }
                                         stackOffset += (member.second == TypeSpecifier::FLOAT ? 4 : 8);
                                     } else {
-                                        stream << (member.second == TypeSpecifier::FLOAT ? "fsw " : "fsd ")
-                                               << "fa" << fidx << "," << var.offset + memberOffset << "(s0)" << std::endl;
+                                        if (used)
+                                            stream << (member.second == TypeSpecifier::FLOAT ? "fsw " : "fsd ")
+                                                   << "fa" << fidx << "," << var.offset + memberOffset << "(s0)"
+                                                   << std::endl;
                                         ++fidx;
                                     }
                                 }
@@ -177,7 +223,10 @@ namespace ast {
                         memberOffset += member.second.GetTypeSize();
                     }
                     if (type.UseStack()) {
-                        ++iidx; // Now we are done with the reg holding ptr
+                        if (noIntRegs)
+                            stackOffset += 4; // Now we are done with the stack ptr
+                        else
+                            ++iidx; // Now we are done with the reg holding ptr
                     }
                     break;
                 }
@@ -190,16 +239,7 @@ namespace ast {
     }
 
     void ParameterList::Print(std::ostream &stream) const {
-        if (!parameters_.empty()) {
-            stream << "(";
-            for (auto it = parameters_.begin(); it != parameters_.end(); ++it) {
-                (*it)->Print(stream);
-                if (it + 1 != parameters_.end()) {
-                    stream << ", ";
-                }
-            }
-            stream << ")";
-        }
+        // Never called
     }
 
     void ParameterList::PushBack(ParameterDeclarationPtr item) {

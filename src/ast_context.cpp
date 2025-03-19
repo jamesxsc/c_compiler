@@ -267,6 +267,7 @@ namespace ast {
         return type;
     }
 
+    // todo if we can be bothered change this to raii
     bool Context::SetEmitLHS(bool emitLHS) {
         bool old = emitLHS_;
         emitLHS_ = emitLHS;

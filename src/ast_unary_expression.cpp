@@ -199,6 +199,7 @@ namespace ast {
                     return multiplicativeChild_->GetType(context);
             case UnaryOperator::Plus:
             case UnaryOperator::Minus:
+                return multiplicativeChild_->GetType(context);
             case UnaryOperator::BitwiseNot:
             case UnaryOperator::LogicalNot:
                 return TypeSpecifier::INT;

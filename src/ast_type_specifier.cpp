@@ -129,6 +129,25 @@ namespace ast {
         return *structMembers_;
     }
 
+    // It would be nicer to write a custom iterator to avoid so much copying but not really worth the time
+    std::vector<std::pair<std::string, TypeSpecifier>> TypeSpecifier::GetStructMembersFlattened() const {
+        assert(IsStruct() && "TypeSpecifier::GetStructMembersFlattened() called on non-struct type");
+        assert(structMembers_.has_value() &&
+               "TypeSpecifier::GetStructMembersFlattened() called on struct type with unset members");
+        std::vector<std::pair<std::string, TypeSpecifier>> flattened{};
+        for (const auto &member: *structMembers_) {
+            if (member.second.IsStruct()) {
+                const std::string prefix = member.first + ".";
+                for (const auto &subMember: member.second.GetStructMembersFlattened()) {
+                    flattened.emplace_back(prefix + subMember.first, subMember.second);
+                }
+            } else {
+                flattened.emplace_back(member);
+            }
+        }
+        return flattened;
+    }
+
     const std::string &TypeSpecifier::GetStructIdentifier() const {
         assert(IsStruct() && "TypeSpecifier::GetStructIdentifier() called on non-struct type");
         return structIdentifier_;
