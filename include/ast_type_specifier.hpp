@@ -84,6 +84,8 @@ namespace ast {
 
         [[nodiscard]] const std::vector<std::pair<std::string, TypeSpecifier>> &GetStructMembers() const;
 
+        [[nodiscard]] std::vector<std::pair<std::string, TypeSpecifier>> GetStructMembersFlattened() const;
+
         [[nodiscard]] int GetStructMemberOffset(const std::string &member) const;
 
         [[nodiscard]] const std::string &GetStructIdentifier() const;

@@ -239,16 +239,7 @@ namespace ast {
     }
 
     void ParameterList::Print(std::ostream &stream) const {
-        if (!parameters_.empty()) {
-            stream << "(";
-            for (auto it = parameters_.begin(); it != parameters_.end(); ++it) {
-                (*it)->Print(stream);
-                if (it + 1 != parameters_.end()) {
-                    stream << ", ";
-                }
-            }
-            stream << ")";
-        }
+        // Never called
     }
 
     void ParameterList::PushBack(ParameterDeclarationPtr item) {
