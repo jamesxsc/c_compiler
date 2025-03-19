@@ -48,7 +48,8 @@ namespace ast::Utils {
         Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(
                 stream, useFloat);
         left.EmitRISC(stream, context, leftReg);
-        Register rightReg = context.AllocateTemporary(stream, useFloat);
+//        Register rightReg = context.AllocateTemporary(stream, useFloat);
+        Register rightReg = result;
         right.EmitRISC(stream, context, rightReg);
 
         switch (type) {
@@ -71,7 +72,7 @@ namespace ast::Utils {
         }
 
         leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg, stream);
-        context.FreeTemporary(rightReg, stream);
+//        context.FreeTemporary(rightReg, stream);
     }
 
     void EmitDivide(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
@@ -82,7 +83,7 @@ namespace ast::Utils {
         Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(
                 stream, useFloat);
         left.EmitRISC(stream, context, leftReg);
-        Register rightReg = context.AllocateTemporary(stream, useFloat);
+        Register rightReg = result;
         right.EmitRISC(stream, context, rightReg);
 
         switch (type) {
@@ -105,7 +106,6 @@ namespace ast::Utils {
         }
 
         leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg, stream);
-        context.FreeTemporary(rightReg, stream);
     }
 
     void EmitModulo(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
@@ -116,7 +116,7 @@ namespace ast::Utils {
         Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(
                 stream, useFloat);
         left.EmitRISC(stream, context, leftReg);
-        Register rightReg = context.AllocateTemporary(stream, useFloat);
+        Register rightReg = result;
         right.EmitRISC(stream, context, rightReg);
 
         switch (type) {
@@ -133,7 +133,6 @@ namespace ast::Utils {
         }
 
         leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg, stream);
-        context.FreeTemporary(rightReg, stream);
     }
 
     void EmitAddition(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
@@ -144,7 +143,7 @@ namespace ast::Utils {
         Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(
                 stream, useFloat);
         left.EmitRISC(stream, context, leftReg);
-        Register rightReg = context.AllocateTemporary(stream, useFloat);
+        Register rightReg = result;
         right.EmitRISC(stream, context, rightReg);
         switch (type) {
             case TypeSpecifier::FLOAT:
@@ -175,7 +174,6 @@ namespace ast::Utils {
                 throw std::runtime_error("Attempted addition on an unsupported type.");
         }
         leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg, stream);
-        context.FreeTemporary(rightReg, stream);
     }
 
     void EmitSubtraction(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
@@ -189,7 +187,7 @@ namespace ast::Utils {
         Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(
                 stream, useFloat);
         left.EmitRISC(stream, context, leftReg);
-        Register rightReg = context.AllocateTemporary(stream, useFloat);
+        Register rightReg = result;
         right.EmitRISC(stream, context, rightReg);
         switch (type) {
             case TypeSpecifier::FLOAT:
@@ -216,7 +214,6 @@ namespace ast::Utils {
                 throw std::runtime_error("Attempted subtraction on an unsupported type.");
         }
         leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg, stream);
-        context.FreeTemporary(rightReg, stream);
     }
 
     void EmitLeftShift(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
@@ -224,11 +221,10 @@ namespace ast::Utils {
         bool leftStored = right.ContainsFunctionCall();
         Register leftReg = leftStored ? context.AllocatePersistent() : context.AllocateTemporary(stream);
         left.EmitRISC(stream, context, leftReg);
-        Register rightReg = context.AllocateTemporary(stream);
+        Register rightReg = result;
         right.EmitRISC(stream, context, rightReg);
         stream << "sll " << result << "," << leftReg << "," << rightReg << std::endl;
         leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg, stream);
-        context.FreeTemporary(rightReg, stream);
     }
 
     void EmitRightShift(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
@@ -236,14 +232,13 @@ namespace ast::Utils {
         bool leftStored = right.ContainsFunctionCall();
         Register leftReg = leftStored ? context.AllocatePersistent() : context.AllocateTemporary(stream);
         left.EmitRISC(stream, context, leftReg);
-        Register rightReg = context.AllocateTemporary(stream);
+        Register rightReg = result;
         right.EmitRISC(stream, context, rightReg);
         if (left.GetType(context).IsSigned())
             stream << "sra " << result << "," << leftReg << "," << rightReg << std::endl;
         else
             stream << "srl " << result << "," << leftReg << "," << rightReg << std::endl;
         leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg, stream);
-        context.FreeTemporary(rightReg, stream);
     }
 
     void EmitBitwiseAnd(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
@@ -251,11 +246,10 @@ namespace ast::Utils {
         bool leftStored = right.ContainsFunctionCall();
         Register leftReg = leftStored ? context.AllocatePersistent() : context.AllocateTemporary(stream);
         left.EmitRISC(stream, context, leftReg);
-        Register rightReg = context.AllocateTemporary(stream);
+        Register rightReg = result;
         right.EmitRISC(stream, context, rightReg);
         stream << "and " << result << "," << leftReg << "," << rightReg << std::endl;
         leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg, stream);
-        context.FreeTemporary(rightReg, stream);
     }
 
     void EmitBitwiseXor(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
@@ -263,11 +257,10 @@ namespace ast::Utils {
         bool leftStored = right.ContainsFunctionCall();
         Register leftReg = leftStored ? context.AllocatePersistent() : context.AllocateTemporary(stream);
         left.EmitRISC(stream, context, leftReg);
-        Register rightReg = context.AllocateTemporary(stream);
+        Register rightReg = result;
         right.EmitRISC(stream, context, rightReg);
         stream << "xor " << result << "," << leftReg << "," << rightReg << std::endl;
         leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg, stream);
-        context.FreeTemporary(rightReg, stream);
     }
 
     void EmitBitwiseOr(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
@@ -275,7 +268,7 @@ namespace ast::Utils {
         bool leftStored = right.ContainsFunctionCall();
         Register leftReg = leftStored ? context.AllocatePersistent() : context.AllocateTemporary(stream);
         left.EmitRISC(stream, context, leftReg);
-        Register rightReg = context.AllocateTemporary(stream);
+        Register rightReg = result;
         right.EmitRISC(stream, context, rightReg);
         stream << "or " << result << "," << leftReg << "," << rightReg << std::endl;
         leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg, stream);
