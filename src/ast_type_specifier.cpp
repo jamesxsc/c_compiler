@@ -93,6 +93,13 @@ namespace ast {
     void TypeSpecifier::SetMembers(std::vector<std::pair<std::string, TypeSpecifier>> members) {
         assert(IsStruct() && "TypeSpecifier::SetMembers() called on non-struct type");
         structMembers_ = std::move(members);
+        // For fast offset lookup
+        structMemberOffsetsMap_ = std::make_optional<std::unordered_map<std::string, int>>({});
+        int memberOffset = 0;
+        for (const auto &member: *structMembers_) {
+            structMemberOffsetsMap_->insert({member.first, memberOffset});
+            memberOffset += member.second.GetTypeSize();
+        }
     }
 
     const TypeSpecifier &TypeSpecifier::GetPointeeType() const {
@@ -134,6 +141,12 @@ namespace ast {
             return member.first != "#padding";
         }));
         return nonPadding > 2; // 2 is the number of registers available for return
+    }
+
+    int TypeSpecifier::GetStructMemberOffset(const std::string &member) const {
+        assert(structMemberOffsetsMap_.has_value() &&
+               "TypeSpecifier::GetStructMemberOffset() called on struct type with unset member offsets");
+        return structMemberOffsetsMap_->at(member);
     }
 
 }

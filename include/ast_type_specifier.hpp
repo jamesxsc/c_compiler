@@ -84,6 +84,8 @@ namespace ast {
 
         [[nodiscard]] const std::vector<std::pair<std::string, TypeSpecifier>> &GetStructMembers() const;
 
+        [[nodiscard]] int GetStructMemberOffset(const std::string &member) const;
+
         [[nodiscard]] const std::string &GetStructIdentifier() const;
 
     private:
@@ -94,6 +96,7 @@ namespace ast {
         int arraySize_{0};
         std::string enumIdentifier_{};
         std::optional<std::vector<std::pair<std::string, TypeSpecifier>>> structMembers_{};
+        std::optional<std::unordered_map<std::string, int>> structMemberOffsetsMap_{};
         std::string structIdentifier_{};
     };
 
