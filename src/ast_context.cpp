@@ -25,7 +25,6 @@ namespace ast {
                 }
             }
 
-            // todo optimise reg use anyway in binary emission
             // Spill a register to memory
             // This is very much a heuristic approach that just slightly increases the chance of being successful
             static int lastSpilled = 0;

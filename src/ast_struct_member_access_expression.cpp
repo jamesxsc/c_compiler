@@ -5,7 +5,7 @@ namespace ast {
     void StructMemberAccessExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         // Get struct base address
         Register addressReg = context.AllocateTemporary(stream);
-        bool restore = context.SetEmitLHS(true);
+        bool restore = context.SetEmitLHS(!pointerAccess_);
         struct_->EmitRISC(stream, context, addressReg);
         context.SetEmitLHS(restore);
         // Get member offset
@@ -13,7 +13,7 @@ namespace ast {
         if (pointerAccess_) {
             assert(structType == TypeSpecifier::POINTER && "Pointer access on non-pointer");
             structType = structType.GetPointeeType();
-            stream << "lw " << destReg << ",0(" << destReg << ")" << std::endl; // Load address stored in ptr
+//            stream << "lw " << destReg << ",0(" << destReg << ")" << std::endl; // Load address stored in ptr
         }
 
         int offset = structType.GetStructMemberOffset(member_);
