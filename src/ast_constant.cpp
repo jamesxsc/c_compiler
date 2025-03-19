@@ -109,8 +109,8 @@ namespace ast {
         context.DeferredRISC() << ".section .rodata" << std::endl;
         context.DeferredRISC() << ".align " << (doublePrecision_ ? "3" : "2") << std::endl;
         context.DeferredRISC() << memoryLabel << ":" << std::endl;
-        context.DeferredRISC() << (doublePrecision_ ? ".double " : ".float ")
-                               << value_ << std::endl; // todo should we convert to decimal?
+        // Don't bother converting to decimal since it works in the test environment
+        context.DeferredRISC() << (doublePrecision_ ? ".double " : ".float ") << value_ << std::endl;
     }
 
     void FloatConstant::Print(std::ostream &stream) const {

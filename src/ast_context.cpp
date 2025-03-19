@@ -267,7 +267,13 @@ namespace ast {
         if (specifiers.size() == 1) {
             TypeSpecifier type = specifiers.front(); // Must copy
             if (type.IsStruct()) {
-                type.SetMembers(GetStruct(type.GetStructIdentifier()));
+                // Do we have a definition
+                if (IsStruct(type.GetStructIdentifier())) {
+                    type.SetMembers(GetStruct(type.GetStructIdentifier()));
+                } else {
+                    // Handle anonymous struct
+                    type.SetMembers();
+                }
             }
             return type;
         }
@@ -277,9 +283,7 @@ namespace ast {
             throw std::runtime_error("Unsupported type alias");
         }
         TypeSpecifier type = it->second; // Must copy
-        if (type.IsStruct()) {
-            type.SetMembers(GetStruct(type.GetStructIdentifier()));
-        }
+        // Never have to handle struct if there are multiple specifiers - you can't have unsigned struct etc.
         return type;
     }
 

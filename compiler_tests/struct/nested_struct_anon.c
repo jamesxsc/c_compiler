@@ -1,10 +1,9 @@
-struct inner {
-    int a;
-    int b;
-};
-
+/*Not technically anonymous but leverages same behaviour*/
 struct nested {
-    struct inner inner;
+    struct inner {
+        int a;
+        int b;
+    } inner;
     int c;
 };
 

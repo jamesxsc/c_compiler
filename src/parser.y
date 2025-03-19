@@ -10,12 +10,13 @@
     extern int yylineno;
     extern char* yytext;
     extern Node* g_root;
-    extern std::unordered_map<std::string, TypeSpecifier> typedefs; // todo make scoped if we have time
+    extern std::unordered_map<std::string, TypeSpecifier> typedefs;
     extern FILE* yyin;
     int yylex(void);
     void yyerror(const char*);
     int yylex_destroy(void);
 }
+    // todo make scoped if we have time (typedefs)
 
 // Represents the value associated with any kind of AST node.
 %union{

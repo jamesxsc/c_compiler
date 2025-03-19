@@ -4,6 +4,7 @@ namespace ast {
 
     // Only called for a definition
     void StructSpecifier::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
+        // todo empty struct tests
         for (const auto &declaration : declarations_->GetMembers(context)) {
             members_.emplace_back(declaration.first, declaration.second);
         }

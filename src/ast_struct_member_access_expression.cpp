@@ -42,11 +42,11 @@ namespace ast {
             case TypeSpecifier::CHAR:
                 stream << "lbu " << destReg << ",0(" << addressReg << ")" << std::endl;
                 break;
-            case TypeSpecifier::VOID:
-            case TypeSpecifier::STRUCT:
             case TypeSpecifier::ARRAY:
+            case TypeSpecifier::VOID:
+            case TypeSpecifier::STRUCT: // Never called
                 throw std::runtime_error(
-                        "ArrayIndexExpression::EmitRISC() called on an unsupported array type");
+                        "StructMemberAccessExpression::EmitRISC() called on an unsupported member type");
         }
         context.FreeTemporary(addressReg, stream);
     }

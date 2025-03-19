@@ -5,6 +5,7 @@
 
 namespace ast {
 
+    // todo extract common code in the four branches below
     void ArrayIndexExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         if (context.EmitLHS()) {
             Register indexReg = context.AllocateTemporary(stream);
@@ -65,6 +66,7 @@ namespace ast {
                 switch (array.GetArrayType()) {
                     case TypeSpecifier::UNSIGNED:
                     case TypeSpecifier::INT:
+                    case TypeSpecifier::POINTER:
                     case TypeSpecifier::ENUM:
                         stream << "lw " << destReg << ",0(" << addressTemp << ")" << std::endl;
                         break;
@@ -77,7 +79,6 @@ namespace ast {
                     case TypeSpecifier::CHAR:
                         stream << "lbu " << destReg << ",0(" << addressTemp << ")" << std::endl;
                         break;
-                    case TypeSpecifier::POINTER:
                     case TypeSpecifier::VOID:
                     case TypeSpecifier::STRUCT:
                     case TypeSpecifier::ARRAY:
@@ -104,6 +105,8 @@ namespace ast {
                 switch (arrayType) {
                     case TypeSpecifier::UNSIGNED:
                     case TypeSpecifier::INT:
+                    case TypeSpecifier::POINTER:
+                    case TypeSpecifier::ENUM:
                         stream << "lw " << destReg << ",0(" << addressTemp << ")" << std::endl;
                         break;
                     case TypeSpecifier::FLOAT:
@@ -115,14 +118,11 @@ namespace ast {
                     case TypeSpecifier::CHAR:
                         stream << "lbu " << destReg << ",0(" << addressTemp << ")" << std::endl;
                         break;
-                    case TypeSpecifier::POINTER:
                     case TypeSpecifier::VOID:
-                    case TypeSpecifier::ENUM:
-                    case TypeSpecifier::STRUCT:
-                    case TypeSpecifier::ARRAY:
+                    case TypeSpecifier::STRUCT: // todo will this ever happen?
+                    case TypeSpecifier::ARRAY: // todo multidim
                         throw std::runtime_error(
                                 "ArrayIndexExpression::EmitRISC() called on an unsupported array type");
-                        // todo handle these
                 }
                 if (useFloat)
                     context.FreeTemporary(addressTemp, stream);
@@ -144,6 +144,7 @@ namespace ast {
                     case TypeSpecifier::UNSIGNED:
                     case TypeSpecifier::INT:
                     case TypeSpecifier::ENUM:
+                    case TypeSpecifier::POINTER:
                         stream << "lw " << destReg << ",0(" << addressTemp << ")" << std::endl;
                         break;
                     case TypeSpecifier::FLOAT:
@@ -155,7 +156,6 @@ namespace ast {
                     case TypeSpecifier::CHAR:
                         stream << "lbu " << destReg << ",0(" << addressTemp << ")" << std::endl;
                         break;
-                    case TypeSpecifier::POINTER:
                     case TypeSpecifier::VOID:
                     case TypeSpecifier::STRUCT:
                     case TypeSpecifier::ARRAY:
@@ -180,6 +180,8 @@ namespace ast {
                 switch (GetType(context)) { // Already unwrapped
                     case TypeSpecifier::UNSIGNED:
                     case TypeSpecifier::INT:
+                    case TypeSpecifier::POINTER:
+                    case TypeSpecifier::ENUM:
                         stream << "lw " << destReg << ",0(" << addressTemp << ")" << std::endl;
                         break;
                     case TypeSpecifier::FLOAT:
@@ -191,9 +193,7 @@ namespace ast {
                     case TypeSpecifier::CHAR:
                         stream << "lbu " << destReg << ",0(" << addressTemp << ")" << std::endl;
                         break;
-                    case TypeSpecifier::POINTER:
                     case TypeSpecifier::VOID:
-                    case TypeSpecifier::ENUM:
                     case TypeSpecifier::STRUCT:
                     case TypeSpecifier::ARRAY:
                         throw std::runtime_error(
