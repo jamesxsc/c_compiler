@@ -272,7 +272,7 @@ namespace ast {
                     type.SetMembers(GetStruct(type.GetStructIdentifier()));
                 } else {
                     // Handle anonymous struct
-                    type.SetMembers();
+//                    type.SetMembers();
                 }
             }
             return type;
