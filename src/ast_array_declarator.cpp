@@ -9,7 +9,8 @@ namespace ast {
     void ArrayDeclarator::Print(std::ostream &stream) const {
         stream << GetIdentifier();
         stream << "[";
-        size_->Print(stream);
+        if (size_)
+            size_->Print(stream);
         stream << "]";
     }
 
@@ -18,6 +19,8 @@ namespace ast {
     }
 
     Variable ArrayDeclarator::BuildArray(TypeSpecifier type, Context &context) const {
+        if (!size_)
+            throw std::runtime_error("ArrayDeclarator::BuildArray() called on an array without a size");
         TypeSpecifier arrayType = {type, size_->Evaluate(context)};
         return {
                 .size = arrayType.GetTypeSize(),

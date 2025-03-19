@@ -16,6 +16,7 @@ namespace ast {
         void Print(std::ostream &stream) const override;
 
         [[nodiscard]] int Evaluate(Context &context) const override;
+        [[nodiscard]] double EvaluateFloat(Context &context) const override;
 
         [[nodiscard]] bool ContainsFunctionCall() const override;
 
@@ -31,7 +32,6 @@ namespace ast {
         ExpressionPtr index_;
         PostfixExpressionPtr array_;
 
-        double EvaluateFloat(Context &context) const;
     };
 
     using ArrayIndexExpressionPtr = std::unique_ptr<const ArrayIndexExpression>;

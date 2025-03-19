@@ -79,7 +79,6 @@ namespace ast {
 
     public:
         explicit StringConstant(std::string value) : value_(std::move(value)) {}
-        // todo null termination? and test
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
 

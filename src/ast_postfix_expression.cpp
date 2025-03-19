@@ -46,7 +46,6 @@ namespace ast {
         return child_->GetType(context);
     }
 
-    // todo look to deprecate this
     std::string PostfixExpression::GetIdentifier() const {
         switch (op_) {
             case PostfixOperator::PrimaryPromote:
@@ -55,14 +54,10 @@ namespace ast {
                 return identifier.GetIdentifier();
             }
             case PostfixOperator::PostfixIncrement:
-            case PostfixOperator::PostfixDecrement: {
-                // Child is a postfix expression
-                return dynamic_cast<const PostfixExpression *>(child_.get())->GetIdentifier();
-            }
+            case PostfixOperator::PostfixDecrement:
             case PostfixOperator::ArrayIndexPromote:
-                return dynamic_cast<const ArrayIndexExpression *>(child_.get())->GetIdentifier();
             case PostfixOperator::StructMemberAccessPromote:
-                throw std::runtime_error("PostfixExpression::GetIdentifier() called on struct member access");
+                throw std::runtime_error("PostfixExpression::GetIdentifier() called in unsupported context");
         }
 
         Identifier identifier = dynamic_cast<const Identifier &>(*child_);

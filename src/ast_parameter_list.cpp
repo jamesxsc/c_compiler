@@ -22,10 +22,16 @@ namespace ast {
             stream << "sw a" << iidx << "," << var.offset << "(s0)" << std::endl;
             ++iidx;
         }
+        int stackOffset = 0; // Positive offset into previous frame
         for (const auto &param: parameters_) {
             TypeSpecifier type = param->GetType(context);
+            // NOTE: GCC passes structs by value despite the ABI stating otherwise, we match GCC
 
-            // todo condition for non structs? iidx/fifx > 7?
+            // note that struct / aggregate using stack is different to other things using stack
+            // that is just because its big
+            // this use stack is when we're out of registers, then we store ptrs in previous frame
+            bool noFloatRegs = fidx > 7;
+            bool noIntRegs = iidx > 7;
 
             Variable var = context.CurrentFrame().bindings.Insert(param->GetIdentifier(), Variable{
                     .size = type.GetTypeSize(),
@@ -34,20 +40,46 @@ namespace ast {
             switch (type) {
                 case TypeSpecifier::FLOAT:
                 case TypeSpecifier::DOUBLE:
-                    stream << (type == TypeSpecifier::FLOAT ? "fsw " : "fsd ")
-                           << "fa" << fidx << "," << var.offset << "(s0)" << std::endl;
-                    ++fidx;
+                    if (noFloatRegs) {
+                        Register tempReg = context.AllocateTemporary(true);
+                        stream << (type == TypeSpecifier::FLOAT ? "flw " : "fld ") << tempReg << ","
+                               << stackOffset << "(s0)" << std::endl;
+                        stream << (type == TypeSpecifier::FLOAT ? "fsw " : "fsd ") << tempReg << ","
+                               << var.offset << "(s0)" << std::endl; // Copy
+                        context.FreeTemporary(tempReg);
+                        stackOffset += (type == TypeSpecifier::FLOAT ? 4 : 8);
+                    } else {
+                        stream << (type == TypeSpecifier::FLOAT ? "fsw " : "fsd ")
+                               << "fa" << fidx << "," << var.offset << "(s0)" << std::endl;
+                        ++fidx;
+                    }
                     break;
                 case TypeSpecifier::POINTER:
                 case TypeSpecifier::INT:
                 case TypeSpecifier::ENUM:
                 case TypeSpecifier::UNSIGNED:
-                    stream << "sw a" << iidx << "," << var.offset << "(s0)" << std::endl;
-                    ++iidx;
+                    if (noIntRegs) {
+                        Register tempReg = context.AllocateTemporary();
+                        stream << "lw " << tempReg << "," << stackOffset << "(s0)" << std::endl;
+                        stream << "sw " << tempReg << "," << var.offset << "(s0)" << std::endl; // Copy
+                        context.FreeTemporary(tempReg);
+                        stackOffset += 4;
+                    } else {
+                        stream << "sw a" << iidx << "," << var.offset << "(s0)" << std::endl;
+                        ++iidx;
+                    }
                     break;
                 case TypeSpecifier::CHAR:
-                    stream << "sb a" << iidx << "," << var.offset << "(s0)" << std::endl;
-                    ++iidx;
+                    if (noIntRegs) {
+                        Register tempReg = context.AllocateTemporary();
+                        stream << "lbu " << tempReg << "," << stackOffset << "(s0)" << std::endl;
+                        stream << "sb " << tempReg << "," << var.offset << "(s0)" << std::endl; // Copy
+                        context.FreeTemporary(tempReg);
+                        stackOffset += 1;
+                    } else {
+                        stream << "sb a" << iidx << "," << var.offset << "(s0)" << std::endl;
+                        ++iidx;
+                    }
                     break;
                 case TypeSpecifier::STRUCT: {
                     int memberOffset = 0;
@@ -64,6 +96,7 @@ namespace ast {
                             case TypeSpecifier::Type::ENUM:
                                 if (type.UseStack()) {
                                     Register tempReg = context.AllocateTemporary();
+                                    // todo ptr on stack case
                                     // Load from previous frame
                                     stream << "lw " << tempReg << "," << memberOffset << "(a" << iidx << ")"
                                            << std::endl;
@@ -72,12 +105,23 @@ namespace ast {
                                     // Don't increment iidx
                                     context.FreeTemporary(tempReg);
                                 } else {
-                                    stream << "sw a" << iidx << "," << var.offset + memberOffset << "(s0)" << std::endl;
-                                    ++iidx;
+                                    if (noIntRegs) {
+                                        Register tempReg = context.AllocateTemporary();
+                                        stream << "lw " << tempReg << "," << stackOffset << "(s0)" << std::endl;
+                                        stream << "sw " << tempReg << "," << var.offset + memberOffset << "(s0)"
+                                               << std::endl;
+                                        context.FreeTemporary(tempReg);
+                                        stackOffset += 4;
+                                    } else {
+                                        stream << "sw a" << iidx << "," << var.offset + memberOffset << "(s0)"
+                                               << std::endl;
+                                        ++iidx;
+                                    }
                                 }
                                 break;
                             case TypeSpecifier::Type::CHAR:
                                 if (type.UseStack()) {
+                                    // todo ptr on stack case
                                     Register tempReg = context.AllocateTemporary();
                                     stream << "lbu " << tempReg << "," << memberOffset << "(a" << iidx << ")"
                                            << std::endl;
@@ -85,13 +129,24 @@ namespace ast {
                                            << std::endl;
                                     context.FreeTemporary(tempReg);
                                 } else {
-                                    stream << "sb a" << iidx << "," << var.offset + memberOffset << "(s0)" << std::endl;
-                                    ++iidx;
+                                    if (noIntRegs) {
+                                        Register tempReg = context.AllocateTemporary();
+                                        stream << "lbu " << tempReg << "," << stackOffset << "(s0)" << std::endl;
+                                        stream << "sb " << tempReg << "," << var.offset + memberOffset << "(s0)"
+                                               << std::endl;
+                                        context.FreeTemporary(tempReg);
+                                        stackOffset += 1;
+                                    } else {
+                                        stream << "sb a" << iidx << "," << var.offset + memberOffset << "(s0)"
+                                               << std::endl;
+                                        ++iidx;
+                                    }
                                 }
                                 break;
                             case TypeSpecifier::Type::FLOAT:
                             case TypeSpecifier::Type::DOUBLE:
                                 if (type.UseStack()) {
+                                    // todo ptr on stack case
                                     Register tempReg = context.AllocateTemporary(true);
                                     stream << (member.second == TypeSpecifier::FLOAT ? "flw " : "fld ") << tempReg
                                            << "," << memberOffset << "(a" << iidx << ")" << std::endl;
@@ -99,12 +154,22 @@ namespace ast {
                                            << "," << var.offset + memberOffset << "(s0)" << std::endl;
                                     context.FreeTemporary(tempReg);
                                 } else {
-                                    stream << (member.second == TypeSpecifier::FLOAT ? "fsw " : "fsd ")
-                                           << "fa" << fidx << "," << var.offset + memberOffset << "(s0)" << std::endl;
-                                    ++fidx;
+                                    if (noFloatRegs) {
+                                        Register tempReg = context.AllocateTemporary(true);
+                                        stream << (member.second == TypeSpecifier::FLOAT ? "flw " : "fld ") << tempReg
+                                               << "," << stackOffset << "(s0)" << std::endl;
+                                        stream << (member.second == TypeSpecifier::FLOAT ? "fsw " : "fsd ") << tempReg
+                                               << "," << var.offset + memberOffset << "(s0)" << std::endl;
+                                        context.FreeTemporary(tempReg);
+                                        stackOffset += (member.second == TypeSpecifier::FLOAT ? 4 : 8);
+                                    } else {
+                                        stream << (member.second == TypeSpecifier::FLOAT ? "fsw " : "fsd ")
+                                               << "fa" << fidx << "," << var.offset + memberOffset << "(s0)" << std::endl;
+                                        ++fidx;
+                                    }
                                 }
                                 break;
-                            case TypeSpecifier::Type::STRUCT: // todo Handle nested structs
+                            case TypeSpecifier::Type::STRUCT: // todo Handle nested structs, probably flatten above
                             case TypeSpecifier::Type::VOID:
                                 throw std::runtime_error(
                                         "ParameterList::EmitRISC() called on an unsupported struct member type");

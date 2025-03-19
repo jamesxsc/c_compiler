@@ -9,7 +9,7 @@ namespace ast {
         stream << "call " << function_->GetIdentifier() << std::endl;
         if (GetType(context) == TypeSpecifier::VOID) return;
         if (GetType(context) == TypeSpecifier::FLOAT || GetType(context) == TypeSpecifier::DOUBLE) {
-            // todo what if we return a struct?
+            // todo what if we return a struct? - note big hidden ptr case is different because there is no guarantee address is in a0?
             if (destReg != Register::fa0 && destReg != Register::zero)
                 stream << (GetType(context) == TypeSpecifier::DOUBLE ? "fmv.d " : "fmv.s ") << destReg << "," << Register::fa0
                        << std::endl; // Assumes single return value in fa0

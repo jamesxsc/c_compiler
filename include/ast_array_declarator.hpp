@@ -8,12 +8,11 @@ namespace ast {
     class ArrayDeclarator : public Declarator {
     public:
         ArrayDeclarator(DeclaratorPtr identifier, ConstantExpressionPtr size) :
-                Declarator(identifier->GetIdentifier(), true), size_(std::move(size)) {
-            if (!identifier->IsDirect()) {
-                throw std::runtime_error("Array identifier declarator must be direct");
-            }
+                Declarator(std::move(identifier)), size_(std::move(size)) {
             // TODO if we want multidimensional arrays, start here with a dim counter
         }
+
+        explicit ArrayDeclarator(DeclaratorPtr identifier): Declarator(std::move(identifier)), size_(nullptr) {}
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
 

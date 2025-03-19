@@ -4,6 +4,7 @@ int ok;
 
 void fakeputs(char *x)
 {
+    // This implicitly tests null termination
     ok=!strcmp(x,"wibble");
 }
 
