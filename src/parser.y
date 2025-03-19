@@ -501,8 +501,8 @@ parameter_list
 
 parameter_declaration
 	: declaration_specifiers declarator { $$ = new ParameterDeclaration(DeclarationSpecifiersPtr($1), DeclaratorPtr($2)); }
-	| declaration_specifiers abstract_declarator
-	| declaration_specifiers // todo ideally support, unnamed/unused?
+	| declaration_specifiers abstract_declarator // todo would be kind of nice to have this for unused * [] etc. params
+	| declaration_specifiers { $$ = new ParameterDeclaration(DeclarationSpecifiersPtr($1)); }
 	;
 
 identifier_list

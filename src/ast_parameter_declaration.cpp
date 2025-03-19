@@ -9,18 +9,23 @@ namespace ast {
 
     void ParameterDeclaration::Print(std::ostream &stream) const {
         declarationSpecifiers_->Print(stream);
-        stream << identifier_->GetIdentifier();
+        if (identifier_)
+            stream << identifier_->GetIdentifier();
+    }
+
+    bool ParameterDeclaration::HasIdentifier() const {
+        return identifier_ != nullptr;
     }
 
     const std::string &ParameterDeclaration::GetIdentifier() const {
         return identifier_->GetIdentifier();
     }
 
-    TypeSpecifier ParameterDeclaration::GetType(Context& context) const {
+    TypeSpecifier ParameterDeclaration::GetType(Context &context) const {
         TypeSpecifier type = declarationSpecifiers_->GetType(context);
-        if (identifier_->IsPointer())
+        if (identifier_ && identifier_->IsPointer())
             type = {TypeSpecifier::POINTER, type};
-        if (identifier_->IsArray())
+        if (identifier_ && identifier_->IsArray())
             type = identifier_->BuildArray(type, context).type;
         return type;
     }

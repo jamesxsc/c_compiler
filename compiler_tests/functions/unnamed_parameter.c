@@ -1,3 +1,3 @@
-//
-// Created by James Conway on 19/03/2025.
-//
+int f(int, float, int c) {
+    return c;
+}
