@@ -480,7 +480,7 @@ direct_declarator
 		delete $1;
 	}
 	| '(' declarator ')' { $$ = $2; $$->Direct(); }
-	| direct_declarator '[' constant_expression ']' { $$ = new ArrayDeclarator(DeclaratorPtr($1), ConstantExpressionPtr($3)); }
+	| direct_declarator '[' constant_expression ']' { $1->AddArrayDimension(ConstantExpressionPtr($3)); $$ = $1; }
 	| direct_declarator '[' ']' { $1->SetPointer(1); $$ = $1; }
 	| direct_declarator '(' parameter_list ')' { $$ = new FunctionDeclarator(DeclaratorPtr($1), ParameterListPtr($3)); }
 	| direct_declarator '(' identifier_list ')' {

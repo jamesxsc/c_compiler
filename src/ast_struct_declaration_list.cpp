@@ -29,6 +29,10 @@ namespace ast {
                 TypeSpecifier type = context ? declaration->GetType(*context) : declaration->GetTypeStatic();
                 if (declarator->IsPointer())
                     type = {TypeSpecifier::POINTER, type};
+                if (declarator->IsArray()) {
+                    Context dummy; // Hope we don't get a const expr that needs context
+                    type = declarator->BuildArray(type, dummy).type;
+                }
                 int alignment = type.GetAlignment();
                 if (totalSize % alignment != 0) {
                     for (int i = 0; i < alignment - (totalSize % alignment); i++)

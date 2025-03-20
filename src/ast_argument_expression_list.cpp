@@ -6,7 +6,7 @@ namespace ast {
         Register firstIntegerReg = Register::a0;
         Register firstFloatReg = Register::fa0;
         int stackOffset = 0;
-        for (const auto &argument: arguments_) {
+        for (const auto &argument: arguments_) { // todo padding?
             TypeSpecifier type = argument->GetType(context);
             if (type == TypeSpecifier::STRUCT) {
                 if (type.UseStack()) {

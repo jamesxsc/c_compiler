@@ -13,57 +13,24 @@ namespace ast {
             TypeSpecifier type = declarationSpecifiers_->GetType(context);
             if (initDeclarator->IsPointer())
                 type = TypeSpecifier(TypeSpecifier::POINTER, type);
+            if (initDeclarator->IsArray())
+                type = initDeclarator->BuildArray(type, context).type;
 
             std::string identifier = initDeclarator->GetIdentifier();
             // We won't ever need to "return" to destReg so overwrite it for temporary use
             // Bindings and init
             if (initDeclarator->HasInitializer()) {
-                bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
+                bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE; // Only for non-arrays
                 Register tempReg = context.AllocateTemporary(stream, useFloat);
-                if (initDeclarator->IsArray()) {
+                if (type.IsArray()) {
                     assert(initDeclarator->GetInitializer().IsList() && "Array initializer must be a list");
-                    Variable array = context.CurrentFrame().bindings.InsertOrOverwrite(identifier,
-                                                                                       initDeclarator->BuildArray(type,
-                                                                                                                  context));
-                    // ^ Wraps the type, but we keep element type here
+                    Variable array = context.CurrentFrame().bindings.InsertOrOverwrite(identifier, Variable{
+                        .size = type.GetTypeSize(),
+                        .type = type
+                    }); // todo can maybe tidy this a bit... and propagate to external declaration
+
                     const auto &initializerList = static_cast<const InitializerList &>(initDeclarator->GetInitializer()); // NOLINT(*-pro-type-static-cast-downcast)
-                    int idx = 0;
-                    for (const auto &initializer: initializerList) {
-                        initializer->EmitRISC(stream, context, tempReg);
-                        switch (type) {
-                            case TypeSpecifier::INT:
-                            case TypeSpecifier::UNSIGNED:
-                            case TypeSpecifier::POINTER:
-                            case TypeSpecifier::ENUM:
-                                stream << "sw " << tempReg << "," << array.offset + idx * type.GetTypeSize() << "(s0)"
-                                       << std::endl;
-                                break;
-                            case TypeSpecifier::FLOAT:
-                                stream << "fsw " << tempReg << "," << array.offset + idx * type.GetTypeSize() << "(s0)"
-                                       << std::endl;
-                                break;
-                            case TypeSpecifier::DOUBLE:
-                                stream << "fsd " << tempReg << "," << array.offset + idx * type.GetTypeSize() << "(s0)"
-                                       << std::endl;
-                                break;
-                            case TypeSpecifier::CHAR:
-                                stream << "sb " << tempReg << "," << array.offset + idx * type.GetTypeSize() << "(s0)"
-                                       << std::endl;
-                                break;
-                            case TypeSpecifier::STRUCT: {
-                                assert(initializer->IsList() && "Struct initializer must be a list");
-                                const auto &structInitializerList = static_cast<const InitializerList &>(*initializer); // NOLINT(*-pro-type-static-cast-downcast)
-                                EmitStructInitializer(structInitializerList, type, tempReg,
-                                                      array.offset + idx * type.GetTypeSize(), stream, context);
-                                break;
-                            }
-                            case TypeSpecifier::ARRAY: // todo multidim
-                            case TypeSpecifier::VOID:
-                                throw std::runtime_error(
-                                        "Declaration::EmitRISC() called on an unsupported array type");
-                        }
-                        idx++;
-                    }
+                    EmitArrayInitializer(stream, context, tempReg, initializerList, type.GetArrayType(), array.offset);
                 } else {
                     int size = type.GetTypeSize();
                     // Generates initializer/assignment code
@@ -105,8 +72,10 @@ namespace ast {
             } else {
                 // Allocated (stack), but not initialized
                 if (initDeclarator->IsArray()) {
-                    context.CurrentFrame().bindings.InsertOrOverwrite(identifier,
-                                                                      initDeclarator->BuildArray(type, context));
+                    context.CurrentFrame().bindings.InsertOrOverwrite(identifier, Variable{
+                        .size = type.GetTypeSize(),
+                        .type = type
+                    });
                 } else {
                     int size = type.GetTypeSize();
                     context.CurrentFrame().bindings.InsertOrOverwrite(identifier, Variable{
@@ -119,7 +88,7 @@ namespace ast {
     }
 
     void Declaration::EmitStructInitializer(const InitializerList &initializerList, const TypeSpecifier &type,
-                                            Register &tempReg, int baseOffset, std::ostream &stream,
+                                            const Register &tempReg, int baseOffset, std::ostream &stream,
                                             Context &context) {
         int memberOffset = 0;
         auto it = initializerList.begin();
@@ -165,8 +134,15 @@ namespace ast {
                     context.FreeTemporary(tempFloatReg, stream);
                     break;
                 }
-                case TypeSpecifier::Type::ARRAY: // todo add recursion for array
+                case TypeSpecifier::Type::ARRAY: {
+                    assert((*it)->IsList() && "Array initializer must be a list");
+                    const auto &childInitializerList = static_cast<const InitializerList &>(**it); // NOLINT(*-pro-type-static-cast-downcast)
+                    EmitArrayInitializer(stream, context, tempReg, childInitializerList, memberType.GetArrayType(),
+                                         baseOffset + memberOffset);
+                    break;
+                }
                 case TypeSpecifier::Type::STRUCT: {
+                    assert((*it)->IsList() && "Struct initializer must be a list");
                     const auto &childInitializerList = static_cast<const InitializerList &>(**it); // NOLINT(*-pro-type-static-cast-downcast)
                     EmitStructInitializer(childInitializerList, memberType, tempReg, baseOffset + memberOffset, stream,
                                           context);
@@ -178,6 +154,54 @@ namespace ast {
             }
             it++;
             memberOffset += memberType.GetTypeSize();
+        }
+    }
+
+    void Declaration::EmitArrayInitializer(std::ostream &stream, Context &context, const Register &tempReg,
+                                           const InitializerList &initializerList, const TypeSpecifier &type,
+                                           const int &offset) {
+        int idx = 0;
+        for (const auto &initializer: initializerList) {
+            initializer->EmitRISC(stream, context, tempReg);
+            switch (type) {
+                case TypeSpecifier::INT:
+                case TypeSpecifier::UNSIGNED:
+                case TypeSpecifier::POINTER:
+                case TypeSpecifier::ENUM:
+                    stream << "sw " << tempReg << "," << offset + idx * type.GetTypeSize() << "(s0)"
+                           << std::endl;
+                    break;
+                case TypeSpecifier::FLOAT:
+                    stream << "fsw " << tempReg << "," << offset + idx * type.GetTypeSize() << "(s0)"
+                           << std::endl;
+                    break;
+                case TypeSpecifier::DOUBLE:
+                    stream << "fsd " << tempReg << "," << offset + idx * type.GetTypeSize() << "(s0)"
+                           << std::endl;
+                    break;
+                case TypeSpecifier::CHAR:
+                    stream << "sb " << tempReg << "," << offset + idx * type.GetTypeSize() << "(s0)"
+                           << std::endl;
+                    break;
+                case TypeSpecifier::STRUCT: {
+                    assert(initializer->IsList() && "Struct initializer must be a list");
+                    const auto &structInitializerList = static_cast<const InitializerList &>(*initializer); // NOLINT(*-pro-type-static-cast-downcast)
+                    EmitStructInitializer(structInitializerList, type, tempReg, offset + idx * type.GetTypeSize(),
+                                          stream, context);
+                    break;
+                }
+                case TypeSpecifier::ARRAY: {
+                    assert(initializer->IsList() && "Array initializer must be a list");
+                    const auto &arrayInitializerList = static_cast<const InitializerList &>(*initializer); // NOLINT(*-pro-type-static-cast-downcast)
+                    EmitArrayInitializer(stream, context, tempReg, arrayInitializerList, type.GetArrayType(),
+                                         offset + idx * type.GetTypeSize());
+                    break;
+                }
+                case TypeSpecifier::VOID:
+                    throw std::runtime_error(
+                            "Declaration::EmitRISC() called on an unsupported array type");
+            }
+            idx++;
         }
     }
 
