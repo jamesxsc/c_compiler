@@ -1,21 +1,17 @@
 
-/* Tableau global d'entiers */
 int garr[5] = {1, 2, 3, 4, 5};
 
-/* Définition d'une structure Data */
 struct Data {
     int id;
     int value;
 };
 
-/* Tableau global de structures Data */
 struct Data global_data[3] = {
         {1, 10},
         {2, 20},
         {3, 30}
 };
 
-/* Fonction qui calcule la somme d'un tableau d'entiers en utilisant l'arithmétique de pointeurs */
 int compute_array_sum(int *arr, int n) {
     int sum;
     int i;
@@ -26,8 +22,6 @@ int compute_array_sum(int *arr, int n) {
     return sum;
 }
 
-/* Déclarations anticipées pour les fonctions récursives mutuellement appelées */
-int is_even(int n);
 int is_odd(int n);
 
 int is_even(int n) {
@@ -44,13 +38,6 @@ int is_odd(int n) {
     return is_even(n - 1);
 }
 
-/* Fonction qui applique une opération sur deux entiers selon une valeur d'opération
-   Valeurs d'opération attendues :
-     0 : addition
-     1 : soustraction
-     2 : multiplication
-     3 : division (vérifie que le diviseur n'est pas nul)
-*/
 int apply_op(int op, int a, int b) {
     int result;
     switch (op) {
@@ -72,7 +59,6 @@ int apply_op(int op, int a, int b) {
     return result;
 }
 
-/* Fonction qui traite un tableau de structures Data en utilisant l'arithmétique de pointeurs */
 int process_data(struct Data *data, int count) {
     int sum;
     int i;
@@ -83,7 +69,6 @@ int process_data(struct Data *data, int count) {
     return sum;
 }
 
-/* Fonction composite qui met en œuvre plusieurs fonctionnalités avancées et renvoie un résultat calculé */
 int compute_hard() {
     int arr_local[4] = {6, 7, 8, 9};  /* Somme locale : 6+7+8+9 = 30 */
     int sum_local;
@@ -104,7 +89,6 @@ int compute_hard() {
     return combined;
 }
 
-/* Point d'entrée pour le test, tel qu'attendu par le pilote */
 int f() {
     return compute_hard();
 }

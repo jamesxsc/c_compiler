@@ -60,7 +60,7 @@ namespace ast {
 
     Variable Declarator::BuildArray(TypeSpecifier type, Context &context) const {
         for (const auto &size: arraySizes_) {
-            if (!size)
+            if (!size) // This only occurs for a param (or inferred size)
                 throw std::runtime_error("Declarator::BuildArray() called on an array without a size");
             type = {type, size->Evaluate(context)};
         }
