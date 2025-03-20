@@ -28,6 +28,8 @@ namespace ast {
                         .size = type.GetTypeSize(),
                         .type = type
                     }); // todo can maybe tidy this a bit... and propagate to external declaration
+                    // todo and tests for params with arrays/structs?
+                    // todo test for fixed length array
 
                     const auto &initializerList = static_cast<const InitializerList &>(initDeclarator->GetInitializer()); // NOLINT(*-pro-type-static-cast-downcast)
                     EmitArrayInitializer(stream, context, tempReg, initializerList, type.GetArrayType(), array.offset);
