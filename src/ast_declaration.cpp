@@ -17,7 +17,7 @@ namespace ast {
                 type = initDeclarator->BuildArray(type, context).type;
 
             std::string identifier = initDeclarator->GetIdentifier();
-            // We won't ever need to "return" to destReg so overwrite it for temporary use
+
             // Bindings and init
             if (initDeclarator->HasInitializer()) {
                 bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE; // Only for non-arrays
@@ -27,7 +27,7 @@ namespace ast {
                     Variable array = context.CurrentFrame().bindings.InsertOrOverwrite(identifier, Variable{
                         .size = type.GetTypeSize(),
                         .type = type
-                    }); // todo can maybe tidy this a bit... and propagate to external declaration
+                    });
                     // todo and tests for params with arrays/structs?
 
                     const auto &initializerList = static_cast<const InitializerList &>(initDeclarator->GetInitializer()); // NOLINT(*-pro-type-static-cast-downcast)
