@@ -69,8 +69,6 @@ namespace ast {
         }
 
         // Common: store the result
-//        if (unary_->IsPointerDereference()) { // Type is already unfolded, moved to top as this won't always have an identifier
-        // I think this, is ok, although maybe we call unary gettype?
         Register addrReg = context.AllocateTemporary(stream);
         { Context::ScopedEmitLHS guard(context, true);
             unary_->EmitRISC(stream, context, addrReg);

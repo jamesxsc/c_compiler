@@ -28,8 +28,12 @@ namespace ast {
         InitDeclaratorListPtr initDeclaratorList_;
 
         static void
-        EmitStructInitializer(const InitializerList &initializerList, const TypeSpecifier &type, Register &tempReg,
+        EmitStructInitializer(const InitializerList &initializerList, const TypeSpecifier &type, const Register &tempReg,
                               int baseOffset, std::ostream &stream, Context &context) ;
+
+        static void EmitArrayInitializer(std::ostream &stream, Context &context, const Register &tempReg,
+                                         const InitializerList &initializerList, const TypeSpecifier &type,
+                                         const int &offset);
     };
 
 }

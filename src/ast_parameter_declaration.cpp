@@ -10,7 +10,7 @@ namespace ast {
     void ParameterDeclaration::Print(std::ostream &stream) const {
         declarationSpecifiers_->Print(stream);
         if (identifier_)
-            stream << identifier_->GetIdentifier();
+            identifier_->Print(stream);
     }
 
     bool ParameterDeclaration::HasIdentifier() const {

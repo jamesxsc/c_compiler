@@ -4,14 +4,21 @@ namespace ast {
 
     void Declarator::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         if (isDirect_)
-            return; // Nothing to do! This is part of a function or array
+            return; // Nothing to do! This is part of a function
+        // Everything is handled in declaration
     }
 
     void Declarator::Print(std::ostream &stream) const {
-        if (isDirect_)
-            return; // Nothing to do! This is part of a function or array
-
+        if (IsPointer())
+            stream << "*";
         stream << identifier_;
+        if (IsArray()) {
+            for (const auto &size: arraySizes_) {
+                stream << "[";
+                if (size) size->Print(stream);
+                stream << "]";
+            }
+        }
     }
 
     const std::string &Declarator::GetIdentifier() const {
@@ -39,7 +46,7 @@ namespace ast {
     }
 
     bool Declarator::IsArray() const {
-        return false;
+        return isArray_;
     }
 
     void Declarator::SetPointerReturn(int) {
@@ -52,13 +59,26 @@ namespace ast {
     }
 
     Variable Declarator::BuildArray(TypeSpecifier type, Context &context) const {
-        std::cerr << "Error: Declarator is not an array" << std::endl;
-        exit(1);
+        for (const auto &size: arraySizes_) {
+            if (!size)
+                throw std::runtime_error("Declarator::BuildArray() called on an array without a size");
+            type = {type, size->Evaluate(context)};
+        }
+        return {
+                .size = type.GetTypeSize(),
+                .type = type,
+        };
     }
 
     void Declarator::SetPointer(int indirectionLevel) {
         isPointer_ = true;
         indirectionLevel_ = indirectionLevel;
+    }
+
+    void Declarator::AddArrayDimension(ConstantExpressionPtr size) {
+        isArray_ = true;
+        arraySizes_.push_back(std::move(size));
+        arrayDimension_++;
     }
 
 }

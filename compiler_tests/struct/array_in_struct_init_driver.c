@@ -1,5 +1,15 @@
-// TODO start with some reading/ tidying of existing storage logic. TBH storing nested structs might be a better place to start
-
 //
 // Created by James Conway on 19/03/2025.
 //
+
+struct S {
+    int a;
+    int b[5];
+    int c;
+};
+
+int f();
+
+int main() {
+    return f() != 28;
+}

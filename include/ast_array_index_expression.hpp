@@ -32,6 +32,9 @@ namespace ast {
         ExpressionPtr index_;
         PostfixExpressionPtr array_;
 
+        static void EmitLoadElement(const TypeSpecifier &elementType, std::ostream &stream, Context &context,
+                             const Register &destReg,
+                             const Register &addressTemp) ;
     };
 
     using ArrayIndexExpressionPtr = std::unique_ptr<const ArrayIndexExpression>;

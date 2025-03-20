@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ast_node.hpp"
+#include "ast_constant_expression.hpp"
 
 namespace ast {
 
@@ -13,15 +14,16 @@ namespace ast {
         bool isDirect_;
         bool isPointer_;
         int indirectionLevel_ = 0;
+        bool isArray_{false};
+        int arrayDimension_ = 0;
+        std::vector<ConstantExpressionPtr> arraySizes_{};
 
     public:
         explicit Declarator(std::string identifier, bool isDirect) : identifier_(std::move(identifier)),
                                                                      isDirect_(isDirect),
                                                                      isPointer_(false) {};
 
-        // For derived classes
-        explicit Declarator(DeclaratorPtr &&other)  noexcept : identifier_(other->identifier_), isDirect_(other->isDirect_),
-                                              isPointer_(other->isPointer_), indirectionLevel_(other->indirectionLevel_) {}
+        Declarator(Declarator&&) = default;
 
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
 
@@ -37,11 +39,13 @@ namespace ast {
 
         [[nodiscard]] virtual bool IsArray() const;
 
+        void AddArrayDimension(ConstantExpressionPtr size);
+
         virtual void SetPointerReturn(int indirectionLevel);
 
         [[nodiscard]] virtual Function BuildFunction(TypeSpecifier returnType, Context &context) const;
 
-        [[nodiscard]] virtual Variable BuildArray(TypeSpecifier type, Context &context) const;
+        [[nodiscard]] Variable BuildArray(TypeSpecifier type, Context &context) const;
 
         [[nodiscard]] bool IsDirect() const;
 

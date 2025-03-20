@@ -53,6 +53,7 @@
 - Constexpr evaluation. I didn't want to do it but enums would be super ugly without it.
 - Round robin persistent register allocation to reduce bashing
 - Correctly aligned stack (local variables) even though it doesn't fail in the simulator (spike)
+- Fixed stack frame size
 
 
 # Milestones (Draft)
