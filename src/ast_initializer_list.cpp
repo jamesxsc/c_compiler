@@ -35,4 +35,8 @@ namespace ast {
         return initializers_.end();
     }
 
+    int InitializerList::ListSize() const {
+        return static_cast<int>(initializers_.size());
+    }
+
 }

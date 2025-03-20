@@ -39,4 +39,8 @@ namespace ast {
         throw std::runtime_error("Initializer::AddInitializer() called on a non-list initializer");
     }
 
+    int Initializer::ListSize() const {
+        throw std::runtime_error("Initializer::ListSize() called on a non-list initializer");
+    }
+
 }

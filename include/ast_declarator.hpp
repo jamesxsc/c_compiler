@@ -2,6 +2,7 @@
 
 #include "ast_node.hpp"
 #include "ast_constant_expression.hpp"
+#include "ast_initializer.hpp"
 
 namespace ast {
 
@@ -45,7 +46,7 @@ namespace ast {
 
         [[nodiscard]] virtual Function BuildFunction(TypeSpecifier returnType, Context &context) const;
 
-        [[nodiscard]] Variable BuildArray(TypeSpecifier type, Context &context) const;
+        [[nodiscard]] Variable BuildArray(TypeSpecifier type, Context &context, const Initializer *initializer = nullptr) const;
 
         [[nodiscard]] bool IsDirect() const;
 

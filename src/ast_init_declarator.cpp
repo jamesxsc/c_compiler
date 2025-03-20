@@ -39,7 +39,7 @@ namespace ast {
     }
 
     Variable InitDeclarator::BuildArray(TypeSpecifier type, Context &context) const {
-        return declarator_->BuildArray(type, context);
+        return declarator_->BuildArray(type, context, initializer_.get());
     }
 
     bool InitDeclarator::IsArray() const {

@@ -25,6 +25,8 @@ namespace ast {
 
         [[nodiscard]] virtual bool IsList() const;
 
+        [[nodiscard]] virtual int ListSize() const;
+
         virtual void AddInitializer(InitializerPtr initializer);
 
     private:
