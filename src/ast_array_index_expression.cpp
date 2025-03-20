@@ -9,9 +9,10 @@ namespace ast {
     void ArrayIndexExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         if (context.EmitLHS()) {
             Register indexReg = context.AllocateTemporary(stream);
-            bool restore = context.SetEmitLHS(false); // Emit/evaluate this normally
-            index_->EmitRISC(stream, context, indexReg);
-            context.SetEmitLHS(restore);
+
+            { Context::ScopedEmitLHS guard(context, false); // Emit/evaluate this normally
+                index_->EmitRISC(stream, context, indexReg);
+            }
             std::string identifier = array_->GetIdentifier();
             if (context.IsArray(identifier)) {
                 if (context.IsGlobal(identifier)) {
@@ -119,7 +120,7 @@ namespace ast {
                         stream << "lbu " << destReg << ",0(" << addressTemp << ")" << std::endl;
                         break;
                     case TypeSpecifier::VOID:
-                    case TypeSpecifier::STRUCT: // todo will this ever happen?
+                    case TypeSpecifier::STRUCT: // Should only ever get pointer (LHS) on struct
                     case TypeSpecifier::ARRAY: // todo multidim
                         throw std::runtime_error(
                                 "ArrayIndexExpression::EmitRISC() called on an unsupported array type");
@@ -157,7 +158,7 @@ namespace ast {
                         stream << "lbu " << destReg << ",0(" << addressTemp << ")" << std::endl;
                         break;
                     case TypeSpecifier::VOID:
-                    case TypeSpecifier::STRUCT:
+                    case TypeSpecifier::STRUCT: // Should only ever get pointer (LHS) on struct
                     case TypeSpecifier::ARRAY:
                         throw std::runtime_error(
                                 "ArrayIndexExpression::EmitRISC() called on an unsupported array type");
@@ -194,7 +195,7 @@ namespace ast {
                         stream << "lbu " << destReg << ",0(" << addressTemp << ")" << std::endl;
                         break;
                     case TypeSpecifier::VOID:
-                    case TypeSpecifier::STRUCT:
+                    case TypeSpecifier::STRUCT: // Should only ever get pointer (LHS) on struct
                     case TypeSpecifier::ARRAY:
                         throw std::runtime_error(
                                 "ArrayIndexExpression::EmitRISC() called on an unsupported array type");

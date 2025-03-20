@@ -411,8 +411,8 @@ type_specifier
 	| DOUBLE { $$ = new TypeSpecifier(TypeSpecifier::DOUBLE); }
 	| SIGNED { $$ = new TypeSpecifier(TypeSpecifier::INT); }
 	| UNSIGNED { $$ = new TypeSpecifier(TypeSpecifier::UNSIGNED); }
-    | struct_specifier { $$ = new TypeSpecifier($1->GetIdentifier(), true); }
-	| enum_specifier { $$ = new TypeSpecifier($1->GetIdentifier(), false); }
+    | struct_specifier { $$ = new TypeSpecifier($1->HasIdentifier() ? $1->GetIdentifier() : "<anonymous>", $1->GetKnownMembers()); } // Same tag as GCC
+	| enum_specifier { $$ = new TypeSpecifier($1->GetIdentifier()); }
 	| TYPE_NAME { $$ = new TypeSpecifier(typedefs.at(*$1)); delete $1; }
 	;
 

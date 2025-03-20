@@ -355,12 +355,12 @@ namespace ast::Utils {
 
     void EmitIncrementDecrement(std::ostream &stream, Context &context, Register destReg, const ExpressionBase &child,
                                 bool decrement, bool postfix) {
-        bool restore = context.SetEmitLHS(true); // Get raw address
+        Context::ScopedEmitLHS guard(context, true); // Get raw address
         TypeSpecifier lhsType = child.GetType(context);
         Register addrReg = context.AllocateTemporary(stream);
         TypeSpecifier type = child.GetType(context);
         child.EmitRISC(stream, context, addrReg);
-        context.SetEmitLHS(restore);
+        guard.Release();
 
         if (destReg != Register::zero && postfix)
             child.EmitRISC(stream, context, destReg);

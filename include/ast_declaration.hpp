@@ -4,6 +4,7 @@
 #include "ast_init_declarator_list.hpp"
 #include "ast_type_specifier.hpp"
 #include "ast_declaration_specifiers.hpp"
+#include "ast_initializer_list.hpp"
 
 namespace ast {
 
@@ -25,6 +26,10 @@ namespace ast {
     protected:
         DeclarationSpecifiersPtr declarationSpecifiers_;
         InitDeclaratorListPtr initDeclaratorList_;
+
+        static void
+        EmitStructInitializer(const InitializerList &initializerList, const TypeSpecifier &type, Register &tempReg,
+                              int baseOffset, std::ostream &stream, Context &context) ;
     };
 
 }

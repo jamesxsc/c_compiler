@@ -28,6 +28,8 @@ namespace ast {
 
         void SetGlobal();
 
+        [[nodiscard]] std::vector<std::pair<std::string, TypeSpecifier>> GetKnownMembers() const;
+
     private:
         std::optional<std::string> identifier_;
         StructDeclarationListPtr declarations_;

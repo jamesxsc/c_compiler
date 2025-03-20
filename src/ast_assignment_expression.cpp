@@ -72,9 +72,9 @@ namespace ast {
 //        if (unary_->IsPointerDereference()) { // Type is already unfolded, moved to top as this won't always have an identifier
         // I think this, is ok, although maybe we call unary gettype?
         Register addrReg = context.AllocateTemporary(stream);
-        bool restore = context.SetEmitLHS(true); // Get raw address
-        unary_->EmitRISC(stream, context, addrReg);
-        context.SetEmitLHS(restore);
+        { Context::ScopedEmitLHS guard(context, true);
+            unary_->EmitRISC(stream, context, addrReg);
+        }
         // Copied from below could maybe extract
         bool ptr = type.IsPointer();
         if (ptr) type = type.GetPointeeType();
@@ -194,15 +194,15 @@ namespace ast {
     // Return expression type
     TypeSpecifier AssignmentExpression::GetType(Context &context) const {
         if (op_ == AssignmentOperator::ConditionalPromote) {
-            bool restore = context.SetEmitLHS(true);
-            TypeSpecifier ret =  conditional_->GetType(context);
-            context.SetEmitLHS(restore);
-            return ret;
+            { Context::ScopedEmitLHS guard(context, true);
+                TypeSpecifier ret = conditional_->GetType(context);
+                return ret;
+            }
         } else {
-            bool restore = context.SetEmitLHS(true);
-            TypeSpecifier ret =  unary_->GetType(context);
-            context.SetEmitLHS(restore);
-            return ret;
+            { Context::ScopedEmitLHS guard(context, true);
+                TypeSpecifier ret = unary_->GetType(context);
+                return ret;
+            }
         }
     }
 

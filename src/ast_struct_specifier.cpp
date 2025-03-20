@@ -2,10 +2,9 @@
 
 namespace ast {
 
-    // Only called for a definition
+    // Only called for a definition by agg type def to insert into context
     void StructSpecifier::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-        // todo empty struct tests
-        for (const auto &declaration : declarations_->GetMembers(context)) {
+        for (const auto &declaration : declarations_->GetMembers(&context)) {
             members_.emplace_back(declaration.first, declaration.second);
         }
 
@@ -42,6 +41,20 @@ namespace ast {
 
     void StructSpecifier::SetGlobal() {
         isGlobal_ = true;
+    }
+
+    // Used for anonymous structs
+    std::vector<std::pair<std::string, TypeSpecifier>> StructSpecifier::GetKnownMembers() const {
+        if (!HasDeclarations()) {
+            // Don't like this
+            return {};
+        }
+        // There's no point caching etc. because each type specifier has it's own instance of this
+        std::vector<std::pair<std::string, TypeSpecifier>> members;
+        for (const auto & declaration : declarations_->GetMembers()) {
+            members.emplace_back(declaration.first, declaration.second);
+        }
+        return members;
     }
 
 }

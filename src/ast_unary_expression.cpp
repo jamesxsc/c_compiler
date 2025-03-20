@@ -28,9 +28,9 @@ namespace ast {
                 // Below all multiplicative child expression
             case UnaryOperator::AddressOf: {
                 // This will emit the raw address
-                bool restore = context.SetEmitLHS(true);
-                multiplicativeChild_->EmitRISC(stream, context, destReg);
-                context.SetEmitLHS(restore);
+                { Context::ScopedEmitLHS guard(context, true);
+                    multiplicativeChild_->EmitRISC(stream, context, destReg);
+                }
                 break;
             }
             case UnaryOperator::Dereference: {

@@ -20,13 +20,13 @@ namespace ast {
         return declarations_;
     }
 
-    std::vector<std::pair<std::string, TypeSpecifier>> ast::StructDeclarationList::GetMembers(Context &context) const {
+    std::vector<std::pair<std::string, TypeSpecifier>> ast::StructDeclarationList::GetMembers(Context *context) const {
         std::vector<std::pair<std::string, TypeSpecifier>> members;
         int maxAlignment = 0;
         int totalSize = 0;
         for (const auto &declaration: declarations_) {
             for (const auto &declarator: declaration->GetDeclarators()) {
-                TypeSpecifier type = declaration->GetType(context);
+                TypeSpecifier type = context ? declaration->GetType(*context) : declaration->GetTypeStatic();
                 if (declarator->IsPointer())
                     type = {TypeSpecifier::POINTER, type};
                 int alignment = type.GetAlignment();

@@ -31,8 +31,8 @@ namespace ast {
             int spill = (lastSpilled + 1) % 6;
             spilledIntegerTemporaries_.set(spill);
             Variable var = CurrentFrame().bindings.InsertOrOverwrite("#spilled_int_" + std::to_string(spill), Variable{
-                .size = 4,
-                .type = TypeSpecifier::INT,
+                    .size = 4,
+                    .type = TypeSpecifier::INT,
             });
             stream << "sw " << IntegerTemporaryAtIndex(spill) << "," << var.offset << "(sp)" << std::endl;
             lastSpilled = spill;
@@ -59,7 +59,8 @@ namespace ast {
             if (!integerTemporaries_.test(index))
                 std::cerr << "Warning: freeing already free temporary" << std::endl;
             if (spilledIntegerTemporaries_.test(index)) {
-                assert(CurrentFrame().bindings.Contains("#spilled_int_" + std::to_string(index)) && "Spilled register not found in bindings");
+                assert(CurrentFrame().bindings.Contains("#spilled_int_" + std::to_string(index)) &&
+                       "Spilled register not found in bindings");
                 Variable var = CurrentFrame().bindings.Get("#spilled_int_" + std::to_string(index));
                 stream << "lw " << IntegerTemporaryAtIndex(index) << "," << var.offset << "(sp)" << std::endl;
                 spilledIntegerTemporaries_.reset(index);
@@ -263,6 +264,21 @@ namespace ast {
             {{TypeSpecifier::UNSIGNED, TypeSpecifier::CHAR}, TypeSpecifier::CHAR},
     };
 
+    // Used for anonymous structs to have types at parsing stage
+    TypeSpecifier Context::ResolveTypeAliasStatic(std::vector<TypeSpecifier> specifiers) {
+        if (specifiers.size() == 1) {
+            TypeSpecifier type = specifiers.front(); // Must copy
+            return type;
+        }
+        std::set<TypeSpecifier::Type> typeSet{specifiers.begin(), specifiers.end()};
+        auto it = aliasMap.find(typeSet);
+        if (it == aliasMap.end()) {
+            throw std::runtime_error("Unsupported type alias");
+        }
+        TypeSpecifier type = it->second; // Must copy
+        return type;
+    }
+
     TypeSpecifier Context::ResolveTypeAlias(std::vector<TypeSpecifier> specifiers) {
         if (specifiers.size() == 1) {
             TypeSpecifier type = specifiers.front(); // Must copy
@@ -270,10 +286,7 @@ namespace ast {
                 // Do we have a definition
                 if (IsStruct(type.GetStructIdentifier())) {
                     type.SetMembers(GetStruct(type.GetStructIdentifier()));
-                } else {
-                    // Handle anonymous struct
-//                    type.SetMembers();
-                }
+                } // Anonymous structs shouldn't need any additional handling here
             }
             return type;
         }
@@ -287,7 +300,6 @@ namespace ast {
         return type;
     }
 
-    // todo if we can be bothered change this to raii
     bool Context::SetEmitLHS(bool emitLHS) {
         bool old = emitLHS_;
         emitLHS_ = emitLHS;
@@ -296,6 +308,19 @@ namespace ast {
 
     bool Context::EmitLHS() {
         return emitLHS_;
+    }
+
+    Context::ScopedEmitLHS::ScopedEmitLHS(Context &context, bool newValue) :
+            context_(context), oldValue_(context.SetEmitLHS(newValue)) {}
+
+    Context::ScopedEmitLHS::~ScopedEmitLHS() {
+        if (!released_)
+            context_.SetEmitLHS(oldValue_);
+    }
+
+    void Context::ScopedEmitLHS::Release() {
+        released_ = true;
+        context_.SetEmitLHS(oldValue_);
     }
 
 }

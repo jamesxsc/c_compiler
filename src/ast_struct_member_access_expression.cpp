@@ -5,9 +5,9 @@ namespace ast {
     void StructMemberAccessExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         // Get struct base address
         Register addressReg = context.AllocateTemporary(stream);
-        bool restore = context.SetEmitLHS(!pointerAccess_);
-        struct_->EmitRISC(stream, context, addressReg);
-        context.SetEmitLHS(restore);
+        { Context::ScopedEmitLHS guard(context, !pointerAccess_);
+            struct_->EmitRISC(stream, context, addressReg);
+        }
         // Get member offset
         TypeSpecifier structType = struct_->GetType(context);
         if (pointerAccess_) {

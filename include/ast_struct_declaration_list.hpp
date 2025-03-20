@@ -19,7 +19,7 @@ namespace ast {
 
         [[nodiscard]] const std::vector<StructDeclarationPtr> &GetDeclarations() const;
 
-        [[nodiscard]] std::vector<std::pair<std::string, TypeSpecifier>> GetMembers(Context &context) const;
+        [[nodiscard]] std::vector<std::pair<std::string, TypeSpecifier>> GetMembers(Context *context = nullptr) const;
 
     private:
         std::vector<StructDeclarationPtr> declarations_;

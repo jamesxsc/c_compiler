@@ -179,7 +179,7 @@ namespace ast {
             Variable var = context.CurrentFrame().bindings.Get(identifier_);
             return var.type;
         } else if (context.IsEnum(identifier_)) {
-            return TypeSpecifier{identifier_, false};
+            return TypeSpecifier{identifier_};
         } else {
             // Nice no more sigfaults
             throw std::runtime_error("Identifier::GetType() called on an undeclared identifier");

@@ -19,6 +19,8 @@ namespace ast {
 
         [[nodiscard]] TypeSpecifier GetType(Context &context) const;
 
+        [[nodiscard]] TypeSpecifier GetTypeStatic() const;
+
         [[nodiscard]] const std::vector<StructDeclaratorPtr> &GetDeclarators() const;
 
     private:

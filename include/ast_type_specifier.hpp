@@ -2,6 +2,7 @@
 
 #include <string_view>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 #include <memory>
 #include <optional>
@@ -49,7 +50,10 @@ namespace ast {
         // Complex type constructors, would probably be better as a factory tbh
         TypeSpecifier(Type type, TypeSpecifier pointee): type_(POINTER), pointeeType_(std::make_shared<TypeSpecifier>(pointee)) {} // Type rqd to avoid overloading copy constructor
         TypeSpecifier(TypeSpecifier arrayType, int size): type_(ARRAY), arrayType_(std::make_shared<TypeSpecifier>(arrayType)), arraySize_(size) {}
-        explicit TypeSpecifier(std::string identifier, bool isStruct): type_(isStruct ? STRUCT : ENUM), enumIdentifier_(std::move(identifier)), structIdentifier_(enumIdentifier_) {}
+        explicit TypeSpecifier(std::string identifier): type_(ENUM), enumIdentifier_(std::move(identifier)) {}
+        explicit TypeSpecifier(std::string identifier, std::vector<std::pair<std::string, TypeSpecifier>> members): type_(STRUCT), structIdentifier_(std::move(identifier)) {
+            SetMembers(std::move(members));
+        }
 
         ~TypeSpecifier() = default;
 
@@ -83,8 +87,6 @@ namespace ast {
         [[nodiscard]] const std::string &GetEnumIdentifier() const;
 
         [[nodiscard]] const std::vector<std::pair<std::string, TypeSpecifier>> &GetStructMembers() const;
-
-        [[nodiscard]] std::vector<std::pair<std::string, TypeSpecifier>> GetStructMembersFlattened() const;
 
         [[nodiscard]] int GetStructMemberOffset(const std::string &member) const;
 

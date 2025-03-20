@@ -12,83 +12,31 @@ namespace ast {
                 if (type.UseStack()) {
                     if (firstIntegerReg > Register::a7) { // Out of registers; use stack
                         Register tempReg = context.AllocateTemporary(stream);
-                        bool restore = context.SetEmitLHS(true);
-                        argument->EmitRISC(stream, context, tempReg);
-                        context.SetEmitLHS(restore);
+                        {
+                            Context::ScopedEmitLHS guard(context, true);
+                            argument->EmitRISC(stream, context, tempReg);
+                        }
                         // Store pointer
                         stream << "sw " << tempReg << "," << stackOffset << "(sp)" << std::endl;
                         stackOffset += 4; // pointer size
                         context.FreeTemporary(tempReg, stream);
                     } else {
                         // It will be copied if necessary by the callee, so we just return the address
-                        bool restore = context.SetEmitLHS(true);
-                        argument->EmitRISC(stream, context, firstIntegerReg);
-                        context.SetEmitLHS(restore);
+                        {
+                            Context::ScopedEmitLHS guard(context, true);
+                            argument->EmitRISC(stream, context, firstIntegerReg);
+                        }
                         firstIntegerReg = static_cast<Register>(static_cast<int>(firstIntegerReg) + 1);
                     }
                 } else {
-                    // Load all of the members into registers
                     int memberOffset = 0;
                     // Get the base address
                     Register baseAddressReg = context.AllocateTemporary(stream);
-                    bool restore = context.SetEmitLHS(true);
-                    argument->EmitRISC(stream, context, baseAddressReg);
-                    context.SetEmitLHS(restore);
-                    for (const auto &member: type.GetStructMembers()) {
-                        if (member.first == "#padding") {
-                            memberOffset += member.second.GetTypeSize();
-                            continue;
-                        }
-
-                        switch (member.second) {
-                            case TypeSpecifier::INT:
-                            case TypeSpecifier::POINTER:
-                            case TypeSpecifier::UNSIGNED:
-                            case TypeSpecifier::ENUM:
-                            case TypeSpecifier::CHAR:
-                            case TypeSpecifier::ARRAY: // todo is this right? cx everything arrays in structs
-                                if (firstIntegerReg > Register::a7) {
-                                    Register tempReg = context.AllocateTemporary(stream);
-                                    stream << (type == TypeSpecifier::CHAR ? "lbu " : "lw ") << tempReg << ","
-                                           << memberOffset << "(" << baseAddressReg << ")" << std::endl;
-                                    stream << (type == TypeSpecifier::CHAR ? "sb " : "sw ") << tempReg << ","
-                                           << stackOffset << "(sp)" << std::endl;
-                                    stackOffset += member.second.GetTypeSize();
-                                    context.FreeTemporary(tempReg, stream);
-                                } else {
-                                    stream << (type == TypeSpecifier::CHAR ? "lbu " : "lw ") << firstIntegerReg << ","
-                                           << memberOffset << "(" << baseAddressReg << ")" << std::endl;
-                                    firstIntegerReg = static_cast<Register>(static_cast<int>(firstIntegerReg) + 1);
-                                }
-                                break;
-                            case TypeSpecifier::FLOAT:
-                            case TypeSpecifier::DOUBLE:
-                                if (firstFloatReg > Register::fa7) {
-                                    Register tempReg = context.AllocateTemporary(stream, true);
-                                    stream << (member.second == TypeSpecifier::FLOAT ? "flw " : "fld ") << tempReg
-                                           << ","
-                                           << memberOffset << "(" << baseAddressReg << ")" << std::endl;
-                                    stream << (member.second == TypeSpecifier::FLOAT ? "fsw " : "fsd ") << tempReg
-                                           << ","
-                                           << stackOffset << "(sp)" << std::endl;
-                                    stackOffset += member.second.GetTypeSize();
-                                    context.FreeTemporary(tempReg, stream);
-                                } else {
-                                    stream << (member.second == TypeSpecifier::FLOAT ? "flw " : "fld ") << firstFloatReg
-                                           << "," << memberOffset << "(" << baseAddressReg << ")" << std::endl;
-                                    firstFloatReg = static_cast<Register>(static_cast<int>(firstFloatReg) + 1);
-                                }
-                                break;
-                            case TypeSpecifier::STRUCT: // todo Handle nested structs
-                            case TypeSpecifier::VOID:
-                                std::cerr
-                                        << "ArgumentExpressionList::EmitRISC() called on an unsupported struct member type"
-                                        << std::endl;
-                                exit(1);
-                        }
-                        memberOffset += member.second.GetTypeSize();
+                    { Context::ScopedEmitLHS guard(context, true);
+                        argument->EmitRISC(stream, context, baseAddressReg);
                     }
-                    context.FreeTemporary(baseAddressReg, stream);
+                    EmitStructArgument(stream, context, firstIntegerReg, firstFloatReg, stackOffset, type, memberOffset,
+                                       baseAddressReg);
                 }
             } else if (type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE) {
                 if (firstFloatReg > Register::fa7) { // Out of registers; use stack
@@ -115,6 +63,70 @@ namespace ast {
                 }
             }
         }
+    }
+
+    void ArgumentExpressionList::EmitStructArgument(std::ostream &stream, Context &context, Register &firstIntegerReg,
+                                                    Register &firstFloatReg, int &stackOffset,
+                                                    const TypeSpecifier &type, int &memberOffset,
+                                                    const Register &baseAddressReg) const {
+        for (const auto &member: type.GetStructMembers()) {
+            if (member.first == "#padding") {
+                memberOffset += member.second.GetTypeSize();
+                continue;
+            }
+
+            switch (member.second) {
+                case TypeSpecifier::INT:
+                case TypeSpecifier::POINTER:
+                case TypeSpecifier::UNSIGNED:
+                case TypeSpecifier::ENUM:
+                case TypeSpecifier::CHAR:
+                case TypeSpecifier::ARRAY: // todo is this right? cx everything arrays in structs
+                    if (firstIntegerReg > Register::a7) {
+                        Register tempReg = context.AllocateTemporary(stream);
+                        stream << (type == TypeSpecifier::CHAR ? "lbu " : "lw ") << tempReg << ","
+                               << memberOffset << "(" << baseAddressReg << ")" << std::endl;
+                        stream << (type == TypeSpecifier::CHAR ? "sb " : "sw ") << tempReg << ","
+                               << stackOffset << "(sp)" << std::endl;
+                        stackOffset += member.second.GetTypeSize();
+                        context.FreeTemporary(tempReg, stream);
+                    } else {
+                        stream << (type == TypeSpecifier::CHAR ? "lbu " : "lw ") << firstIntegerReg << ","
+                               << memberOffset << "(" << baseAddressReg << ")" << std::endl;
+                        firstIntegerReg = static_cast<Register>(static_cast<int>(firstIntegerReg) + 1);
+                    }
+                    break;
+                case TypeSpecifier::FLOAT:
+                case TypeSpecifier::DOUBLE:
+                    if (firstFloatReg > Register::fa7) {
+                        Register tempReg = context.AllocateTemporary(stream, true);
+                        stream << (member.second == TypeSpecifier::FLOAT ? "flw " : "fld ") << tempReg
+                               << ","
+                               << memberOffset << "(" << baseAddressReg << ")" << std::endl;
+                        stream << (member.second == TypeSpecifier::FLOAT ? "fsw " : "fsd ") << tempReg
+                               << ","
+                               << stackOffset << "(sp)" << std::endl;
+                        stackOffset += member.second.GetTypeSize();
+                        context.FreeTemporary(tempReg, stream);
+                    } else {
+                        stream << (member.second == TypeSpecifier::FLOAT ? "flw " : "fld ") << firstFloatReg
+                               << "," << memberOffset << "(" << baseAddressReg << ")" << std::endl;
+                        firstFloatReg = static_cast<Register>(static_cast<int>(firstFloatReg) + 1);
+                    }
+                    break;
+                case TypeSpecifier::STRUCT:
+                    EmitStructArgument(stream, context, firstIntegerReg, firstFloatReg, stackOffset, member.second,
+                                       memberOffset, baseAddressReg);
+                    break;
+                case TypeSpecifier::VOID:
+                    std::cerr
+                            << "ArgumentExpressionList::EmitRISC() called on an unsupported struct member type"
+                            << std::endl;
+                    exit(1);
+            }
+            memberOffset += member.second.GetTypeSize();
+        }
+        context.FreeTemporary(baseAddressReg, stream);
     }
 
     void ArgumentExpressionList::Print(std::ostream &stream) const {

@@ -1,6 +1,5 @@
-/*Not technically anonymous but leverages same behaviour*/
 struct nested {
-    struct inner {
+    struct {
         int a;
         int b;
     } inner;

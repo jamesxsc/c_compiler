@@ -21,4 +21,8 @@ namespace ast {
         return context.ResolveTypeAlias(specifiers_);
     }
 
+    const std::vector<TypeSpecifier> &SpecifierQualifierList::GetSpecifiers() const {
+        return specifiers_;
+    }
+
 }

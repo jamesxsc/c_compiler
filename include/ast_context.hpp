@@ -91,11 +91,23 @@ namespace ast {
 
         TypeSpecifier ResolveTypeAlias(std::vector<TypeSpecifier> specifiers);
 
-        bool SetEmitLHS(bool emitLHS); // Returns the old value for restoring
+        static TypeSpecifier ResolveTypeAliasStatic(std::vector<TypeSpecifier> specifiers);
 
         [[nodiscard]] bool EmitLHS();
 
         bool dereference{false};
+
+        // Lightweight RAII helper
+        class ScopedEmitLHS {
+        public:
+            explicit ScopedEmitLHS(Context &context, bool newValue = true);
+            void Release();
+            ~ScopedEmitLHS();
+        private:
+            Context & context_;
+            bool released_{false};
+            bool oldValue_;
+        };
 
     private:
         std::bitset<7> integerTemporaries_; // using t0... notation for contiguous numbering
@@ -116,6 +128,7 @@ namespace ast {
         std::stringstream deferredRISC_{};
 
         bool emitLHS_{false};
+        bool SetEmitLHS(bool emitLHS); // Returns the old value for restoring
 
         int labelId_{}; // Instance counter for unique labels
     };

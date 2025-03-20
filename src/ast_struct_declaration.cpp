@@ -2,19 +2,23 @@
 
 namespace ast {
 
-    void ast::StructDeclaration::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
+    void StructDeclaration::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         // Handled above this layer
     }
 
-    void ast::StructDeclaration::Print(std::ostream &stream) const {
+    void StructDeclaration::Print(std::ostream &stream) const {
         specifierQualifierList_->Print(stream);
         stream << " ";
         structDeclaratorList_->Print(stream);
         stream << ";" << std::endl;
     }
 
-    TypeSpecifier ast::StructDeclaration::GetType(Context &context) const {
+    TypeSpecifier StructDeclaration::GetType(Context &context) const {
         return specifierQualifierList_->GetType(context);
+    }
+
+    TypeSpecifier StructDeclaration::GetTypeStatic() const {
+        return Context::ResolveTypeAliasStatic(specifierQualifierList_->GetSpecifiers());
     }
 
     const std::vector<StructDeclaratorPtr> &StructDeclaration::GetDeclarators() const {

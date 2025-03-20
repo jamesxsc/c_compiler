@@ -22,6 +22,11 @@ namespace ast {
         [[nodiscard]] std::vector<AssignmentExpressionPtr>::const_iterator end() const;
     private:
         std::vector<AssignmentExpressionPtr> arguments_;
+
+        void
+        EmitStructArgument(std::ostream &stream, Context &context, Register &firstIntegerReg, Register &firstFloatReg,
+                           int &stackOffset, const TypeSpecifier &type, int &memberOffset,
+                           const Register &baseAddressReg) const;
     };
 
     using ArgumentExpressionListPtr = std::unique_ptr<const ArgumentExpressionList>;
