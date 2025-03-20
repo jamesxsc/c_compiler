@@ -43,7 +43,9 @@ namespace ast {
                 stream << "lbu " << destReg << ",0(" << addressReg << ")" << std::endl;
                 break;
             case TypeSpecifier::ARRAY:
-                // todo do we load it like a ptr?
+                // Load start address
+                stream << "mv " << destReg << "," << addressReg << std::endl;
+                break;
             case TypeSpecifier::VOID:
             case TypeSpecifier::STRUCT: // Never called
                 throw std::runtime_error(

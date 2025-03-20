@@ -4,6 +4,7 @@
 
 namespace ast {
 
+    // todo check multidim and inferrence here
     void ExternalDeclaration::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         if (IsTypedef()) return;
 
