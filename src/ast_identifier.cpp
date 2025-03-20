@@ -13,6 +13,7 @@ namespace ast {
                 stream << "addi " << destReg << "," << destReg << ",%lo(" << identifier_ << ")" << std::endl;
 
                 if (GetType(context) == TypeSpecifier::POINTER && context.dereference) { // todo array?
+                    // todo recursion and struct case outside of emitlhs
                     stream << "lw " << destReg << ",0(" << destReg << ")" << std::endl;
                 }
             } else if (context.CurrentFrame().bindings.Contains(identifier_)) {
@@ -61,9 +62,9 @@ namespace ast {
                     stream << "lui " << destReg << ",%hi(" << identifier_ << ")" << std::endl;
                     stream << "addi " << destReg << "," << destReg << ",%lo(" << identifier_ << ")" << std::endl;
                     break;
-                case TypeSpecifier::VOID:
                 case TypeSpecifier::STRUCT:
-                    // todo handle return global struct
+                    // do this
+                case TypeSpecifier::VOID:
                     throw std::runtime_error(
                             "Identifier::EmitRISC() called on an unsupported type");
             }

@@ -27,6 +27,7 @@ namespace ast {
         DeclarationSpecifiersPtr declarationSpecifiers_;
         InitDeclaratorListPtr initDeclaratorList_;
 
+    private:
         static void
         EmitStructInitializer(const InitializerList &initializerList, const TypeSpecifier &type, const Register &tempReg,
                               int baseOffset, std::ostream &stream, Context &context) ;

@@ -14,6 +14,12 @@ namespace ast {
 
         void Print(std::ostream &stream) const override;
 
+    private:
+        static void EmitStructInitializer(std::ostream &stream, Context &context, const InitializerList &initializerList,
+                                   const TypeSpecifier &type);
+
+        static void EmitArrayInitializer(std::ostream &stream, Context &context, const InitializerList &initializerList,
+                                  const TypeSpecifier &type);
     };
 
 }
