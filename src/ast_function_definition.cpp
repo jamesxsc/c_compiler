@@ -17,7 +17,7 @@ namespace ast {
 
         // Push a new frame onto the stack
         // todo maybe we can do something pretty good here
-        int frameSize = 512; // bytes fixed until we get time to perform analysis of how large the frame needs to be
+        int frameSize = 1024; // bytes fixed until we get time to perform analysis of how large the frame needs to be
         context.PushFrame({
                                   .size = frameSize,
                                   .bindings = Bindings(frameSize,
