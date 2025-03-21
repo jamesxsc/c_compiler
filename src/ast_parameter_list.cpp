@@ -50,6 +50,8 @@ namespace ast {
                 case TypeSpecifier::FLOAT:
                 case TypeSpecifier::DOUBLE:
                     if (noFloatRegs) {
+                        if (stackOffset % type.GetAlignment() != 0)
+                            stackOffset += type.GetAlignment() - (stackOffset % type.GetAlignment());
                         if (used) {
                             Register tempReg = context.AllocateTemporary(stream, true);
                             stream << (type == TypeSpecifier::FLOAT ? "flw " : "fld ") << tempReg << ","
@@ -71,6 +73,8 @@ namespace ast {
                 case TypeSpecifier::ENUM:
                 case TypeSpecifier::UNSIGNED:
                     if (noIntRegs) {
+                        if (stackOffset % type.GetAlignment() != 0)
+                            stackOffset += type.GetAlignment() - (stackOffset % type.GetAlignment());
                         if (used) {
                             Register tempReg = context.AllocateTemporary(stream);
                             stream << "lw " << tempReg << "," << stackOffset << "(s0)" << std::endl;
@@ -86,6 +90,8 @@ namespace ast {
                     break;
                 case TypeSpecifier::CHAR:
                     if (noIntRegs) {
+                        if (stackOffset % type.GetAlignment() != 0)
+                            stackOffset += type.GetAlignment() - (stackOffset % type.GetAlignment());
                         if (used) {
                             Register tempReg = context.AllocateTemporary(stream);
                             stream << "lbu " << tempReg << "," << stackOffset << "(s0)" << std::endl;
@@ -100,6 +106,8 @@ namespace ast {
                     }
                     break;
                 case TypeSpecifier::STRUCT:
+                    if (stackOffset % type.GetAlignment() != 0)
+                        stackOffset += type.GetAlignment() - (stackOffset % type.GetAlignment());
                     EmitStructParameter(type, stream, context, used, noIntRegs, noFloatRegs, var.offset, iidx, fidx,
                                         stackOffset, type.UseStack());
                     break;

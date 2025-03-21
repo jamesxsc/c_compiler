@@ -6,14 +6,15 @@ namespace ast {
         Register firstIntegerReg = Register::a0;
         Register firstFloatReg = Register::fa0;
         int stackOffset = 0;
-        for (const auto &argument: arguments_) { // todo padding?
+        for (const auto &argument: arguments_) {
             TypeSpecifier type = argument->GetType(context);
             if (type == TypeSpecifier::STRUCT) {
                 if (type.UseStack()) {
                     if (firstIntegerReg > Register::a7) { // Out of registers; use stack
+                        if (stackOffset % type.GetAlignment() != 0)
+                            stackOffset += type.GetAlignment() - (stackOffset % type.GetAlignment());
                         Register tempReg = context.AllocateTemporary(stream);
-                        {
-                            Context::ScopedEmitLHS guard(context, true);
+                        { Context::ScopedEmitLHS guard(context, true);
                             argument->EmitRISC(stream, context, tempReg);
                         }
                         // Store pointer
@@ -22,8 +23,7 @@ namespace ast {
                         context.FreeTemporary(tempReg, stream);
                     } else {
                         // It will be copied if necessary by the callee, so we just return the address
-                        {
-                            Context::ScopedEmitLHS guard(context, true);
+                        { Context::ScopedEmitLHS guard(context, true);
                             argument->EmitRISC(stream, context, firstIntegerReg);
                         }
                         firstIntegerReg = static_cast<Register>(static_cast<int>(firstIntegerReg) + 1);
@@ -37,9 +37,12 @@ namespace ast {
                     }
                     EmitStructArgument(stream, context, firstIntegerReg, firstFloatReg, stackOffset, type, memberOffset,
                                        baseAddressReg);
+                    context.FreeTemporary(baseAddressReg, stream);
                 }
             } else if (type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE) {
                 if (firstFloatReg > Register::fa7) { // Out of registers; use stack
+                    if (stackOffset % type.GetAlignment() != 0)
+                        stackOffset += type.GetAlignment() - (stackOffset % type.GetAlignment());
                     Register tempReg = context.AllocateTemporary(stream, true);
                     argument->EmitRISC(stream, context, tempReg);
                     stream << (type == TypeSpecifier::FLOAT ? "fsw " : "fsd ") << tempReg << "," << stackOffset
@@ -52,6 +55,8 @@ namespace ast {
                 }
             } else {
                 if (firstIntegerReg > Register::a7) { // Out of registers; use stack
+                    if (stackOffset % type.GetAlignment() != 0)
+                        stackOffset += type.GetAlignment() - (stackOffset % type.GetAlignment());
                     Register tempReg = context.AllocateTemporary(stream);
                     argument->EmitRISC(stream, context, tempReg);
                     stream << "sw " << tempReg << "," << stackOffset << "(sp)" << std::endl;
@@ -126,7 +131,6 @@ namespace ast {
             }
             memberOffset += member.second.GetTypeSize();
         }
-        context.FreeTemporary(baseAddressReg, stream);
     }
 
     void ArgumentExpressionList::Print(std::ostream &stream) const {

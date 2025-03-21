@@ -173,22 +173,21 @@ namespace ast {
         return label;
     }
 
-    // todo make it const if we can be bothered to get a const frame and isarray
-    bool Context::IsGlobal(const std::string &identifier) {
+    bool Context::IsGlobal(const std::string &identifier) const {
         bool isGlobal = globals_.find(identifier) != globals_.end();
         if (!isGlobal) return false;
 
         // Shadowing check
-        return !(!stack_.empty() && CurrentFrame().bindings.Contains(identifier));
+        return !(!stack_.empty() && CurrentBindings().Contains(identifier));
     }
 
-    bool Context::IsArray(const std::string &identifier) {
+    bool Context::IsArray(const std::string &identifier) const {
         // I like how we call is global first here, because it guarantees we are checking the correct one (shadowing)
         if (IsGlobal(identifier)) {
             auto it = globals_.find(identifier);
             return it != globals_.end() && it->second.IsArray();
         } else {
-            return CurrentFrame().bindings.IsArray(identifier);
+            return CurrentBindings().IsArray(identifier);
         }
     }
 
@@ -215,19 +214,19 @@ namespace ast {
     }
 
     // Some duplication in finding where it is but it's ok
-    int Context::LookupEnum(const std::string &identifier) {
+    int Context::LookupEnum(const std::string &identifier) const {
         // Try in scope first
         if (!stack_.empty()) {
-            if (CurrentFrame().enums.Contains(identifier)) {
-                return CurrentFrame().enums.Lookup(identifier);
+            if (CurrentEnums().Contains(identifier)) {
+                return CurrentEnums().Lookup(identifier);
             }
         }
         return globalEnums_.Lookup(identifier); // Will throw if not found
     }
 
-    bool Context::IsEnum(const std::string &identifier) {
+    bool Context::IsEnum(const std::string &identifier) const {
         if (!stack_.empty()) {
-            if (CurrentFrame().enums.Contains(identifier)) {
+            if (CurrentEnums().Contains(identifier)) {
                 return true;
             }
         }
@@ -239,19 +238,19 @@ namespace ast {
         globalStructs_.Insert(identifier, members);
     }
 
-    std::vector<std::pair<std::string, TypeSpecifier>> Context::GetStruct(const std::string &identifier) {
+    std::vector<std::pair<std::string, TypeSpecifier>> Context::GetStruct(const std::string &identifier) const {
         // Try in local scope first
         if (!stack_.empty()) {
-            if (CurrentFrame().structs.Contains(identifier)) {
-                return CurrentFrame().structs.GetStruct(identifier);
+            if (CurrentStructs().Contains(identifier)) {
+                return CurrentStructs().GetStruct(identifier);
             }
         }
         return globalStructs_.GetStruct(identifier); // Will throw if not found
     }
 
-    bool Context::IsStruct(const std::string &identifier) {
+    bool Context::IsStruct(const std::string &identifier) const {
         if (!stack_.empty()) {
-            if (CurrentFrame().structs.Contains(identifier)) {
+            if (CurrentStructs().Contains(identifier)) {
                 return true;
             }
         }
@@ -279,7 +278,7 @@ namespace ast {
         return type;
     }
 
-    TypeSpecifier Context::ResolveTypeAlias(std::vector<TypeSpecifier> specifiers) {
+    TypeSpecifier Context::ResolveTypeAlias(std::vector<TypeSpecifier> specifiers) const {
         if (specifiers.size() == 1) {
             TypeSpecifier type = specifiers.front(); // Must copy
             if (type.IsStruct()) {
@@ -308,6 +307,21 @@ namespace ast {
 
     bool Context::EmitLHS() {
         return emitLHS_;
+    }
+
+    const Bindings &Context::CurrentBindings() const {
+        assert(!stack_.empty() && "Attempted to get bindings from empty stack");
+        return stack_.back().bindings;
+    }
+
+    const Enums &Context::CurrentEnums() const {
+        assert(!stack_.empty() && "Attempted to get enums from empty stack");
+        return stack_.back().enums;
+    }
+
+    const Structs &Context::CurrentStructs() const {
+        assert(!stack_.empty() && "Attempted to get structs from empty stack");
+        return stack_.back().structs;
     }
 
     Context::ScopedEmitLHS::ScopedEmitLHS(Context &context, bool newValue) :

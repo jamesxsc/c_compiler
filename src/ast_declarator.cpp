@@ -58,11 +58,19 @@ namespace ast {
         exit(1);
     }
 
-    Variable Declarator::BuildArray(TypeSpecifier type, Context &context) const {
+    Variable Declarator::BuildArray(TypeSpecifier type, Context &context, const Initializer *initializer) const {
         for (const auto &size: arraySizes_) {
-            if (!size)
-                throw std::runtime_error("Declarator::BuildArray() called on an array without a size");
-            type = {type, size->Evaluate(context)};
+            if (!size) {// This only occurs for a param (or inferred size)
+                // Size inference:
+                if (initializer && initializer->IsList()) {
+                    int inferredSize = initializer->ListSize();
+                    type = {type, inferredSize};
+                } else
+                    throw std::runtime_error(
+                            "Declarator::BuildArray() called on an array without a size or initializer list to infer from");
+            } else {
+                type = {type, size->Evaluate(context)};
+            }
         }
         return {
                 .size = type.GetTypeSize(),

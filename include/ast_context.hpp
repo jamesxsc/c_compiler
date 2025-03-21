@@ -51,6 +51,12 @@ namespace ast {
 
         StackFrame &CurrentFrame();
 
+        const Bindings &CurrentBindings() const;
+
+        const Enums &CurrentEnums() const;
+
+        const Structs &CurrentStructs() const;
+
         void PushFrame(StackFrame &&frame);
 
         void PushScope();
@@ -65,9 +71,9 @@ namespace ast {
 
         std::string MakeLabel(const std::string &prefix);
 
-        [[nodiscard]] bool IsGlobal(const std::string &identifier);
+        [[nodiscard]] bool IsGlobal(const std::string &identifier) const;
 
-        [[nodiscard]] bool IsArray(const std::string &identifier);
+        [[nodiscard]] bool IsArray(const std::string &identifier) const;
 
         void InsertGlobal(const std::string &identifier, TypeSpecifier type);
 
@@ -75,21 +81,21 @@ namespace ast {
 
         void InsertGlobalEnum(const std::string &identifier, const std::map<std::string, int> &values);
 
-        [[nodiscard]] bool IsEnum(const std::string &identifier);
+        [[nodiscard]] bool IsEnum(const std::string &identifier) const;
 
-        [[nodiscard]] int LookupEnum(const std::string &identifier);
+        [[nodiscard]] int LookupEnum(const std::string &identifier) const;
 
         void InsertGlobalStruct(const std::string &identifier, const std::vector<std::pair<std::string, TypeSpecifier>> &members);
 
-        [[nodiscard]] std::vector<std::pair<std::string, TypeSpecifier>> GetStruct(const std::string &identifier);
+        [[nodiscard]] std::vector<std::pair<std::string, TypeSpecifier>> GetStruct(const std::string &identifier) const;
 
-        [[nodiscard]] bool IsStruct(const std::string &identifier);
+        [[nodiscard]] bool IsStruct(const std::string &identifier) const;
 
         std::ostream &DeferredRISC();
 
         void EmitDeferredRISC(std::ostream &stream);
 
-        TypeSpecifier ResolveTypeAlias(std::vector<TypeSpecifier> specifiers);
+        TypeSpecifier ResolveTypeAlias(std::vector<TypeSpecifier> specifiers) const;
 
         static TypeSpecifier ResolveTypeAliasStatic(std::vector<TypeSpecifier> specifiers);
 

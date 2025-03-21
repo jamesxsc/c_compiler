@@ -16,7 +16,9 @@ namespace ast {
 
         void Print(std::ostream &stream) const override;
 
-        bool IsList() const override;
+        [[nodiscard]] bool IsList() const override;
+
+        [[nodiscard]] int ListSize() const override;
 
         void AddInitializer(InitializerPtr initializer) override;
 

@@ -35,6 +35,7 @@
 #include "ast_function_call_expression.hpp"
 #include "ast_function_definition.hpp"
 #include "ast_identifier.hpp"
+#include "ast_if_statement.hpp"
 #include "ast_inclusive_or_expression.hpp"
 #include "ast_init_declarator.hpp"
 #include "ast_init_declarator_list.hpp"
@@ -52,7 +53,6 @@
 #include "ast_primary_expression.hpp"
 #include "ast_type_specifier.hpp"
 #include "ast_relational_expression.hpp"
-#include "ast_selection_statement.hpp"
 #include "ast_shift_expression.hpp"
 #include "ast_specifier_qualifier_list.hpp"
 #include "ast_statement.hpp"
@@ -63,6 +63,7 @@
 #include "ast_struct_declarator_list.hpp"
 #include "ast_struct_member_access_expression.hpp"
 #include "ast_struct_specifier.hpp"
+#include "ast_switch_statement.hpp"
 #include "ast_type_name.hpp"
 
 ast::NodePtr ParseAST(std::string file_name);

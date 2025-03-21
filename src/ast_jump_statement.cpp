@@ -34,6 +34,10 @@ namespace ast {
                 throw std::runtime_error("ReturnStatement::EmitRISC() called on an unsupported type");
         }
 
+        if (returnType == TypeSpecifier::CHAR) {
+            stream << "andi " << Register::a0 << "," << Register::a0 << ",0xff" << std::endl; // Mask char returns
+        }
+
         stream << "j " << *context.CurrentFrame().returnLabel << std::endl;
     }
 

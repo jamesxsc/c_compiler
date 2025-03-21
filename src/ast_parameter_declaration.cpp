@@ -26,7 +26,7 @@ namespace ast {
         if (identifier_ && identifier_->IsPointer())
             type = {TypeSpecifier::POINTER, type};
         if (identifier_ && identifier_->IsArray())
-            type = identifier_->BuildArray(type, context).type;
+            type = {TypeSpecifier::POINTER, type}; // Ok, we haven't built it into an array type yet
         return type;
     }
 

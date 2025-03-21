@@ -124,7 +124,7 @@ namespace ast::Utils {
             case TypeSpecifier::ENUM: // GCC uses remu, but only as an optimisation
                 stream << "rem " << result << "," << leftReg << "," << rightReg << std::endl;
                 break;
-            case TypeSpecifier::CHAR: // todo there is masking here, at least when int is result check!
+            case TypeSpecifier::CHAR:
             case TypeSpecifier::UNSIGNED: // This is after promotion so no need to check signs
                 stream << "remu " << result << "," << leftReg << "," << rightReg << std::endl;
                 break;
