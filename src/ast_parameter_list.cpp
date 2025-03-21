@@ -8,8 +8,6 @@ namespace ast {
             parameters_.push_back(std::move(first));
     }
 
-    // todo some extraction and simplification throughout - this for example is getting a bit crazy
-
     void ParameterList::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         if (parameters_.empty() && !hiddenPointerReturn_) {
             return;
@@ -112,7 +110,7 @@ namespace ast {
                                         stackOffset, type.UseStack());
                     break;
                 case TypeSpecifier::VOID:
-                case TypeSpecifier::ARRAY:
+                case TypeSpecifier::ARRAY: // Arrays are passed as ptr so we should never get here
                     throw std::runtime_error(
                             "ParameterList::EmitRISC() called on an unsupported array type");
             }
@@ -132,7 +130,7 @@ namespace ast {
                 case TypeSpecifier::Type::INT:
                 case TypeSpecifier::Type::UNSIGNED:
                 case TypeSpecifier::Type::POINTER:
-                case TypeSpecifier::Type::ARRAY: // todo array recursion
+                case TypeSpecifier::Type::ARRAY: // todo array recursion - do we need to check on size? create a multidim test, has to have bothdims defined
                 case TypeSpecifier::Type::ENUM:
                     if (useStack && used) {
                         Register tempReg = context.AllocateTemporary(stream);

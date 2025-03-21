@@ -35,7 +35,8 @@ namespace ast {
             }
             case UnaryOperator::Dereference: {
                 context.dereference = true;
-                TypeSpecifier pointeeType = multiplicativeChild_->GetType(context).GetPointeeType();
+                TypeSpecifier type = multiplicativeChild_->GetType(context);
+                TypeSpecifier pointeeType = type.IsArray() ? type.GetArrayType() : type.GetPointeeType();
                 switch (pointeeType) {
                     case TypeSpecifier::Type::INT:
                     case TypeSpecifier::Type::UNSIGNED:

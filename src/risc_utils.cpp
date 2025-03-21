@@ -290,8 +290,7 @@ namespace ast::Utils {
         }
     }
 
-    // TODO handle array type here - should only be for pointer treating in add/sub
-    // but where does it get passed, identifier? need tests ASAP
+    // Note that an array passed as parameter will have pointer type by here
     TypeSpecifier BinaryAdditionResultType(const TypeSpecifier &leftType, const TypeSpecifier &rightType) {
         // Choose wider type, and choose unsigned if equal
         // Differs from other operators because of ptr arithmetic

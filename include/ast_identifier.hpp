@@ -28,6 +28,11 @@ namespace ast {
 
         [[nodiscard]] std::string GetGlobalIdentifier() const override;
 
+        static void
+        EmitStructReturnInRegisters(Context &context, std::ostream &stream, int offset, Register &intReg,
+                                    Register &floatReg,
+                                    const std::vector<std::pair<std::string, TypeSpecifier>> &structMembers,
+                                    const Register &loadAddressReg = Register::zero);
     };
 
 } // namespace ast

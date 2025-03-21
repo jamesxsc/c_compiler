@@ -7,7 +7,6 @@ namespace ast {
 
     void FunctionDefinition::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         // Emit assembler directives.
-        // TODO investigate directives and what is actually required for the scope of this project
         stream << ".text" << std::endl;
         stream << ".align 2" << std::endl;
         // .globl directive is handled by declarator
@@ -17,6 +16,7 @@ namespace ast {
         context.InsertFunction(declarator_->GetIdentifier(), declarator_->BuildFunction(GetType(context), context));
 
         // Push a new frame onto the stack
+        // todo maybe we can do something pretty good here
         int frameSize = 512; // bytes fixed until we get time to perform analysis of how large the frame needs to be
         context.PushFrame({
                                   .size = frameSize,

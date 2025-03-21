@@ -28,7 +28,6 @@ namespace ast {
                 stream << ".globl " << identifier << std::endl;
                 int alignment = static_cast<int>(std::log2(type.GetAlignment()));
                 stream << ".align " << alignment << std::endl;
-                // TODO check directives and what is required for our project
                 stream << ".data" << std::endl; // .sdata may be more appropriate (GCC)
                 if (initDeclarator->HasInitializer()) {
                     if (type.IsArray()) {

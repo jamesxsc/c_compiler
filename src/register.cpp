@@ -1,416 +1,206 @@
 #include "register.hpp"
 
-namespace ast {
+#define REGISTER_CASE(reg) case Register::reg: stream << #reg; break;
 
-    // todo make this tidier with some macros
+#define INDEX_REGISTER_CASE(reg, index) case Register::reg: return index;
+
+#define REGISTER_INDEX_CASE(index, reg) case index: return Register::reg;
+
+namespace ast {
 
     std::ostream &operator<<(std::ostream &stream, Register reg) {
         switch (reg) {
-            case Register::zero:
-                stream << "zero";
-                break;
-            case Register::ra:
-                stream << "ra";
-                break;
-            case Register::sp:
-                stream << "sp";
-                break;
-            case Register::gp:
-                stream << "gp";
-                break;
-            case Register::tp:
-                stream << "tp";
-                break;
-            case Register::t0:
-                stream << "t0";
-                break;
-            case Register::t1:
-                stream << "t1";
-                break;
-            case Register::t2:
-                stream << "t2";
-                break;
-            case Register::s0:
-                stream << "s0";
-                break;
-            case Register::s1:
-                stream << "s1";
-                break;
-            case Register::a0:
-                stream << "a0";
-                break;
-            case Register::a1:
-                stream << "a1";
-                break;
-            case Register::a2:
-                stream << "a2";
-                break;
-            case Register::a3:
-                stream << "a3";
-                break;
-            case Register::a4:
-                stream << "a4";
-                break;
-            case Register::a5:
-                stream << "a5";
-                break;
-            case Register::a6:
-                stream << "a6";
-                break;
-            case Register::a7:
-                stream << "a7";
-                break;
-            case Register::s2:
-                stream << "s2";
-                break;
-            case Register::s3:
-                stream << "s3";
-                break;
-            case Register::s4:
-                stream << "s4";
-                break;
-            case Register::s5:
-                stream << "s5";
-                break;
-            case Register::s6:
-                stream << "s6";
-                break;
-            case Register::s7:
-                stream << "s7";
-                break;
-            case Register::s8:
-                stream << "s8";
-                break;
-            case Register::s9:
-                stream << "s9";
-                break;
-            case Register::s10:
-                stream << "s10";
-                break;
-            case Register::s11:
-                stream << "s11";
-                break;
-            case Register::t3:
-                stream << "t3";
-                break;
-            case Register::t4:
-                stream << "t4";
-                break;
-            case Register::t5:
-                stream << "t5";
-                break;
-            case Register::t6:
-                stream << "t6";
-                break;
-            case Register::ft0:
-                stream << "ft0";
-                break;
-            case Register::ft1:
-                stream << "ft1";
-                break;
-            case Register::ft2:
-                stream << "ft2";
-                break;
-            case Register::ft3:
-                stream << "ft3";
-                break;
-            case Register::ft4:
-                stream << "ft4";
-                break;
-            case Register::ft5:
-                stream << "ft5";
-                break;
-            case Register::ft6:
-                stream << "ft6";
-                break;
-            case Register::ft7:
-                stream << "ft7";
-                break;
-            case Register::fs0:
-                stream << "fs0";
-                break;
-            case Register::fs1:
-                stream << "fs1";
-                break;
-            case Register::fa0:
-                stream << "fa0";
-                break;
-            case Register::fa1:
-                stream << "fa1";
-                break;
-            case Register::fa2:
-                stream << "fa2";
-                break;
-            case Register::fa3:
-                stream << "fa3";
-                break;
-            case Register::fa4:
-                stream << "fa4";
-                break;
-            case Register::fa5:
-                stream << "fa5";
-                break;
-            case Register::fa6:
-                stream << "fa6";
-                break;
-            case Register::fa7:
-                stream << "fa7";
-                break;
-            case Register::fs2:
-                stream << "fs2";
-                break;
-            case Register::fs3:
-                stream << "fs3";
-                break;
-            case Register::fs4:
-                stream << "fs4";
-                break;
-            case Register::fs5:
-                stream << "fs5";
-                break;
-            case Register::fs6:
-                stream << "fs6";
-                break;
-            case Register::fs7:
-                stream << "fs7";
-                break;
-            case Register::fs8:
-                stream << "fs8";
-                break;
-            case Register::fs9:
-                stream << "fs9";
-                break;
-            case Register::fs10:
-                stream << "fs10";
-                break;
-            case Register::fs11:
-                stream << "fs11";
-                break;
-            case Register::ft8:
-                stream << "ft8";
-                break;
-            case Register::ft9:
-                stream << "ft9";
-                break;
-            case Register::ft10:
-                stream << "ft10";
-                break;
-            case Register::ft11:
-                stream << "ft11";
-                break;
+            REGISTER_CASE(zero)
+            REGISTER_CASE(ra)
+            REGISTER_CASE(sp)
+            REGISTER_CASE(gp)
+            REGISTER_CASE(tp)
+            REGISTER_CASE(t0)
+            REGISTER_CASE(t1)
+            REGISTER_CASE(t2)
+            REGISTER_CASE(s0)
+            REGISTER_CASE(s1)
+            REGISTER_CASE(a0)
+            REGISTER_CASE(a1)
+            REGISTER_CASE(a2)
+            REGISTER_CASE(a3)
+            REGISTER_CASE(a4)
+            REGISTER_CASE(a5)
+            REGISTER_CASE(a6)
+            REGISTER_CASE(a7)
+            REGISTER_CASE(s2)
+            REGISTER_CASE(s3)
+            REGISTER_CASE(s4)
+            REGISTER_CASE(s5)
+            REGISTER_CASE(s6)
+            REGISTER_CASE(s7)
+            REGISTER_CASE(s8)
+            REGISTER_CASE(s9)
+            REGISTER_CASE(s10)
+            REGISTER_CASE(s11)
+            REGISTER_CASE(t3)
+            REGISTER_CASE(t4)
+            REGISTER_CASE(t5)
+            REGISTER_CASE(t6)
+            REGISTER_CASE(ft0)
+            REGISTER_CASE(ft1)
+            REGISTER_CASE(ft2)
+            REGISTER_CASE(ft3)
+            REGISTER_CASE(ft4)
+            REGISTER_CASE(ft5)
+            REGISTER_CASE(ft6)
+            REGISTER_CASE(ft7)
+            REGISTER_CASE(fs0)
+            REGISTER_CASE(fs1)
+            REGISTER_CASE(fa0)
+            REGISTER_CASE(fa1)
+            REGISTER_CASE(fa2)
+            REGISTER_CASE(fa3)
+            REGISTER_CASE(fa4)
+            REGISTER_CASE(fa5)
+            REGISTER_CASE(fa6)
+            REGISTER_CASE(fa7)
+            REGISTER_CASE(fs2)
+            REGISTER_CASE(fs3)
+            REGISTER_CASE(fs4)
+            REGISTER_CASE(fs5)
+            REGISTER_CASE(fs6)
+            REGISTER_CASE(fs7)
+            REGISTER_CASE(fs8)
+            REGISTER_CASE(fs9)
+            REGISTER_CASE(fs10)
+            REGISTER_CASE(fs11)
+            REGISTER_CASE(ft8)
+            REGISTER_CASE(ft9)
+            REGISTER_CASE(ft10)
+            REGISTER_CASE(ft11)
         }
         return stream;
     }
 
     int IndexOfIntegerTemporary(Register reg) {
         switch (reg) {
-            case Register::t0:
-                return 0;
-            case Register::t1:
-                return 1;
-            case Register::t2:
-                return 2;
-            case Register::t3:
-                return 3;
-            case Register::t4:
-                return 4;
-            case Register::t5:
-                return 5;
-            case Register::t6:
-                return 6;
-            default:
-                return -1;
+            INDEX_REGISTER_CASE(t0, 0)
+            INDEX_REGISTER_CASE(t1, 1)
+            INDEX_REGISTER_CASE(t2, 2)
+            INDEX_REGISTER_CASE(t3, 3)
+            INDEX_REGISTER_CASE(t4, 4)
+            INDEX_REGISTER_CASE(t5, 5)
+            INDEX_REGISTER_CASE(t6, 6)
+            default: return -1;
         }
     }
 
     int IndexOfFloatTemporary(Register reg) {
         switch (reg) {
-            case Register::ft0:
-                return 0;
-            case Register::ft1:
-                return 1;
-            case Register::ft2:
-                return 2;
-            case Register::ft3:
-                return 3;
-            case Register::ft4:
-                return 4;
-            case Register::ft5:
-                return 5;
-            case Register::ft6:
-                return 6;
-            case Register::ft7:
-                return 7;
-            default:
-                return -1;
+            INDEX_REGISTER_CASE(ft0, 0)
+            INDEX_REGISTER_CASE(ft1, 1)
+            INDEX_REGISTER_CASE(ft2, 2)
+            INDEX_REGISTER_CASE(ft3, 3)
+            INDEX_REGISTER_CASE(ft4, 4)
+            INDEX_REGISTER_CASE(ft5, 5)
+            INDEX_REGISTER_CASE(ft6, 6)
+            INDEX_REGISTER_CASE(ft7, 7)
+            default: return -1;
         }
     }
 
     Register IntegerTemporaryAtIndex(int index) {
         switch (index) {
-            case 0:
-                return Register::t0;
-            case 1:
-                return Register::t1;
-            case 2:
-                return Register::t2;
-            case 3:
-                return Register::t3;
-            case 4:
-                return Register::t4;
-            case 5:
-                return Register::t5;
-            case 6:
-                return Register::t6;
-            default:
-                return Register::zero;
+            REGISTER_INDEX_CASE(0, t0)
+            REGISTER_INDEX_CASE(1, t1)
+            REGISTER_INDEX_CASE(2, t2)
+            REGISTER_INDEX_CASE(3, t3)
+            REGISTER_INDEX_CASE(4, t4)
+            REGISTER_INDEX_CASE(5, t5)
+            REGISTER_INDEX_CASE(6, t6)
+            default: return Register::zero;
         }
     }
 
     Register FloatTemporaryAtIndex(int index) {
         switch (index) {
-            case 0:
-                return Register::ft0;
-            case 1:
-                return Register::ft1;
-            case 2:
-                return Register::ft2;
-            case 3:
-                return Register::ft3;
-            case 4:
-                return Register::ft4;
-            case 5:
-                return Register::ft5;
-            case 6:
-                return Register::ft6;
-            case 7:
-                return Register::ft7;
-            default:
-                return Register::zero;
+            REGISTER_INDEX_CASE(0, ft0)
+            REGISTER_INDEX_CASE(1, ft1)
+            REGISTER_INDEX_CASE(2, ft2)
+            REGISTER_INDEX_CASE(3, ft3)
+            REGISTER_INDEX_CASE(4, ft4)
+            REGISTER_INDEX_CASE(5, ft5)
+            REGISTER_INDEX_CASE(6, ft6)
+            REGISTER_INDEX_CASE(7, ft7)
+            default: return Register::zero;
         }
     }
 
     Register IntegerPersistentAtIndex(int index) {
         switch (index) {
-            case 0:
-                return Register::s0;
-            case 1:
-                return Register::s1;
-            case 2:
-                return Register::s2;
-            case 3:
-                return Register::s3;
-            case 4:
-                return Register::s4;
-            case 5:
-                return Register::s5;
-            case 6:
-                return Register::s6;
-            case 7:
-                return Register::s7;
-            case 8:
-                return Register::s8;
-            case 9:
-                return Register::s9;
-            case 10:
-                return Register::s10;
-            case 11:
-                return Register::s11;
-            default:
-                return Register::zero;
+            REGISTER_INDEX_CASE(0, s0)
+            REGISTER_INDEX_CASE(1, s1)
+            REGISTER_INDEX_CASE(2, s2)
+            REGISTER_INDEX_CASE(3, s3)
+            REGISTER_INDEX_CASE(4, s4)
+            REGISTER_INDEX_CASE(5, s5)
+            REGISTER_INDEX_CASE(6, s6)
+            REGISTER_INDEX_CASE(7, s7)
+            REGISTER_INDEX_CASE(8, s8)
+            REGISTER_INDEX_CASE(9, s9)
+            REGISTER_INDEX_CASE(10, s10)
+            REGISTER_INDEX_CASE(11, s11)
+            default: return Register::zero;
         }
     }
 
     Register FloatPersistentAtIndex(int index) {
         switch (index) {
-            case 0:
-                return Register::fs0;
-            case 1:
-                return Register::fs1;
-            case 2:
-                return Register::fs2;
-            case 3:
-                return Register::fs3;
-            case 4:
-                return Register::fs4;
-            case 5:
-                return Register::fs5;
-            case 6:
-                return Register::fs6;
-            case 7:
-                return Register::fs7;
-            case 8:
-                return Register::fs8;
-            case 9:
-                return Register::fs9;
-            case 10:
-                return Register::fs10;
-            case 11:
-                return Register::fs11;
-            default:
-                return Register::zero;
+            REGISTER_INDEX_CASE(0, fs0)
+            REGISTER_INDEX_CASE(1, fs1)
+            REGISTER_INDEX_CASE(2, fs2)
+            REGISTER_INDEX_CASE(3, fs3)
+            REGISTER_INDEX_CASE(4, fs4)
+            REGISTER_INDEX_CASE(5, fs5)
+            REGISTER_INDEX_CASE(6, fs6)
+            REGISTER_INDEX_CASE(7, fs7)
+            REGISTER_INDEX_CASE(8, fs8)
+            REGISTER_INDEX_CASE(9, fs9)
+            REGISTER_INDEX_CASE(10, fs10)
+            REGISTER_INDEX_CASE(11, fs11)
+            default: return Register::zero;
         }
     }
 
     int IndexOfIntegerPersistent(Register reg) {
         switch (reg) {
-            case Register::s0:
-                return 0;
-            case Register::s1:
-                return 1;
-            case Register::s2:
-                return 2;
-            case Register::s3:
-                return 3;
-            case Register::s4:
-                return 4;
-            case Register::s5:
-                return 5;
-            case Register::s6:
-                return 6;
-            case Register::s7:
-                return 7;
-            case Register::s8:
-                return 8;
-            case Register::s9:
-                return 9;
-            case Register::s10:
-                return 10;
-            case Register::s11:
-                return 11;
-            default:
-                return -1;
+            INDEX_REGISTER_CASE(s0, 0)
+            INDEX_REGISTER_CASE(s1, 1)
+            INDEX_REGISTER_CASE(s2, 2)
+            INDEX_REGISTER_CASE(s3, 3)
+            INDEX_REGISTER_CASE(s4, 4)
+            INDEX_REGISTER_CASE(s5, 5)
+            INDEX_REGISTER_CASE(s6, 6)
+            INDEX_REGISTER_CASE(s7, 7)
+            INDEX_REGISTER_CASE(s8, 8)
+            INDEX_REGISTER_CASE(s9, 9)
+            INDEX_REGISTER_CASE(s10, 10)
+            INDEX_REGISTER_CASE(s11, 11)
+            default: return -1;
         }
     }
 
     int IndexOfFloatPersistent(Register reg) {
         switch (reg) {
-            case Register::fs0:
-                return 0;
-            case Register::fs1:
-                return 1;
-            case Register::fs2:
-                return 2;
-            case Register::fs3:
-                return 3;
-            case Register::fs4:
-                return 4;
-            case Register::fs5:
-                return 5;
-            case Register::fs6:
-                return 6;
-            case Register::fs7:
-                return 7;
-            case Register::fs8:
-                return 8;
-            case Register::fs9:
-                return 9;
-            case Register::fs10:
-                return 10;
-            case Register::fs11:
-                return 11;
-            default:
-                return -1;
+            INDEX_REGISTER_CASE(fs0, 0)
+            INDEX_REGISTER_CASE(fs1, 1)
+            INDEX_REGISTER_CASE(fs2, 2)
+            INDEX_REGISTER_CASE(fs3, 3)
+            INDEX_REGISTER_CASE(fs4, 4)
+            INDEX_REGISTER_CASE(fs5, 5)
+            INDEX_REGISTER_CASE(fs6, 6)
+            INDEX_REGISTER_CASE(fs7, 7)
+            INDEX_REGISTER_CASE(fs8, 8)
+            INDEX_REGISTER_CASE(fs9, 9)
+            INDEX_REGISTER_CASE(fs10, 10)
+            INDEX_REGISTER_CASE(fs11, 11)
+            default: return -1;
         }
     }
 

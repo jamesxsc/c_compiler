@@ -37,7 +37,7 @@ namespace ast {
             stream << "sw " << IntegerTemporaryAtIndex(spill) << "," << var.offset << "(sp)" << std::endl;
             lastSpilled = spill;
 
-            return IntegerTemporaryAtIndex(spill); // todo fix this its shit
+            return IntegerTemporaryAtIndex(spill); // todo fix this its shit maybe good enough to just use persistent too and have a common free
         }
         throw std::runtime_error("Out of temporaries");
     }

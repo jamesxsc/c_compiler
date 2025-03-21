@@ -87,23 +87,22 @@
 * ~~Test for if (f) and while/for where f is a float or double to be implicitly converted. Same for pointer and char~~
 * ~~Test for multidimensional arrays~~
 * ~~Test for float equality e.g. f == 2.0f or d == 2.0d~~
-* Test using "unsigned int" type
-* Tests for integral promotion
+* ~~Test using "unsigned int" type~~
+* ~~Tests for integral promotion~~
 * ~~Test for sizeof (char + char) should be 4 because of promotion~~
-* Test for ++ and = x + 1 on arrays (like int a[] not a[index]) and pointers (similar to pointer/arithmetic) and member incr on struct
+* ~~Test for ++ and = x + 1 on arrays (like int a[] not a[index]) and pointers (similar to pointer/arithmetic) and member incr on struct~~
 * ~~Test for chained assignment~~
 * Check if we need nops anywhere/load delay slots
 * ~~Ternary operator - Eliott~~ Mar 16
 * Test with multiply where right hand is dereferenced pointer e.g. int *p = &x; int y = 2 * *p;
 * ~~Float/double unary and postfix operators AND for pointers/array identifier e.g. float++ --float float[0]++ --float[0], globals and local ideally. and addressof minus difference, good trick for checking ops on ptrs/addresses~~
-* Char operation byte masking where applicable
+* ~~Char operation byte masking where applicable~~
 * ~~Enum tests: arithmetic e.g. adding multiplying enums with each other and ints; scoped enums; enum in switch case;~~ initialize global int from enum identifier
-* Struct tests: various including nested structs and arrays of structs (maybe will get time for implementing this), address of struct
+* ~~Struct tests: various including nested structs and arrays of structs (maybe will get time for implementing this), address of struct~~
 * ~~Stack alignment uhh vars~~
 * Test for calling external function returning a pointer
-* Test for array param not as pointer and array if we haven't already
 * Test case for loads of recursion that needs persistent registers
-* Test for typedef struct/enum
+* ~~Test for typedef struct/enum~~
 * ~~Floats Eliott & James~~ Mar 10
 * ~~Char type - James~~ Mar 11
 * ~~Global variables - James~~ Mar 9

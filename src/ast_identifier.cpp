@@ -12,8 +12,7 @@ namespace ast {
                 stream << "lui " << destReg << ",%hi(" << identifier_ << ")" << std::endl;
                 stream << "addi " << destReg << "," << destReg << ",%lo(" << identifier_ << ")" << std::endl;
 
-                if (GetType(context) == TypeSpecifier::POINTER && context.dereference) { // todo array?
-                    // todo recursion and struct case outside of emitlhs
+                if ((GetType(context) == TypeSpecifier::POINTER) && context.dereference) {
                     stream << "lw " << destReg << ",0(" << destReg << ")" << std::endl;
                 }
             } else if (context.CurrentFrame().bindings.Contains(identifier_)) {
@@ -62,8 +61,41 @@ namespace ast {
                     stream << "lui " << destReg << ",%hi(" << identifier_ << ")" << std::endl;
                     stream << "addi " << destReg << "," << destReg << ",%lo(" << identifier_ << ")" << std::endl;
                     break;
-                case TypeSpecifier::STRUCT:
-                    // do this
+                case TypeSpecifier::STRUCT: {
+                    assert(destReg == Register::a0 && "Structs identifier called in non-return context");
+                    const std::vector<std::pair<std::string, TypeSpecifier>> &structMembers = type.GetStructMembers();
+                    // I think this is best placed here because I can't think where else we want it
+                    Register loadAddressReg = context.AllocateTemporary(stream);
+                    stream << "lui " << loadAddressReg << ",%hi(" << identifier_ << ")" << std::endl;
+                    stream << "addi " << loadAddressReg << "," << loadAddressReg << ",%lo(" << identifier_ << ")"
+                           << std::endl;
+                    if (type.UseStack()) {
+                        // Get hidden pointer
+                        int address = context.CurrentFrame().bindings.Get("#hiddenpointer").offset;
+                        Register storeAddressReg = context.AllocateTemporary(stream);
+                        stream << "lw " << storeAddressReg << "," << address << "(s0)" << std::endl;
+
+
+                        // Store members, don't care about types, keep padding
+                        int size = type.GetTypeSize();
+                        Register tempReg = context.AllocateTemporary(stream);
+                        for (int i = 0; i < size; i += 4) {
+                            stream << "lw " << tempReg << "," << i << "(" << loadAddressReg << ")" << std::endl;
+                            stream << "sw " << tempReg << "," << i << "(" << storeAddressReg << ")" << std::endl;
+                        }
+                        context.FreeTemporary(tempReg, stream);
+
+                        // Return address
+                        stream << "mv a0," << storeAddressReg << std::endl;
+                        context.FreeTemporary(storeAddressReg, stream);
+                    } else {
+                        Register floatReg = Register::fa0;
+                        Register intReg = Register::a0;
+                        EmitStructReturnInRegisters(context, stream, 0, intReg, floatReg, structMembers, loadAddressReg);
+                    }
+                    context.FreeTemporary(loadAddressReg, stream);
+                    break;
+                }
                 case TypeSpecifier::VOID:
                     throw std::runtime_error(
                             "Identifier::EmitRISC() called on an unsupported type");
@@ -119,37 +151,7 @@ namespace ast {
                     } else {
                         Register floatReg = Register::fa0;
                         Register intReg = Register::a0;
-                        int memberOffset = 0;
-                        for (const auto &member: structMembers) {
-                            TypeSpecifier memberType = member.second;
-                            if (member.first == "#padding") { // Don't store padding
-                                offset += memberType.GetTypeSize();
-                                continue;
-                            }
-                            switch (memberType) {
-                                case TypeSpecifier::Type::INT:
-                                case TypeSpecifier::Type::CHAR:
-                                case TypeSpecifier::Type::UNSIGNED:
-                                case TypeSpecifier::Type::POINTER:
-                                case TypeSpecifier::Type::ENUM:
-                                    stream << "lw " << intReg << "," << offset + memberOffset << "(s0)" << std::endl;
-                                    memberOffset += memberType.GetTypeSize();
-                                    intReg = static_cast<Register>(static_cast<int>(intReg) + 1);
-                                    break;
-                                case TypeSpecifier::Type::FLOAT:
-                                case TypeSpecifier::Type::DOUBLE:
-                                    stream << (memberType == TypeSpecifier::FLOAT ? "flw " : "fld ") << floatReg << ","
-                                           << offset + memberOffset << "(s0)" << std::endl;
-                                    memberOffset += memberType.GetTypeSize();
-                                    floatReg = static_cast<Register>(static_cast<int>(floatReg) + 1);
-                                    break;
-                                case TypeSpecifier::Type::ARRAY:
-                                case TypeSpecifier::Type::VOID:
-                                case TypeSpecifier::Type::STRUCT:
-                                    throw std::runtime_error(
-                                            "ReturnStatement::EmitRISC() called on an unsupported struct member type");
-                            }
-                        }
+                        EmitStructReturnInRegisters(context, stream, offset, intReg, floatReg, structMembers);
                     }
                     break;
                 }
@@ -162,6 +164,97 @@ namespace ast {
             stream << "li " << destReg << "," << value << std::endl;
         } else {
             throw std::runtime_error("Identifier::EmitRISC() called on an undeclared identifier");
+        }
+    }
+
+    void Identifier::EmitStructReturnInRegisters(Context &context, std::ostream &stream, int offset, Register &intReg,
+                                                    Register &floatReg, const std::vector<std::pair<std::string, TypeSpecifier>> &structMembers,
+                                                    const Register& loadAddressReg) {
+        int memberOffset = 0;
+        for (const auto &member: structMembers) {
+            TypeSpecifier memberType = member.second;
+            if (member.first == "#padding") { // Don't store padding
+                offset += memberType.GetTypeSize();
+                continue;
+            }
+            switch (memberType) {
+                case TypeSpecifier::Type::INT:
+                case TypeSpecifier::Type::CHAR:
+                case TypeSpecifier::Type::UNSIGNED:
+                case TypeSpecifier::Type::POINTER:
+                case TypeSpecifier::Type::ENUM:
+                    if (loadAddressReg == Register::zero) {
+                        stream << "lw " << intReg << "," << offset + memberOffset << "(s0)" << std::endl;
+                    } else {
+                        stream << "lw " << intReg << "," << memberOffset << "(" << loadAddressReg << ")" << std::endl;
+                    }
+                    memberOffset += memberType.GetTypeSize();
+                    intReg = static_cast<Register>(static_cast<int>(intReg) + 1);
+                    break;
+                case TypeSpecifier::Type::FLOAT:
+                case TypeSpecifier::Type::DOUBLE:
+                    if (loadAddressReg == Register::zero) {
+                        stream << (memberType == TypeSpecifier::FLOAT ? "flw " : "fld ") << floatReg << ","
+                               << offset + memberOffset << "(s0)" << std::endl;
+                    } else {
+                        stream << (memberType == TypeSpecifier::FLOAT ? "flw " : "fld ") << floatReg << ","
+                               << memberOffset << "(" << loadAddressReg << ")" << std::endl;
+                    }
+                    memberOffset += memberType.GetTypeSize();
+                    floatReg = static_cast<Register>(static_cast<int>(floatReg) + 1);
+                    break;
+                case TypeSpecifier::Type::ARRAY: // Unlikely to get a struct/array inside a !UseStack struct
+                    for (int i = 0; i < memberType.GetArraySize(); i++) {
+                        const TypeSpecifier &arrayType = memberType.GetArrayType();
+                        switch (arrayType) {
+                            case TypeSpecifier::Type::INT:
+                            case TypeSpecifier::Type::CHAR:
+                            case TypeSpecifier::Type::UNSIGNED:
+                            case TypeSpecifier::Type::POINTER:
+                            case TypeSpecifier::Type::ENUM:
+                                if (loadAddressReg == Register::zero) {
+                                    stream << (arrayType == TypeSpecifier::CHAR ? "lbu " : "lw ") << intReg << "," <<
+                                           offset + memberOffset + i * arrayType.GetTypeSize() << "(s0)" << std::endl;
+                                } else {
+                                    stream << (arrayType == TypeSpecifier::CHAR ? "lbu " : "lw ") << intReg << "," <<
+                                           memberOffset + i * arrayType.GetTypeSize() << "(" << loadAddressReg << ")" << std::endl;
+                                }
+                                stream << (arrayType == TypeSpecifier::CHAR ? "lbu " : "lw ") << intReg << "," <<
+                                       offset + memberOffset + i * arrayType.GetTypeSize() << "(s0)" << std::endl;
+                                intReg = static_cast<Register>(static_cast<int>(intReg) + 1);
+                                break;
+                            case TypeSpecifier::Type::FLOAT:
+                            case TypeSpecifier::Type::DOUBLE:
+                                if (loadAddressReg == Register::zero) {
+                                    stream << (arrayType == TypeSpecifier::FLOAT ? "flw " : "fld ") << floatReg << ","
+                                           << offset + memberOffset + i * arrayType.GetTypeSize() << "(s0)"
+                                           << std::endl;
+                                }
+                                else {
+                                    stream << (arrayType == TypeSpecifier::FLOAT ? "flw " : "fld ") << floatReg << ","
+                                           << memberOffset + i * arrayType.GetTypeSize() << "(" << loadAddressReg << ")"
+                                           << std::endl;
+                                }
+                                floatReg = static_cast<Register>(static_cast<int>(floatReg) + 1);
+                                break;
+                            case TypeSpecifier::Type::STRUCT:
+                            case TypeSpecifier::Type::ARRAY: // Will never happen not on stack
+                            case TypeSpecifier::Type::VOID:
+                                throw std::runtime_error(
+                                        "ReturnStatement::EmitRISC() called on an unsupported struct member type");
+                        }
+                        memberOffset += memberType.GetTypeSize();
+                    }
+                    break;
+                case TypeSpecifier::Type::STRUCT:
+                    EmitStructReturnInRegisters(context, stream, offset + memberOffset, intReg, floatReg,
+                                                memberType.GetStructMembers());
+                    memberOffset += memberType.GetTypeSize();
+                    break;
+                case TypeSpecifier::Type::VOID:
+                    throw std::runtime_error(
+                            "ReturnStatement::EmitRISC() called on an unsupported struct member type");
+            }
         }
     }
 
