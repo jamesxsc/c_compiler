@@ -68,8 +68,9 @@
 * ~~Short-circuiting logic tst - James~~
 * ~~Selection and iteration statements - if-else/while etc. - Eliott~~
 * ~~Multiple functions in a translation unit/ file - James~~
-* ~~Break/switch/continue - James~~
+* ~~Break/switch/continue - James - Eliott~~
 * ~~Stack frame structure - how is size determined exactly - see related comments~~
+~~  Testing James- Eliott~~
 * ~~Tests for break, switch, continue~~
 * ~~Tests for unary/postfix operators (pointers done)~~
 * ~~Tests for null statements~~
