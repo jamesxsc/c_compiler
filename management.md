@@ -5,7 +5,7 @@
 # First Steps
 
 ## Environment Setup
-- CLion
+- CLion - VSCode
 - IDE with debugger, Valgrind, coverage, syntax highlighting; running individual tests quickly
 - CMake project
 - Testing example.c successfully
@@ -100,7 +100,7 @@
 * ~~Enum tests: arithmetic e.g. adding multiplying enums with each other and ints; scoped enums; enum in switch case;~~ initialize global int from enum identifier
 * ~~Struct tests: various including nested structs and arrays of structs (maybe will get time for implementing this), address of struct~~
 * ~~Stack alignment uhh vars~~
-* Test for calling external function returning a pointer
+* ~~Test for calling external function returning a pointer ~~
 * Test case for loads of recursion that needs persistent registers
 * ~~Test for typedef struct/enum~~
 * ~~Floats Eliott & James~~ Mar 10
