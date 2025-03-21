@@ -418,8 +418,8 @@ type_specifier
 	| DOUBLE { $$ = new TypeSpecifier(TypeSpecifier::DOUBLE); }
 	| SIGNED { $$ = new TypeSpecifier(TypeSpecifier::INT); }
 	| UNSIGNED { $$ = new TypeSpecifier(TypeSpecifier::UNSIGNED); }
-    | struct_specifier { $$ = new TypeSpecifier($1->HasIdentifier() ? $1->GetIdentifier() : "<anonymous>", $1->GetKnownMembers()); } // Same tag as GCC
-	| enum_specifier { $$ = new TypeSpecifier($1->HasIdentifier() ? $1->GetIdentifier() : "<anonymous>"); }
+    | struct_specifier { $$ = new TypeSpecifier($1->HasIdentifier() ? $1->GetIdentifier() : "<anonymous>", $1->GetKnownMembers()); delete $1; } // Same tag as GCC
+	| enum_specifier { $$ = new TypeSpecifier($1->HasIdentifier() ? $1->GetIdentifier() : "<anonymous>"); delete $1; }
 	| TYPE_NAME { $$ = new TypeSpecifier(typedefs.back().at(*$1)); delete $1; }
 	;
 
