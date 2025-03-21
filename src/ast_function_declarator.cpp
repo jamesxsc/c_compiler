@@ -63,4 +63,12 @@ namespace ast {
         parameterList_->SetHiddenPointerReturn();
     }
 
+    int FunctionDeclarator::RequiredStackSpace(Context &context) const {
+        int space = 0;
+        for (const auto &param: *parameterList_) {
+            space += param->GetType(context).GetTypeSize();
+        }
+        return space;
+    }
+
 }

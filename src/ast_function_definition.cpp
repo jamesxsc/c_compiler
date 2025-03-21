@@ -16,8 +16,17 @@ namespace ast {
         context.InsertFunction(declarator_->GetIdentifier(), declarator_->BuildFunction(GetType(context), context));
 
         // Push a new frame onto the stack
-        // todo maybe we can do something pretty good here
-        int frameSize = 512; // bytes fixed until we get time to perform analysis of how large the frame needs to be
+        int frameSize = 13 * 4; // bytes; saved registers
+        if (compound_statement_) {
+            frameSize += compound_statement_->RequiredStackSpace(context); // Declarations/local variables
+            std::cerr << "Debug: frame size: " << frameSize << std::endl;
+            frameSize += declarator_->RequiredStackSpace(context); // Args
+            std::cerr << "Debug: frame size: " << frameSize << std::endl;
+            frameSize += GetType(context).GetTypeSize(); // Return space if on stack
+        }
+        frameSize *= 2; // Add large margin for alignment etc. - this is an imprecise estimate
+        frameSize = (frameSize + 15) & ~15; // Round up to 16 bytes
+        std::cerr << "Debug: frame size: " << frameSize << std::endl;
         context.PushFrame({
                                   .size = frameSize,
                                   .bindings = Bindings(frameSize,

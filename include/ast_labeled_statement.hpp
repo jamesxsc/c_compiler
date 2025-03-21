@@ -25,6 +25,8 @@ namespace ast {
 
         [[nodiscard]] bool IsCase() const override;
 
+        [[nodiscard]] int RequiredStackSpace(Context &context) const override;
+
     private:
         StatementPtr statement_;
         std::optional<std::string> identifier_;

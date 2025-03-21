@@ -51,4 +51,8 @@ namespace ast {
         }
     }
 
+    int IfStatement::RequiredStackSpace(Context &context) const {
+        return thenStmt_->RequiredStackSpace(context) + (elseStmt_ ? elseStmt_->RequiredStackSpace(context) : 0);
+    }
+
 } // namespace ast

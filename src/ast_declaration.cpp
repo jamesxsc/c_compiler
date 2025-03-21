@@ -88,6 +88,27 @@ namespace ast {
         }
     }
 
+    // Could use some dedup but itll work
+    int Declaration::RequiredStackSpace(Context &context) {
+        if (IsTypedef()) return 0;
+
+        int space = 0;
+        for (const auto &initDeclarator: *initDeclaratorList_) {
+            TypeSpecifier type = declarationSpecifiers_->GetType(context);
+            if (initDeclarator->IsPointer())
+                type = TypeSpecifier(TypeSpecifier::POINTER, type);
+            if (initDeclarator->IsArray())
+                type = initDeclarator->BuildArray(type, context).type;
+
+            if (initDeclarator->HasInitializer()) {
+                space += type.GetTypeSize();
+            } else {
+                space += initDeclarator->IsPointer() ? 4 : type.GetTypeSize();
+            }
+        }
+        return space;
+    }
+
     void Declaration::EmitStructInitializer(const InitializerList &initializerList, const TypeSpecifier &type,
                                             const Register &tempReg, int baseOffset, std::ostream &stream,
                                             Context &context) {

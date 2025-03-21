@@ -48,6 +48,10 @@ namespace ast {
         body_->Print(stream);
     }
 
+    int WhileStatement::RequiredStackSpace(Context &context) const {
+        return body_->RequiredStackSpace(context);
+    }
+
 //==================== DoWhileStatement ====================//
     void DoWhileStatement::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         std::string labelStart = context.MakeLabel("do_while_start");
@@ -84,6 +88,10 @@ namespace ast {
         stream << "while (";
         condition_->Print(stream);
         stream << ");" << std::endl;
+    }
+
+    int DoWhileStatement::RequiredStackSpace(Context &context) const {
+        return body_->RequiredStackSpace(context);
     }
 
 //==================== ForStatement ====================//
@@ -139,6 +147,11 @@ namespace ast {
             increment_->Print(stream);
         stream << ") ";
         body_->Print(stream);
+    }
+
+    int ForStatement::RequiredStackSpace(Context &context) const {
+        return initStmt_->RequiredStackSpace(context) + condStmt_->RequiredStackSpace(context) +
+               body_->RequiredStackSpace(context);
     }
 
 } // namespace ast

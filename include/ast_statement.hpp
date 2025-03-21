@@ -25,6 +25,8 @@ namespace ast {
 
         [[nodiscard]] const LabelCasePairVector &GetSwitchLabelCasePairs() const;
 
+        [[nodiscard]] virtual int RequiredStackSpace(Context &context) const;
+
     protected:
         mutable bool inSwitchScope_ = false;
         // Note that this is populated by EmitRISC

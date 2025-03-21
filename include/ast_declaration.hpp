@@ -22,6 +22,7 @@ namespace ast {
 
         [[nodiscard]] bool IsTypedef() const;
         [[nodiscard]] virtual bool IsAggregateTypeDefinition() const;
+        [[nodiscard]] int RequiredStackSpace(Context &context);
 
     protected:
         DeclarationSpecifiersPtr declarationSpecifiers_;
@@ -35,6 +36,7 @@ namespace ast {
         static void EmitArrayInitializer(std::ostream &stream, Context &context, const Register &tempReg,
                                          const InitializerList &initializerList, const TypeSpecifier &type,
                                          const int &offset);
+
     };
 
 }

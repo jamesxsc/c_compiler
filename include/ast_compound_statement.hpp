@@ -19,6 +19,8 @@ namespace ast {
 
         void SetFunction();
 
+        [[nodiscard]] int RequiredStackSpace(Context &context) const override;
+
     private:
         // Both are optional
         DeclarationListPtr declarations_;

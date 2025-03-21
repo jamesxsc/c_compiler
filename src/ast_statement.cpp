@@ -14,4 +14,8 @@ namespace ast {
         return switchLabelCasePairs_;
     }
 
+    int Statement::RequiredStackSpace(Context &context) const {
+        return 0; // Standard statement requires none
+    }
+
 }

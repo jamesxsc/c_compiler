@@ -35,4 +35,8 @@ namespace ast {
         return case_ != nullptr || defaultCase_;
     }
 
+    int LabeledStatement::RequiredStackSpace(Context &context) const {
+        return statement_->RequiredStackSpace(context);
+    }
+
 }

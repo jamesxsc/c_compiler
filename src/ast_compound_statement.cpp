@@ -45,4 +45,15 @@ namespace ast {
         isFunction_ = true;
     }
 
+    int CompoundStatement::RequiredStackSpace(Context &context) const {
+        int space = 0;
+        if (declarations_)
+            for (const auto &declaration : *declarations_)
+                space += declaration->RequiredStackSpace(context);
+        if (statements_)
+            for (const auto &statement : *statements_)
+                space += statement->RequiredStackSpace(context);
+        return space;
+    }
+
 }

@@ -44,6 +44,8 @@ namespace ast {
         [[nodiscard]] bool GetPointerReturn() const;
 
         void SetHiddenPointerReturn() const;
+
+        [[nodiscard]] int RequiredStackSpace(Context &context) const;
     };
 
     using FunctionDeclaratorPtr = std::unique_ptr<const FunctionDeclarator>;

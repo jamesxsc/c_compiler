@@ -55,4 +55,8 @@ namespace ast {
         }
     }
 
+    int SwitchStatement::RequiredStackSpace(Context &context) const {
+        return body_ ? body_->RequiredStackSpace(context) : 0;
+    }
+
 } // namespace ast

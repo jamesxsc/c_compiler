@@ -13,6 +13,8 @@ namespace ast {
 
         void Print(std::ostream &stream) const override;
 
+        [[nodiscard]] int RequiredStackSpace(Context &context) const override;
+
     private:
         ExpressionPtr condition_;
         StatementPtr body_;
