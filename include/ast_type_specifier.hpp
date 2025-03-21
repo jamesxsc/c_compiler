@@ -7,6 +7,7 @@
 #include <memory>
 #include <optional>
 #include <unordered_map>
+#include <iostream>
 
 namespace ast {
 

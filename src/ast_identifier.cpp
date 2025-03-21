@@ -36,11 +36,11 @@ namespace ast {
                 case TypeSpecifier::FLOAT: {
                     assert(IsFloatRegister(destReg) &&
                            "Identifier::EmitRISC attempting to load float into integer register");
-                    Register tempIntReg = context.AllocateTemporary(stream);
+                    Register tempIntReg = context.AllocateTemporary();
                     stream << "lui " << tempIntReg << ",%hi(" << identifier_ << ")" << std::endl;
                     stream << (type == TypeSpecifier::FLOAT ? "flw " : "fld ") << destReg << ",%lo(" << identifier_
                            << ")(" << tempIntReg << ")" << std::endl;
-                    context.FreeTemporary(tempIntReg, stream);
+                    context.FreeRegister(tempIntReg);
                     break;
                 }
                 case TypeSpecifier::POINTER:
@@ -65,35 +65,35 @@ namespace ast {
                     assert(destReg == Register::a0 && "Structs identifier called in non-return context");
                     const std::vector<std::pair<std::string, TypeSpecifier>> &structMembers = type.GetStructMembers();
                     // I think this is best placed here because I can't think where else we want it
-                    Register loadAddressReg = context.AllocateTemporary(stream);
+                    Register loadAddressReg = context.AllocateTemporary();
                     stream << "lui " << loadAddressReg << ",%hi(" << identifier_ << ")" << std::endl;
                     stream << "addi " << loadAddressReg << "," << loadAddressReg << ",%lo(" << identifier_ << ")"
                            << std::endl;
                     if (type.UseStack()) {
                         // Get hidden pointer
                         int address = context.CurrentFrame().bindings.Get("#hiddenpointer").offset;
-                        Register storeAddressReg = context.AllocateTemporary(stream);
+                        Register storeAddressReg = context.AllocateTemporary();
                         stream << "lw " << storeAddressReg << "," << address << "(s0)" << std::endl;
 
 
                         // Store members, don't care about types, keep padding
                         int size = type.GetTypeSize();
-                        Register tempReg = context.AllocateTemporary(stream);
+                        Register tempReg = context.AllocateTemporary();
                         for (int i = 0; i < size; i += 4) {
                             stream << "lw " << tempReg << "," << i << "(" << loadAddressReg << ")" << std::endl;
                             stream << "sw " << tempReg << "," << i << "(" << storeAddressReg << ")" << std::endl;
                         }
-                        context.FreeTemporary(tempReg, stream);
+                        context.FreeRegister(tempReg);
 
                         // Return address
                         stream << "mv a0," << storeAddressReg << std::endl;
-                        context.FreeTemporary(storeAddressReg, stream);
+                        context.FreeRegister(storeAddressReg);
                     } else {
                         Register floatReg = Register::fa0;
                         Register intReg = Register::a0;
                         EmitStructReturnInRegisters(context, stream, 0, intReg, floatReg, structMembers, loadAddressReg);
                     }
-                    context.FreeTemporary(loadAddressReg, stream);
+                    context.FreeRegister(loadAddressReg);
                     break;
                 }
                 case TypeSpecifier::VOID:
@@ -133,21 +133,21 @@ namespace ast {
                     if (type.UseStack()) {
                         // Get hidden pointer
                         int address = context.CurrentFrame().bindings.Get("#hiddenpointer").offset;
-                        Register addressReg = context.AllocateTemporary(stream);
+                        Register addressReg = context.AllocateTemporary();
                         stream << "lw " << addressReg << "," << address << "(s0)" << std::endl;
 
                         // Store members, don't care about types, keep padding
                         int size = type.GetTypeSize();
-                        Register tempReg = context.AllocateTemporary(stream);
+                        Register tempReg = context.AllocateTemporary();
                         for (int i = 0; i < size; i += 4) {
                             stream << "lw " << tempReg << "," << offset + i << "(s0)" << std::endl;
                             stream << "sw " << tempReg << "," << i << "(" << addressReg << ")" << std::endl;
                         }
-                        context.FreeTemporary(tempReg, stream);
+                        context.FreeRegister(tempReg);
 
                         // Return address
                         stream << "mv a0," << addressReg << std::endl;
-                        context.FreeTemporary(addressReg, stream);
+                        context.FreeRegister(addressReg);
                     } else {
                         Register floatReg = Register::fa0;
                         Register intReg = Register::a0;

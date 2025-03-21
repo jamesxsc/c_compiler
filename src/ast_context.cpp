@@ -8,11 +8,12 @@ namespace ast {
     static int temporaries = 0;
 
     // We don't free temporaries automatically between functions - we assume there are no leaked register allocs
-    Register Context::AllocateTemporary(std::ostream &stream, bool forFloat) {
-        ++temporaries;
+    // We didn't have time to implement a reliable register spilling/live range analysis approach so hopefully this is sufficient
+    Register Context::AllocateTemporary(bool forFloat) {
         if (forFloat) {
             for (size_t i = 0; i < floatTemporaries_.size(); i++) {
                 if (!floatTemporaries_.test(i)) {
+                    ++temporaries;
                     floatTemporaries_.set(i);
                     return FloatTemporaryAtIndex(static_cast<int>(i));
                 }
@@ -20,53 +21,40 @@ namespace ast {
         } else {
             for (size_t i = 0; i < integerTemporaries_.size(); i++) {
                 if (!integerTemporaries_.test(i)) {
+                    ++temporaries;
                     integerTemporaries_.set(i);
                     return IntegerTemporaryAtIndex(static_cast<int>(i));
                 }
             }
-
-            // Spill a register to memory
-            // This is very much a heuristic approach that just slightly increases the chance of being successful
-            static int lastSpilled = 0;
-            int spill = (lastSpilled + 1) % 6;
-            spilledIntegerTemporaries_.set(spill);
-            Variable var = CurrentFrame().bindings.InsertOrOverwrite("#spilled_int_" + std::to_string(spill), Variable{
-                    .size = 4,
-                    .type = TypeSpecifier::INT,
-            });
-            stream << "sw " << IntegerTemporaryAtIndex(spill) << "," << var.offset << "(sp)" << std::endl;
-            lastSpilled = spill;
-
-            return IntegerTemporaryAtIndex(spill); // todo fix this its shit maybe good enough to just use persistent too and have a common free
         }
-        throw std::runtime_error("Out of temporaries");
+        // try allocating a persistent register
+        return AllocatePersistent(forFloat);
     }
 
-    void Context::FreeTemporary(Register reg, std::ostream &stream) {
+    void Context::FreeRegister(Register reg) {
         if (IsFloatRegister(reg)) {
-            int index = IndexOfFloatTemporary(reg);
-            assert(index != -1 && "Attempted to free a non-temporary register");
-            if (!floatTemporaries_.test(index))
-                std::cerr << "Warning: freeing already free temporary" << std::endl;
-            if (spilledFloatTemporaries_.test(index)) {
-                // todo restore
-            } else {
+            if (int index = IndexOfFloatTemporary(reg); index != -1) {
+                if (!floatTemporaries_.test(index))
+                    std::cerr << "Warning: freeing already free temporary" << std::endl;
                 floatTemporaries_.reset(index);
+            } else if (int pIndex = IndexOfFloatPersistent(reg); pIndex != -1) {
+                if (!floatPersistent_.test(pIndex))
+                    std::cerr << "Warning: freeing already free persistent" << std::endl;
+                floatPersistent_.reset(pIndex);
+            } else {
+                std::cerr << "Warning: Attempted to free unexpected register" << std::endl;
             }
         } else {
-            int index = IndexOfIntegerTemporary(reg);
-            assert(index != -1 && "Attempted to free a non-temporary register");
-            if (!integerTemporaries_.test(index))
-                std::cerr << "Warning: freeing already free temporary" << std::endl;
-            if (spilledIntegerTemporaries_.test(index)) {
-                assert(CurrentFrame().bindings.Contains("#spilled_int_" + std::to_string(index)) &&
-                       "Spilled register not found in bindings");
-                Variable var = CurrentFrame().bindings.Get("#spilled_int_" + std::to_string(index));
-                stream << "lw " << IntegerTemporaryAtIndex(index) << "," << var.offset << "(sp)" << std::endl;
-                spilledIntegerTemporaries_.reset(index);
-                // Keep it set as a used temporary since it has been restored to original value
-            } else {
+            if (int index = IndexOfIntegerTemporary(reg); index != -1) {
+                if (!integerTemporaries_.test(index))
+                    std::cerr << "Warning: freeing already free temporary" << std::endl;
                 integerTemporaries_.reset(index);
+            } else if (int pIndex = IndexOfIntegerPersistent(reg); pIndex != -1) {
+                if (!integerPersistent_.test(pIndex))
+                    std::cerr << "Warning: freeing already free persistent" << std::endl;
+                integerPersistent_.reset(pIndex);
+            } else {
+                std::cerr << "Warning: Attempted to free unexpected register" << std::endl;
             }
         }
         --temporaries;
@@ -79,6 +67,7 @@ namespace ast {
     }
 
     Register Context::AllocatePersistent(bool forFloat) {
+        ++temporaries; // must be in here now that we only have a single free method
         // Round robin allocation
         static size_t floatIndex = 0;
         static size_t intIndex = 1; // Avoid frame ptr
@@ -110,22 +99,6 @@ namespace ast {
         throw std::runtime_error("Out of persistent registers");
     }
 
-    void Context::FreePersistent(Register reg) {
-        if (IsFloatRegister(reg)) {
-            int index = IndexOfFloatPersistent(reg);
-            assert(index != -1 && "Attempted to free a non-persistent register");
-            if (!floatPersistent_.test(index))
-                std::cerr << "Warning: freeing already free persistent" << std::endl;
-            floatPersistent_.reset(index);
-        } else {
-            int index = IndexOfIntegerPersistent(reg);
-            assert(index != -1 && "Attempted to free a non-persistent register");
-            if (!integerPersistent_.test(index))
-                std::cerr << "Warning: freeing already free persistent" << std::endl;
-            integerPersistent_.reset(index);
-        }
-    }
-
     StackFrame &Context::CurrentFrame() {
         if (stack_.empty()) {
             throw std::runtime_error("No stack frame");
@@ -142,6 +115,7 @@ namespace ast {
 
         // Any persistent registers used in the scope need to be saved back to the function root frame
         stack_.end()[-2].usedIntegerPersistentRegisters |= CurrentFrame().usedIntegerPersistentRegisters;
+        stack_.end()[-2].usedFloatPersistentRegisters |= CurrentFrame().usedFloatPersistentRegisters;
 
         stack_.pop_back();
     }
@@ -211,6 +185,10 @@ namespace ast {
 
     void Context::InsertGlobalEnum(const std::string &identifier, const std::map<std::string, int> &values) {
         globalEnums_.Insert(identifier, values);
+    }
+
+    void Context::InsertGlobalEnum(const std::map<std::string, int> &values) {
+        globalEnums_.Insert(values);
     }
 
     // Some duplication in finding where it is but it's ok

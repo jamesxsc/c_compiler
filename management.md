@@ -92,7 +92,7 @@
 * ~~Test for sizeof (char + char) should be 4 because of promotion~~
 * ~~Test for ++ and = x + 1 on arrays (like int a[] not a[index]) and pointers (similar to pointer/arithmetic) and member incr on struct~~
 * ~~Test for chained assignment~~
-* Check if we need nops anywhere/load delay slots
+* ~~Check if we need nops anywhere/load delay slots~~
 * ~~Ternary operator - Eliott~~ Mar 16
 * Test with multiply where right hand is dereferenced pointer e.g. int *p = &x; int y = 2 * *p;
 * ~~Float/double unary and postfix operators AND for pointers/array identifier e.g. float++ --float float[0]++ --float[0], globals and local ideally. and addressof minus difference, good trick for checking ops on ptrs/addresses~~

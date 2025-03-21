@@ -51,11 +51,11 @@ namespace ast {
                         break;
                     case TypeSpecifier::Type::DOUBLE:
                     case TypeSpecifier::Type::FLOAT: {
-                        Register addressReg = context.AllocateTemporary(stream);
+                        Register addressReg = context.AllocateTemporary();
                         multiplicativeChild_->EmitRISC(stream, context, addressReg);
                         stream << (pointeeType == TypeSpecifier::Type::FLOAT ? "flw " : "fld ") << destReg << ",0("
                                << addressReg << ")" << std::endl;
-                        context.FreeTemporary(addressReg, stream);
+                        context.FreeRegister(addressReg);
                         break;
                     }
                     case TypeSpecifier::Type::STRUCT:

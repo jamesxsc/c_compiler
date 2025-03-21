@@ -1,14 +1,14 @@
 typedef int global_t; 
 
-int test_block(int a) {
+char test_block() {
     typedef char global_t;    
-    global_t b = (global_t)(a + 10); 
+    global_t b = 'c';
     return b; 
 }
 
 int f() {
     global_t x = 5; 
-    x = x + test_block(x); 
+    char c = test_block();
     return x;            
 }
 

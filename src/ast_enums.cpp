@@ -9,12 +9,17 @@ namespace ast {
         if (enums_.find(identifier) != enums_.end()) {
             enums_.erase(identifier);
         }
-        enums_.emplace(identifier, values);
+        enums_.insert_or_assign(identifier, values);
+        Insert(values);
+    }
+
+    // Anonymous
+    void Enums::Insert(const std::map<std::string, int> &values) {
         for (const auto &pair: values) {
             if (lookup_.find(pair.first) != lookup_.end()) {
                 lookup_.erase(pair.first);
             }
-            lookup_.emplace(pair.first, pair.second);
+            lookup_.insert_or_assign(pair.first, pair.second);
         }
     }
 

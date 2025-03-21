@@ -12,7 +12,10 @@ namespace ast {
         }
 
         if (isGlobal_) {
-            context.InsertGlobalEnum(GetIdentifier(), enumeratorsValuesMap_);
+            if (HasIdentifier())
+                context.InsertGlobalEnum(GetIdentifier(), enumeratorsValuesMap_);
+            else
+                context.InsertGlobalEnum(enumeratorsValuesMap_);
         } else {
             context.CurrentFrame().enums.Insert(GetIdentifier(), enumeratorsValuesMap_);
         }

@@ -1,4 +1,6 @@
 
+int f();
+
 int main() {
-    return !(f() == 20);
+    return !(f() == 5);
 }

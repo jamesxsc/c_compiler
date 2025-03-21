@@ -4,12 +4,13 @@ namespace ast {
 
     // Only called for a definition by agg type def to insert into context
     void StructSpecifier::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
-        for (const auto &declaration : declarations_->GetMembers(&context)) {
+        for (const auto &declaration: declarations_->GetMembers(&context)) {
             members_.emplace_back(declaration.first, declaration.second);
         }
 
         if (isGlobal_) {
-            context.InsertGlobalStruct(GetIdentifier(), members_);
+            if (HasIdentifier()) // Do not store anonymous structs
+                context.InsertGlobalStruct(GetIdentifier(), members_);
         } else {
             context.CurrentFrame().structs.Insert(GetIdentifier(), members_);
         }
@@ -51,7 +52,7 @@ namespace ast {
         }
         // There's no point caching etc. because each type specifier has it's own instance of this
         std::vector<std::pair<std::string, TypeSpecifier>> members;
-        for (const auto & declaration : declarations_->GetMembers()) {
+        for (const auto &declaration: declarations_->GetMembers()) {
             members.emplace_back(declaration.first, declaration.second);
         }
         return members;

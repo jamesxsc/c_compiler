@@ -14,19 +14,19 @@ namespace ast::Utils {
                 operand.EmitRISC(stream, context, result);
                 break;
             case TypeSpecifier::Type::FLOAT: {
-                Register tempReg1 = context.AllocateTemporary(stream, true);
-                Register tempReg2 = context.AllocateTemporary(stream, true);
+                Register tempReg1 = context.AllocateTemporary(true);
+                Register tempReg2 = context.AllocateTemporary(true);
                 operand.EmitRISC(stream, context, tempReg2);
                 stream << "fmv.s.x " << tempReg1 << ",zero" << std::endl;
                 stream << "feq.s " << result << "," << tempReg2 << "," << tempReg1 << std::endl;
                 stream << "seqz " << result << "," << result << std::endl;
-                context.FreeTemporary(tempReg1, stream);
-                context.FreeTemporary(tempReg2, stream);
+                context.FreeRegister(tempReg1);
+                context.FreeRegister(tempReg2);
                 break;
             }
             case TypeSpecifier::Type::DOUBLE: {
-                Register tempReg1 = context.AllocateTemporary(stream, true);
-                Register tempReg2 = context.AllocateTemporary(stream, true);
+                Register tempReg1 = context.AllocateTemporary(true);
+                Register tempReg2 = context.AllocateTemporary(true);
                 operand.EmitRISC(stream, context, tempReg2);
                 stream << "fcvt.d.w " << tempReg1 << ",zero" << std::endl;
                 stream << "feq.d " << result << "," << tempReg2 << "," << tempReg1 << std::endl;
@@ -45,8 +45,7 @@ namespace ast::Utils {
         // at the very least for ptr arithmetic we will need to check both sides
         bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
         bool leftStored = right.ContainsFunctionCall();
-        Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(
-                stream, useFloat);
+        Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(useFloat);
         left.EmitRISC(stream, context, leftReg);
 //        Register rightReg = context.AllocateTemporary(stream, useFloat);
         Register rightReg = result;
@@ -71,7 +70,7 @@ namespace ast::Utils {
                 throw std::runtime_error("Multiplicative operation attempted on unsupported type.");
         }
 
-        leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg, stream);
+        context.FreeRegister(leftReg);
 //        context.FreeTemporary(rightReg, stream);
     }
 
@@ -80,8 +79,7 @@ namespace ast::Utils {
         TypeSpecifier type = BinaryResultType(left.GetType(context), right.GetType(context));
         bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
         bool leftStored = right.ContainsFunctionCall();
-        Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(
-                stream, useFloat);
+        Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(useFloat);
         left.EmitRISC(stream, context, leftReg);
         Register rightReg = result;
         right.EmitRISC(stream, context, rightReg);
@@ -105,7 +103,7 @@ namespace ast::Utils {
                 throw std::runtime_error("Multiplicative operation attempted on unsupported type.");
         }
 
-        leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg, stream);
+        context.FreeRegister(leftReg);
     }
 
     void EmitModulo(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
@@ -113,8 +111,7 @@ namespace ast::Utils {
         TypeSpecifier type = BinaryResultType(left.GetType(context), right.GetType(context));
         bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
         bool leftStored = right.ContainsFunctionCall();
-        Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(
-                stream, useFloat);
+        Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(useFloat);
         left.EmitRISC(stream, context, leftReg);
         Register rightReg = result;
         right.EmitRISC(stream, context, rightReg);
@@ -132,7 +129,7 @@ namespace ast::Utils {
                 throw std::runtime_error("Multiplicative operation attempted on unsupported type.");
         }
 
-        leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg, stream);
+        context.FreeRegister(leftReg);
     }
 
     void EmitAddition(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
@@ -140,8 +137,7 @@ namespace ast::Utils {
         TypeSpecifier type = BinaryAdditionResultType(left.GetType(context), right.GetType(context));
         bool leftStored = right.ContainsFunctionCall();
         bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
-        Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(
-                stream, useFloat);
+        Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(useFloat);
         left.EmitRISC(stream, context, leftReg);
         Register rightReg = result;
         right.EmitRISC(stream, context, rightReg);
@@ -173,7 +169,7 @@ namespace ast::Utils {
             case TypeSpecifier::VOID:
                 throw std::runtime_error("Attempted addition on an unsupported type.");
         }
-        leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg, stream);
+        context.FreeRegister(leftReg);
     }
 
     void EmitSubtraction(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
@@ -184,8 +180,7 @@ namespace ast::Utils {
             type = left.GetType(context);
         bool leftStored = right.ContainsFunctionCall();
         bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
-        Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(
-                stream, useFloat);
+        Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(useFloat);
         left.EmitRISC(stream, context, leftReg);
         Register rightReg = result;
         right.EmitRISC(stream, context, rightReg);
@@ -213,24 +208,24 @@ namespace ast::Utils {
             case TypeSpecifier::VOID:
                 throw std::runtime_error("Attempted subtraction on an unsupported type.");
         }
-        leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg, stream);
+        context.FreeRegister(leftReg);
     }
 
     void EmitLeftShift(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
                        const ExpressionBase &right) {
         bool leftStored = right.ContainsFunctionCall();
-        Register leftReg = leftStored ? context.AllocatePersistent() : context.AllocateTemporary(stream);
+        Register leftReg = leftStored ? context.AllocatePersistent() : context.AllocateTemporary();
         left.EmitRISC(stream, context, leftReg);
         Register rightReg = result;
         right.EmitRISC(stream, context, rightReg);
         stream << "sll " << result << "," << leftReg << "," << rightReg << std::endl;
-        leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg, stream);
+        context.FreeRegister(leftReg);
     }
 
     void EmitRightShift(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
                         const ExpressionBase &right) {
         bool leftStored = right.ContainsFunctionCall();
-        Register leftReg = leftStored ? context.AllocatePersistent() : context.AllocateTemporary(stream);
+        Register leftReg = leftStored ? context.AllocatePersistent() : context.AllocateTemporary();
         left.EmitRISC(stream, context, leftReg);
         Register rightReg = result;
         right.EmitRISC(stream, context, rightReg);
@@ -238,40 +233,40 @@ namespace ast::Utils {
             stream << "sra " << result << "," << leftReg << "," << rightReg << std::endl;
         else
             stream << "srl " << result << "," << leftReg << "," << rightReg << std::endl;
-        leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg, stream);
+        context.FreeRegister(leftReg);
     }
 
     void EmitBitwiseAnd(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
                         const ExpressionBase &right) {
         bool leftStored = right.ContainsFunctionCall();
-        Register leftReg = leftStored ? context.AllocatePersistent() : context.AllocateTemporary(stream);
+        Register leftReg = leftStored ? context.AllocatePersistent() : context.AllocateTemporary();
         left.EmitRISC(stream, context, leftReg);
         Register rightReg = result;
         right.EmitRISC(stream, context, rightReg);
         stream << "and " << result << "," << leftReg << "," << rightReg << std::endl;
-        leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg, stream);
+        context.FreeRegister(leftReg);
     }
 
     void EmitBitwiseXor(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
                         const ExpressionBase &right) {
         bool leftStored = right.ContainsFunctionCall();
-        Register leftReg = leftStored ? context.AllocatePersistent() : context.AllocateTemporary(stream);
+        Register leftReg = leftStored ? context.AllocatePersistent() : context.AllocateTemporary();
         left.EmitRISC(stream, context, leftReg);
         Register rightReg = result;
         right.EmitRISC(stream, context, rightReg);
         stream << "xor " << result << "," << leftReg << "," << rightReg << std::endl;
-        leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg, stream);
+        leftStored ? context.FreeRegister(leftReg) : context.FreeRegister(leftReg);
     }
 
     void EmitBitwiseOr(std::ostream &stream, Context &context, Register result, const ExpressionBase &left,
                        const ExpressionBase &right) {
         bool leftStored = right.ContainsFunctionCall();
-        Register leftReg = leftStored ? context.AllocatePersistent() : context.AllocateTemporary(stream);
+        Register leftReg = leftStored ? context.AllocatePersistent() : context.AllocateTemporary();
         left.EmitRISC(stream, context, leftReg);
         Register rightReg = result;
         right.EmitRISC(stream, context, rightReg);
         stream << "or " << result << "," << leftReg << "," << rightReg << std::endl;
-        leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg, stream);
+        leftStored ? context.FreeRegister(leftReg) : context.FreeRegister(leftReg);
     }
 
     // This is good enough unless we get failures as a direct result
@@ -330,10 +325,10 @@ namespace ast::Utils {
             int logSize = static_cast<int>(std::log2(elementSize));
             stream << "slli " << sizeReg << "," << sizeReg << "," << logSize << std::endl;
         } else {
-            Register temp = context.AllocateTemporary(stream);
+            Register temp = context.AllocateTemporary();
             stream << "li " << temp << "," << elementSize << std::endl;
             stream << "mul " << sizeReg << "," << sizeReg << "," << temp << std::endl;
-            context.FreeTemporary(temp, stream);
+            context.FreeRegister(temp);
         }
     }
 
@@ -345,10 +340,10 @@ namespace ast::Utils {
             int logSize = static_cast<int>(std::log2(elementSize));
             stream << "srai " << sizeReg << "," << sizeReg << "," << logSize << std::endl;
         } else {
-            Register temp = context.AllocateTemporary(stream);
+            Register temp = context.AllocateTemporary();
             stream << "li " << temp << "," << elementSize << std::endl;
             stream << "div " << sizeReg << "," << sizeReg << "," << temp << std::endl;
-            context.FreeTemporary(temp, stream);
+            context.FreeRegister(temp);
         }
     }
 
@@ -356,7 +351,7 @@ namespace ast::Utils {
                                 bool decrement, bool postfix) {
         Context::ScopedEmitLHS guard(context, true); // Get raw address
         TypeSpecifier lhsType = child.GetType(context);
-        Register addrReg = context.AllocateTemporary(stream);
+        Register addrReg = context.AllocateTemporary();
         TypeSpecifier type = child.GetType(context);
         child.EmitRISC(stream, context, addrReg);
         guard.Release();
@@ -368,7 +363,7 @@ namespace ast::Utils {
         bool ptr = type.IsPointer();
         if (ptr) type = type.GetPointeeType();
         bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
-        Register tempReg = (postfix || destReg == Register::zero) ? context.AllocateTemporary(stream, useFloat)
+        Register tempReg = (postfix || destReg == Register::zero) ? context.AllocateTemporary(useFloat)
                                                                   : destReg;
         switch (type) {
             case TypeSpecifier::Type::INT:
@@ -389,8 +384,8 @@ namespace ast::Utils {
                        << ","
                        << "0(" << addrReg << ")" << std::endl;
                 std::string constantMemoryLabel = context.MakeLabel("POSTFIX_CONSTANT");
-                Register tempAddrReg = context.AllocateTemporary(stream);
-                Register tempFloatReg2 = context.AllocateTemporary(stream, true);
+                Register tempAddrReg = context.AllocateTemporary();
+                Register tempFloatReg2 = context.AllocateTemporary(true);
                 stream << "lui " << tempAddrReg << ",%hi(" << constantMemoryLabel << ")" << std::endl;
                 stream << (type == TypeSpecifier::FLOAT ? "flw " : "fld ") << tempFloatReg2
                        << ",%lo("
@@ -407,8 +402,8 @@ namespace ast::Utils {
                 stream << (type == TypeSpecifier::FLOAT ? "fsw " : "fsd ") << tempReg
                        << ","
                        << "0(" << addrReg << ")" << std::endl;
-                context.FreeTemporary(tempAddrReg, stream);
-                context.FreeTemporary(tempFloatReg2, stream);
+                context.FreeRegister(tempAddrReg);
+                context.FreeRegister(tempFloatReg2);
 
                 context.DeferredRISC() << ".section .rodata" << std::endl;
                 context.DeferredRISC() << ".align "
@@ -436,8 +431,8 @@ namespace ast::Utils {
                 throw std::runtime_error(
                         "PostfixExpression::EmitRISC() attempted to increment unsupported type");
         }
-        context.FreeTemporary(addrReg, stream);
-        if (tempReg != destReg) context.FreeTemporary(tempReg, stream);
+        context.FreeRegister(addrReg);
+        if (tempReg != destReg) context.FreeRegister(tempReg);
         if (!postfix && destReg != Register::zero) {
             child.EmitRISC(stream, context, destReg);
         }

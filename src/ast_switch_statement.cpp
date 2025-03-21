@@ -16,7 +16,7 @@ namespace ast {
             // Emit comparisons and jumps
             // This is actually more efficient than GCC with -O0
             // Do not put them in instance or nested switch will break
-            Register condReg = context.AllocateTemporary(stream);
+            Register condReg = context.AllocateTemporary();
             condition_->EmitRISC(stream, context, condReg);
             std::string defaultLabel{endLabel};
             for (auto &pair: body_->GetSwitchLabelCasePairs()) {
@@ -25,15 +25,15 @@ namespace ast {
                     continue;
                 }
                 std::string label = pair.first;
-                Register constexprReg = context.AllocateTemporary(stream);
+                Register constexprReg = context.AllocateTemporary();
                 stream << "li " << constexprReg << "," << *pair.second << std::endl;
                 stream << "beq " << condReg << "," << constexprReg << "," << label << std::endl;
-                context.FreeTemporary(constexprReg, stream);
+                context.FreeRegister(constexprReg);
             }
             // Default or end
             stream << "j " << defaultLabel << std::endl;
 
-            context.FreeTemporary(condReg, stream);
+            context.FreeRegister(condReg);
 
             if (bodyBuffer.rdbuf()->in_avail() > 0)
                 stream << bodyBuffer.rdbuf();

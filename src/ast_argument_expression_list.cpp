@@ -13,14 +13,14 @@ namespace ast {
                     if (firstIntegerReg > Register::a7) { // Out of registers; use stack
                         if (stackOffset % type.GetAlignment() != 0)
                             stackOffset += type.GetAlignment() - (stackOffset % type.GetAlignment());
-                        Register tempReg = context.AllocateTemporary(stream);
+                        Register tempReg = context.AllocateTemporary();
                         { Context::ScopedEmitLHS guard(context, true);
                             argument->EmitRISC(stream, context, tempReg);
                         }
                         // Store pointer
                         stream << "sw " << tempReg << "," << stackOffset << "(sp)" << std::endl;
                         stackOffset += 4; // pointer size
-                        context.FreeTemporary(tempReg, stream);
+                        context.FreeRegister(tempReg);
                     } else {
                         // It will be copied if necessary by the callee, so we just return the address
                         { Context::ScopedEmitLHS guard(context, true);
@@ -31,24 +31,24 @@ namespace ast {
                 } else {
                     int memberOffset = 0;
                     // Get the base address
-                    Register baseAddressReg = context.AllocateTemporary(stream);
+                    Register baseAddressReg = context.AllocateTemporary();
                     { Context::ScopedEmitLHS guard(context, true);
                         argument->EmitRISC(stream, context, baseAddressReg);
                     }
                     EmitStructArgument(stream, context, firstIntegerReg, firstFloatReg, stackOffset, type, memberOffset,
                                        baseAddressReg);
-                    context.FreeTemporary(baseAddressReg, stream);
+                    context.FreeRegister(baseAddressReg);
                 }
             } else if (type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE) {
                 if (firstFloatReg > Register::fa7) { // Out of registers; use stack
                     if (stackOffset % type.GetAlignment() != 0)
                         stackOffset += type.GetAlignment() - (stackOffset % type.GetAlignment());
-                    Register tempReg = context.AllocateTemporary(stream, true);
+                    Register tempReg = context.AllocateTemporary(true);
                     argument->EmitRISC(stream, context, tempReg);
                     stream << (type == TypeSpecifier::FLOAT ? "fsw " : "fsd ") << tempReg << "," << stackOffset
                            << "(sp)" << std::endl;
                     stackOffset += type.GetTypeSize();
-                    context.FreeTemporary(tempReg, stream);
+                    context.FreeRegister(tempReg);
                 } else {
                     argument->EmitRISC(stream, context, firstFloatReg);
                     firstFloatReg = static_cast<Register>(static_cast<int>(firstFloatReg) + 1);
@@ -57,11 +57,11 @@ namespace ast {
                 if (firstIntegerReg > Register::a7) { // Out of registers; use stack
                     if (stackOffset % type.GetAlignment() != 0)
                         stackOffset += type.GetAlignment() - (stackOffset % type.GetAlignment());
-                    Register tempReg = context.AllocateTemporary(stream);
+                    Register tempReg = context.AllocateTemporary();
                     argument->EmitRISC(stream, context, tempReg);
                     stream << "sw " << tempReg << "," << stackOffset << "(sp)" << std::endl;
                     stackOffset += type.GetTypeSize();
-                    context.FreeTemporary(tempReg, stream);
+                    context.FreeRegister(tempReg);
                 } else {
                     argument->EmitRISC(stream, context, firstIntegerReg);
                     firstIntegerReg = static_cast<Register>(static_cast<int>(firstIntegerReg) + 1);
@@ -86,15 +86,15 @@ namespace ast {
                 case TypeSpecifier::UNSIGNED:
                 case TypeSpecifier::ENUM:
                 case TypeSpecifier::CHAR:
-                case TypeSpecifier::ARRAY: // todo is this right? cx everything arrays in structs
+                case TypeSpecifier::ARRAY: // todo is this right? cx everything arrays in structs, yep start, with the split struct edge case - should help push up some of that logic and make the array cases less mindbending
                     if (firstIntegerReg > Register::a7) {
-                        Register tempReg = context.AllocateTemporary(stream);
+                        Register tempReg = context.AllocateTemporary();
                         stream << (type == TypeSpecifier::CHAR ? "lbu " : "lw ") << tempReg << ","
                                << memberOffset << "(" << baseAddressReg << ")" << std::endl;
                         stream << (type == TypeSpecifier::CHAR ? "sb " : "sw ") << tempReg << ","
                                << stackOffset << "(sp)" << std::endl;
                         stackOffset += member.second.GetTypeSize();
-                        context.FreeTemporary(tempReg, stream);
+                        context.FreeRegister(tempReg);
                     } else {
                         stream << (type == TypeSpecifier::CHAR ? "lbu " : "lw ") << firstIntegerReg << ","
                                << memberOffset << "(" << baseAddressReg << ")" << std::endl;
@@ -104,7 +104,7 @@ namespace ast {
                 case TypeSpecifier::FLOAT:
                 case TypeSpecifier::DOUBLE:
                     if (firstFloatReg > Register::fa7) {
-                        Register tempReg = context.AllocateTemporary(stream, true);
+                        Register tempReg = context.AllocateTemporary(true);
                         stream << (member.second == TypeSpecifier::FLOAT ? "flw " : "fld ") << tempReg
                                << ","
                                << memberOffset << "(" << baseAddressReg << ")" << std::endl;
@@ -112,7 +112,7 @@ namespace ast {
                                << ","
                                << stackOffset << "(sp)" << std::endl;
                         stackOffset += member.second.GetTypeSize();
-                        context.FreeTemporary(tempReg, stream);
+                        context.FreeRegister(tempReg);
                     } else {
                         stream << (member.second == TypeSpecifier::FLOAT ? "flw " : "fld ") << firstFloatReg
                                << "," << memberOffset << "(" << baseAddressReg << ")" << std::endl;

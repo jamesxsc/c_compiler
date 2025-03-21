@@ -13,10 +13,9 @@ namespace ast {
         TypeSpecifier type = Utils::BinaryResultType(left_->GetType(context), right_->GetType(context));
         bool useFloat = type == TypeSpecifier::Type::FLOAT || type == TypeSpecifier::Type::DOUBLE;
         bool leftStored = right_->ContainsFunctionCall();
-        Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(
-                stream, useFloat);
+        Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(useFloat);
         left_->EmitRISC(stream, context, leftReg);
-        Register rightReg = context.AllocateTemporary(stream, useFloat);
+        Register rightReg = context.AllocateTemporary(useFloat);
         right_->EmitRISC(stream, context, rightReg);
         switch (op_) {
             case EqualityOperator::Equality:
@@ -64,8 +63,8 @@ namespace ast {
                 break;
         }
         stream << "andi " << destReg << "," << destReg << ",0xff" << std::endl;
-        leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg, stream);
-        context.FreeTemporary(rightReg, stream);
+        context.FreeRegister(leftReg);
+        context.FreeRegister(rightReg);
     }
 
     void EqualityExpression::Print(std::ostream &stream) const {

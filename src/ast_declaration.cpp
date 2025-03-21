@@ -21,7 +21,7 @@ namespace ast {
             // Bindings and init
             if (initDeclarator->HasInitializer()) {
                 bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE; // Only for non-arrays
-                Register tempReg = context.AllocateTemporary(stream, useFloat);
+                Register tempReg = context.AllocateTemporary(useFloat);
                 if (type.IsArray()) {
                     assert(initDeclarator->GetInitializer().IsList() && "Array initializer must be a list");
                     Variable array = context.CurrentFrame().bindings.InsertOrOverwrite(identifier, Variable{
@@ -69,7 +69,7 @@ namespace ast {
                                     "ArrayIndexExpression::EmitRISC() called on an unsupported type");
                     }
                 }
-                context.FreeTemporary(tempReg, stream);
+                context.FreeRegister(tempReg);
             } else {
                 // Allocated (stack), but not initialized
                 if (initDeclarator->IsArray()) {
@@ -127,12 +127,12 @@ namespace ast {
                     break;
                 case TypeSpecifier::Type::FLOAT:
                 case TypeSpecifier::Type::DOUBLE: {
-                    Register tempFloatReg = context.AllocateTemporary(stream, true);
+                    Register tempFloatReg = context.AllocateTemporary(true);
                     (*it)->EmitRISC(stream, context, tempFloatReg);
                     stream << (memberType == TypeSpecifier::Type::FLOAT ? "fsw " : "fsd ")
                            << tempFloatReg << "," << baseOffset + memberOffset << "(s0)"
                            << std::endl;
-                    context.FreeTemporary(tempFloatReg, stream);
+                    context.FreeRegister(tempFloatReg);
                     break;
                 }
                 case TypeSpecifier::Type::ARRAY: {

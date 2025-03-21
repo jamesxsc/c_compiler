@@ -14,12 +14,12 @@ namespace ast {
         stream << labelStart << ":" << std::endl;
 
         // Evaluate condition
-        Register condReg = context.AllocateTemporary(stream);
+        Register condReg = context.AllocateTemporary();
         Utils::EmitComparison(stream, context, condReg, *condition_);
 
         // If condReg == 0 => jump labelEnd
         stream << "beq " << condReg << ", zero, " << labelEnd << std::endl;
-        context.FreeTemporary(condReg, stream);
+        context.FreeRegister(condReg);
 
         // Never null
         if (inSwitchScope_)
@@ -66,11 +66,11 @@ namespace ast {
                                          std::end(childPairs));
         }
 
-        Register condReg = context.AllocateTemporary(stream);
+        Register condReg = context.AllocateTemporary();
         Utils::EmitComparison(stream, context, condReg, *condition_);
         stream << "bne " << condReg << ", zero, " << labelStart << std::endl;
 
-        context.FreeTemporary(condReg, stream);
+        context.FreeRegister(condReg);
 
         stream << labelEnd << ":" << std::endl;
 
@@ -97,7 +97,7 @@ namespace ast {
         initStmt_->EmitRISC(stream, context, destReg);
         stream << labelStart << ":" << std::endl;
 
-        Register condReg = context.AllocateTemporary(stream);
+        Register condReg = context.AllocateTemporary();
         const Expression *cond = condStmt_->GetExpression();
         if (cond) {
             Utils::EmitComparison(stream, context, condReg, *cond);
@@ -105,7 +105,7 @@ namespace ast {
             stream << "li " << condReg << ",1" << std::endl;
         }
         stream << "beq " << condReg << ",zero," << labelEnd << std::endl;
-        context.FreeTemporary(condReg, stream);
+        context.FreeRegister(condReg);
 
         // Never null
         if (inSwitchScope_)
@@ -119,9 +119,9 @@ namespace ast {
 
         stream << labelContinue << ":" << std::endl; // Must still inc
         if (increment_) {
-            Register incReg = context.AllocateTemporary(stream);
+            Register incReg = context.AllocateTemporary();
             increment_->EmitRISC(stream, context, incReg);
-            context.FreeTemporary(incReg, stream);
+            context.FreeRegister(incReg);
         }
 
         stream << "j " << labelStart << std::endl;

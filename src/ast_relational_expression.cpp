@@ -13,10 +13,9 @@ namespace ast {
         TypeSpecifier type = Utils::BinaryResultType(left_->GetType(context), right_->GetType(context));
         bool leftStored = right_->ContainsFunctionCall();
         bool useFloat = type == TypeSpecifier::Type::FLOAT || type == TypeSpecifier::Type::DOUBLE;
-        Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(
-                stream, useFloat);
+        Register leftReg = leftStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(useFloat);
         left_->EmitRISC(stream, context, leftReg);
-        Register rightReg = context.AllocateTemporary(stream, useFloat);
+        Register rightReg = context.AllocateTemporary(useFloat);
         right_->EmitRISC(stream, context, rightReg);
         switch (type) {
             case TypeSpecifier::Type::INT:
@@ -94,8 +93,8 @@ namespace ast {
                 throw std::runtime_error("RelationalExpression::EmitRISC() called on an unsupported type");
         }
 
-        leftStored ? context.FreePersistent(leftReg) : context.FreeTemporary(leftReg, stream);
-        context.FreeTemporary(rightReg, stream);
+        context.FreeRegister(leftReg);
+        context.FreeRegister(rightReg);
     }
 
     void RelationalExpression::Print(std::ostream &stream) const {

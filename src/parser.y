@@ -10,13 +10,12 @@
     extern int yylineno;
     extern char* yytext;
     extern Node* g_root;
-    extern std::unordered_map<std::string, TypeSpecifier> typedefs;
+    extern std::vector<std::unordered_map<std::string, TypeSpecifier>> typedefs;
     extern FILE* yyin;
     int yylex(void);
     void yyerror(const char*);
     int yylex_destroy(void);
 }
-    // todo make scoped if we have time (typedefs)
 
 // Represents the value associated with any kind of AST node.
 %union{
@@ -97,7 +96,7 @@
 %nterm <statement> statement
 %nterm <labeled_statement> labeled_statement
 %nterm <statement_list> statement_list
-%nterm <compound_statement> compound_statement
+%nterm <compound_statement> compound_statement compound_body
 %nterm <expression_statement> expression_statement
 %nterm <jump_statement> jump_statement
 %nterm <statement> selection_statement iteration_statement
@@ -363,6 +362,14 @@ constant_expression
 declaration
 	: declaration_specifiers ';' // We modified the grammar so don't use this, allows a different type for usage as type specifier and definition
 	| enum_specifier ';' { $$ = new AggregateTypeDefinition(EnumSpecifierPtr($1)); }
+	| TYPEDEF enum_specifier IDENTIFIER ';' { $$ = new AggregateTypeDefinition(EnumSpecifierPtr($2));
+        typedefs.back().emplace(*$3, TypeSpecifier{$2->HasIdentifier() ? $2->GetIdentifier() : "<anonymous>"});
+        delete $3;
+    }
+	| TYPEDEF struct_specifier IDENTIFIER ';' { $$ = new AggregateTypeDefinition(StructSpecifierPtr($2));
+       typedefs.back().emplace(*$3, TypeSpecifier{$2->HasIdentifier() ? $2->GetIdentifier() : "<anonymous>", $2->GetKnownMembers()});
+       delete $3;
+    }
 	| struct_specifier ';' { $$ = new AggregateTypeDefinition(StructSpecifierPtr($1)); }
 	| declaration_specifiers init_declarator_list ';' {
 	    $$ = new Declaration(DeclarationSpecifiersPtr($1), InitDeclaratorListPtr($2));
@@ -371,7 +378,7 @@ declaration
 	        TypeSpecifier type = $1->GetType(dummy);
 	        if (decl->IsPointer()) type = { TypeSpecifier::POINTER, type };
 	        if (decl->IsArray()) type = decl->BuildArray(type, dummy).type;
-            typedefs.emplace(decl->GetIdentifier(), type);
+            typedefs.back().emplace(decl->GetIdentifier(), type);
         } } // Support typedef int x, y; syntax
     }
 	;
@@ -412,8 +419,8 @@ type_specifier
 	| SIGNED { $$ = new TypeSpecifier(TypeSpecifier::INT); }
 	| UNSIGNED { $$ = new TypeSpecifier(TypeSpecifier::UNSIGNED); }
     | struct_specifier { $$ = new TypeSpecifier($1->HasIdentifier() ? $1->GetIdentifier() : "<anonymous>", $1->GetKnownMembers()); } // Same tag as GCC
-	| enum_specifier { $$ = new TypeSpecifier($1->GetIdentifier()); }
-	| TYPE_NAME { $$ = new TypeSpecifier(typedefs.at(*$1)); delete $1; }
+	| enum_specifier { $$ = new TypeSpecifier($1->HasIdentifier() ? $1->GetIdentifier() : "<anonymous>"); }
+	| TYPE_NAME { $$ = new TypeSpecifier(typedefs.back().at(*$1)); delete $1; }
 	;
 
 struct_specifier
@@ -562,8 +569,17 @@ labeled_statement
 	| DEFAULT ':' statement  { $$ = new LabeledStatement(StatementPtr($3)); }
 	;
 
-// This looks counterintuitive but in C90 declarations must all be at the start of a block
+// I call this the parser hack
 compound_statement
+    :   { // Push typedef scope, copy previous scope
+            typedefs.push_back(typedefs.back());
+        } compound_body { // Pop typedef scope
+            typedefs.pop_back();
+        } { $$ = $2; }
+    ;
+
+// This looks counterintuitive but in C90 declarations must all be at the start of a block
+compound_body
 	: '{' '}' { $$ = new CompoundStatement(nullptr, nullptr); }
 	| '{' statement_list '}' { $$ = new CompoundStatement(nullptr, StatementListPtr($2)); }
 	| '{' declaration_list '}' { $$ = new CompoundStatement(DeclarationListPtr($2), nullptr); }
@@ -616,7 +632,7 @@ void yyerror(const char* s)
 }
 
 Node* g_root;
-std::unordered_map<std::string, TypeSpecifier> typedefs;
+std::vector<std::unordered_map<std::string, TypeSpecifier>> typedefs;
 
 NodePtr ParseAST(std::string file_name)
 {
@@ -626,6 +642,7 @@ NodePtr ParseAST(std::string file_name)
     exit(1);
   }
   g_root = nullptr;
+  typedefs.push_back(std::unordered_map<std::string, TypeSpecifier>());
   yyparse();
   fclose(yyin);
   yylex_destroy();

@@ -1,3 +1,4 @@
+/* This is an anonymous struct which "Point" is replaced with the declaration thereof by the parser */
 typedef struct {
     int x;
     int y;

@@ -4,7 +4,7 @@ namespace ast {
 
     void StructMemberAccessExpression::EmitRISC(std::ostream &stream, Context &context, Register destReg) const {
         // Get struct base address
-        Register addressReg = context.AllocateTemporary(stream);
+        Register addressReg = context.AllocateTemporary();
         { Context::ScopedEmitLHS guard(context, !pointerAccess_);
             struct_->EmitRISC(stream, context, addressReg);
         }
@@ -21,7 +21,7 @@ namespace ast {
 
         if (context.EmitLHS()) { // Just return address
             stream << "mv " << destReg << "," << addressReg << std::endl;
-            context.FreeTemporary(addressReg, stream);
+            context.FreeRegister(addressReg);
             return;
         }
 
@@ -51,7 +51,7 @@ namespace ast {
                 throw std::runtime_error(
                         "StructMemberAccessExpression::EmitRISC() called on an unsupported member type");
         }
-        context.FreeTemporary(addressReg, stream);
+        context.FreeRegister(addressReg);
     }
 
     void StructMemberAccessExpression::Print(std::ostream &stream) const {

@@ -15,15 +15,6 @@ namespace ast {
                                                                                structSpecifier_(
                                                                                        std::move(structSpecifier)) {}
 
-        explicit AggregateTypeDefinition(DeclarationSpecifiersPtr declarationSpecifiers, EnumSpecifierPtr enumSpecifier)
-                : Declaration(std::move(declarationSpecifiers), nullptr), enumSpecifier_(std::move(enumSpecifier)) {}
-
-        explicit AggregateTypeDefinition(DeclarationSpecifiersPtr declarationSpecifiers,
-                                         StructSpecifierPtr structSpecifier)
-                : Declaration(std::move(declarationSpecifiers), nullptr),
-                  structSpecifier_(std::move(structSpecifier)) {}
-
-
         void EmitRISC(std::ostream &stream, Context &context, Register destReg) const override;
 
         void Print(std::ostream &stream) const override;

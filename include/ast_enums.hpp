@@ -17,9 +17,12 @@ namespace ast {
 
         bool Contains(const std::string &identifier) const;
 
+        void Insert(const std::map<std::string, int> &values);
+
     private:
         std::unordered_map<std::string, std::map<std::string, int>> enums_{};
         std::unordered_map<std::string, int> lookup_{};
+
     };
 
 }

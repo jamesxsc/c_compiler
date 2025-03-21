@@ -8,11 +8,11 @@ namespace ast {
         std::string labelElse = context.MakeLabel("else");
         std::string labelEnd = context.MakeLabel("endif");
 
-        Register condReg = context.AllocateTemporary(stream);
+        Register condReg = context.AllocateTemporary();
         Utils::EmitComparison(stream, context, condReg, *condition_);
         stream << "beq " << condReg << ", zero, " << labelElse << std::endl;
 
-        context.FreeTemporary(condReg, stream);
+        context.FreeRegister(condReg);
 
         // Never null
         if (inSwitchScope_)

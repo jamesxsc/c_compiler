@@ -60,7 +60,7 @@ IS  (u|U|l|L)*
 
 {L}({L}|{D})*		{
     yylval.string = new std::string(yytext);
-    return typedefs.find(*yylval.string) != typedefs.end() ? TYPE_NAME : IDENTIFIER;
+    return typedefs.back().find(*yylval.string) != typedefs.back().end() ? TYPE_NAME : IDENTIFIER;
 }
 
 0[xX]{H}+{IS}?		{yylval.number_int = (int)strtol(yytext, NULL, 0); return(INT_CONSTANT);}

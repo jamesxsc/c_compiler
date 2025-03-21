@@ -21,8 +21,7 @@ namespace ast {
         bool useFloat = type == TypeSpecifier::FLOAT || type == TypeSpecifier::DOUBLE;
         bool rightStored = (op_ != AssignmentOperator::Assign) &&
                            unary_->ContainsFunctionCall(); // I can't see any case where this is true
-        Register result = rightStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(
-                stream, useFloat);
+        Register result = rightStored ? context.AllocatePersistent(useFloat) : context.AllocateTemporary(useFloat);
         switch (op_) {
             case AssignmentOperator::ConditionalPromote:
                 break; // Handled above
@@ -69,7 +68,7 @@ namespace ast {
         }
 
         // Common: store the result
-        Register addrReg = context.AllocateTemporary(stream);
+        Register addrReg = context.AllocateTemporary();
         { Context::ScopedEmitLHS guard(context, true);
             unary_->EmitRISC(stream, context, addrReg);
         }
@@ -96,13 +95,13 @@ namespace ast {
             case TypeSpecifier::ARRAY:
                 throw std::runtime_error("Unsupported type for assignment");
         }
-        context.FreeTemporary(addrReg, stream);
+        context.FreeRegister(addrReg);
 
         // All "return" the result in destReg (if it's used)
         if (destReg != Register::zero) {
             stream << "mv " << destReg << "," << result << std::endl;
         }
-        context.FreeTemporary(result, stream);
+        context.FreeRegister(result);
     }
 
     void AssignmentExpression::Print(std::ostream &stream) const {
