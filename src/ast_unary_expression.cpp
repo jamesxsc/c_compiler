@@ -194,10 +194,10 @@ namespace ast {
             case UnaryOperator::AddressOf:
                 return {TypeSpecifier::POINTER, multiplicativeChild_->GetType(context)};
             case UnaryOperator::Dereference:
-                if (context.EmitLHS())
+//                if (context.EmitLHS())
                     return multiplicativeChild_->GetType(context).GetPointeeType();
-                else
-                    return multiplicativeChild_->GetType(context);
+//                else
+//                    return multiplicativeChild_->GetType(context);
             case UnaryOperator::Plus:
             case UnaryOperator::Minus:
                 return multiplicativeChild_->GetType(context);
